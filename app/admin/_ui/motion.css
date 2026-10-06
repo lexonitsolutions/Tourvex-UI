@@ -288,3 +288,41 @@
 .adm-tile:hover .adm-tile__icon { transform: rotate(-6deg) scale(1.08); }
 .adm-tile__value { animation: adm-fade-in var(--adm-d-slow) var(--adm-e-std) backwards; }
 .adm-tabs[data-ready="1"] .adm-tabs__ind { transition-duration: var(--adm-d-slow); transition-timing-function: var(--adm-e-emph); }
+
+/* ---- sidebar: frosted glow that glides between rows + smoother dropdowns ---- */
+.adm-nav { position: relative; }
+.adm-nav__glow {
+  position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 0; border-radius: 9px; pointer-events: none; opacity: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  will-change: transform, width, height;
+  transition: transform 0.42s var(--adm-e-emph), width 0.42s var(--adm-e-emph), height 0.42s var(--adm-e-emph), opacity 0.28s ease;
+}
+.adm-nav__glow.is-visible { opacity: 1; }
+.adm-nav__glow.is-snap { transition: opacity 0.28s ease; }
+.adm-nav__item, .adm-nav__sub li { position: relative; z-index: 1; }
+.adm-nav__link, .adm-nav__sublink { position: relative; z-index: 1; cursor: pointer; }
+/* The glow is the hover highlight on pointer devices; touch keeps the plain background. */
+@media (hover: hover) {
+  .adm-nav__link:not(.is-active):hover { background: transparent; }
+}
+@media (hover: none) { .adm-nav__glow { display: none; } }
+
+.adm-nav__sublink { border-radius: 8px; }
+.adm-nav__subwrap { transition: grid-template-rows 0.4s var(--adm-e-emph); }
+.adm-nav__toggle .adm-icon { transition: transform 0.4s var(--adm-e-emph); }
+.adm-nav__sub li { opacity: 0; transform: translateY(-6px); transition: opacity 0.2s var(--adm-e-in), transform 0.2s var(--adm-e-in); }
+.adm-nav__item.is-open > .adm-nav__subwrap .adm-nav__sub li {
+  opacity: 1; transform: none;
+  transition: opacity 0.3s var(--adm-e-std), transform 0.38s var(--adm-e-emph);
+  transition-delay: calc(var(--i, 0) * 38ms + 70ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-honor-reduced-motion] .adm-nav__glow,
+  html[data-honor-reduced-motion] .adm-nav__subwrap,
+  html[data-honor-reduced-motion] .adm-nav__sub li { transition: none; }
+  html[data-honor-reduced-motion] .adm-nav__sub li { transform: none; }
+}

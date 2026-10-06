@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "../../components/AppProvider";
@@ -59,7 +59,43 @@ function groupMenu(menu) {
   return groups;
 }
 
-function NavItem({ item, pathname, collapsed, onNavigate }) {
+/**
+ * A frosted highlight that glides from one sidebar row to the next on hover/focus, like the dock in the site header.
+ * It sits inside the scrolling <nav>, so it scrolls with the rows; positions are measured when a row is entered.
+ */
+function useNavGlow() {
+  const nav = useRef(null);
+  const [glow, setGlow] = useState({ x: 0, y: 0, w: 0, h: 0, visible: false, snap: true });
+
+  const point = useCallback((e) => {
+    const row = e.target.closest?.(".adm-nav__link, .adm-nav__sublink");
+    const box = nav.current;
+    if (!row || !box || !box.contains(row)) return;
+    const b = box.getBoundingClientRect();
+    const r = row.getBoundingClientRect();
+    setGlow((prev) => ({
+      x: r.left - b.left + box.scrollLeft,
+      y: r.top - b.top + box.scrollTop,
+      w: r.width,
+      h: r.height,
+      visible: true,
+      snap: !prev.visible,
+    }));
+  }, []);
+  const hide = useCallback(() => setGlow((prev) => (prev.visible ? { ...prev, visible: false, snap: false } : prev)), []);
+
+  const props = { ref: nav, onMouseOver: point, onFocus: point, onMouseLeave: hide, onBlur: hide, onScroll: hide };
+  const element = (
+    <span
+      className={cx("adm-nav__glow", glow.snap && "is-snap", glow.visible && "is-visible")}
+      aria-hidden="true"
+      style={{ transform: `translate3d(${glow.x}px, ${glow.y}px, 0)`, width: glow.w, height: glow.h }}
+    />
+  );
+  return { props, element, hide };
+}
+
+function NavItem({ item, pathname, collapsed, onNavigate, onToggle }) {
   const active = isActive(pathname, item.href);
   const children = item.children || [];
   const hasChildren = children.length > 0;
@@ -77,7 +113,21 @@ function NavItem({ item, pathname, collapsed, onNavigate }) {
         className={cx("adm-nav__link", inSection && "is-active")}
         aria-current={pathname === item.href ? "page" : undefined}
         title={collapsed ? item.label : undefined}
-        onClick={onNavigate}
+        onClick={(e) => {
+          // Clicking anywhere on a parent row toggles its dropdown (not just the chevron). A closed menu opens and the
+          // page navigates; an open one just folds away. In the icon rail there is no dropdown, so it simply navigates.
+          if (hasChildren && !collapsed) {
+            if (open) {
+              e.preventDefault();
+              setManual(false);
+              onToggle?.();
+              return;
+            }
+            setManual(true);
+          }
+          onToggle?.();
+          onNavigate?.();
+        }}
       >
         <Icon name={item.icon || item.id} size={18} />
         <span className="adm-nav__label">{item.label}</span>
@@ -89,7 +139,11 @@ function NavItem({ item, pathname, collapsed, onNavigate }) {
           aria-expanded={open}
           aria-controls={subId}
           aria-label={`${open ? "Collapse" : "Expand"} ${item.label} menu`}
-          onClick={() => setManual(!open)}
+          onClick={() => {
+            setManual(!open);
+            onToggle?.();
+          }}
+          tabIndex={-1}
         >
           <Icon name="chevronDown" size={16} />
         </button>
@@ -97,8 +151,8 @@ function NavItem({ item, pathname, collapsed, onNavigate }) {
       {hasChildren ? (
         <div className="adm-nav__subwrap" id={subId} inert={!open}>
           <ul className="adm-nav__sub">
-            {children.map((c) => (
-              <li key={c.id || c.href}>
+            {children.map((c, i) => (
+              <li key={c.id || c.href} style={{ "--i": i }}>
                 <Link href={c.href} className={cx("adm-nav__sublink", bestChild === c && "is-active")} aria-current={pathname === c.href ? "page" : undefined} onClick={onNavigate}>
                   {c.label}
                 </Link>
@@ -185,6 +239,7 @@ function ShellSkeleton() {
 }
 
 export default function AdminShell({ children }) {
+  const navGlow = useNavGlow();
   const { user, ready, logout } = useApp();
   const { status, menu, user: meUser, error, reload } = useAdminMe();
   const pathname = usePathname() || "/admin";
@@ -292,13 +347,14 @@ export default function AdminShell({ children }) {
             <Icon name="close" />
           </button>
         </div>
-        <nav className="adm-nav" aria-label="Main">
+        <nav className="adm-nav" aria-label="Main" {...navGlow.props}>
+          {navGlow.element}
           {groups.map((g) => (
             <div key={g.title || "main"} className="adm-nav__group">
               {g.title ? <p className="adm-nav__title">{g.title}</p> : null}
               <ul>
                 {g.items.map((item) => (
-                  <NavItem key={item.id || item.href} item={item} pathname={pathname} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+                  <NavItem key={item.id || item.href} item={item} pathname={pathname} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} onToggle={navGlow.hide} />
                 ))}
               </ul>
             </div>
@@ -308,7 +364,7 @@ export default function AdminShell({ children }) {
               <p className="adm-nav__title">Legacy</p>
               <ul>
                 {LEGACY_ITEMS.map((item) => (
-                  <NavItem key={item.id} item={item} pathname={pathname} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+                  <NavItem key={item.id} item={item} pathname={pathname} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} onToggle={navGlow.hide} />
                 ))}
               </ul>
             </div>
