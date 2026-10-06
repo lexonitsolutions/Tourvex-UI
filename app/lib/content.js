@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { cookies } from "next/headers";
 import { DEFAULTS } from "../content/defaults";
 
@@ -8,8 +8,10 @@ import { DEFAULTS } from "../content/defaults";
  * - One batched fetch (`GET /content?keys=...`), revalidated every 30 s.
  * - Per-key fallback to the bundled defaults (app/content/defaults) on ANY error, and missing fields
  *   inside a document fall back to the default value, so the site never breaks when the API is down.
- * - Preview: `proxy.js` turns `?cmsPreview=<token>` into a short-lived httpOnly cookie. With a valid
- *   token the bound document is fetched as a DRAFT (no cache, noindex, "Preview mode" pill).
+ * - Published content is cached with `use cache` (see `loadPublished`), so layouts and pages that read it stay part of the
+ *   prerendered static shell: it revalidates every 60 s and can be refreshed on demand with `revalidateTag("cms")`.
+ * - Preview (drafts) needs the request cookie, which a cached scope cannot read, so it is a separate dynamic path
+ *   (`getPreviewPageContent`). `proxy.js` does not set that cookie yet, so nothing calls it today.
  */
 
 export const PREVIEW_COOKIE = "cms_preview";
@@ -75,44 +77,65 @@ async function request(keys, token) {
   return { items: body?.items || {}, preview: response.headers.get("x-robots-tag") === "noindex" };
 }
 
-async function load(keys, allowPreview) {
-  const token = allowPreview ? await readPreviewToken() : null;
-  let result = null;
-  try {
-    result = await request(keys, token);
-  } catch {
-    if (token) {
-      // An expired or rejected token must not take the page down: show the published content.
-      try {
-        result = await request(keys, null);
-      } catch {
-        result = null;
-      }
-    }
-  }
+function build(keys, result) {
   const content = {};
   for (const key of keys) content[key] = normalise(key, result?.items?.[key]);
-  return { content, preview: Boolean(result?.preview), fromApi: Boolean(result) };
+  return content;
 }
 
-const loadCached = cache((keysJoined, allowPreview) => load(keysJoined.split(","), allowPreview));
-
-/** `{ sections, preview }` for a page document such as "home". Never throws. */
-export async function getPageContent(name, { allowPreview = true } = {}) {
-  const key = `page.${name}`;
-  const { content, preview } = await loadCached(ALL_KEYS.join(","), allowPreview);
-  return { sections: content[key]?.sections || [], preview };
+/**
+ * Published content for every CMS key, cached (shared by all visitors, no request data involved). Takes no arguments so
+ * the whole set is one cache entry and one API call. `stale >= 5 min` and `expire >= 5 min` are what let a cached scope
+ * be part of the prerendered shell; `revalidate` is what bounds how old a published change can be.
+ */
+async function loadPublished() {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 60, expire: 86400 });
+  cacheTag("cms");
+  let result = null;
+  try {
+    result = await request(ALL_KEYS, null);
+  } catch {
+    result = null;
+  }
+  return build(ALL_KEYS, result);
 }
 
-/** `{ header, footer, seo, preview }` (the `data` of each global document). Never throws. */
-export async function getGlobalContent({ allowPreview = true } = {}) {
-  const { content, preview } = await loadCached(ALL_KEYS.join(","), allowPreview);
+/** `{ sections }` for a page document such as "home" (published). Never throws. */
+export async function getPageContent(name) {
+  const content = await loadPublished();
+  return { sections: content[`page.${name}`]?.sections || [] };
+}
+
+/** `{ header, footer, seo }` (the `data` of each global document, published). Never throws. */
+export async function getGlobalContent() {
+  const content = await loadPublished();
   return {
     header: content["global.header"]?.data,
     footer: content["global.footer"]?.data,
     seo: content["global.seo"]?.data,
-    preview,
   };
+}
+
+/**
+ * Draft content for a preview visitor. Reads the preview cookie, so it is request-time only: call it inside a
+ * `<Suspense>` boundary, never from a cached scope. Falls back to the published page when there is no valid token.
+ */
+export async function getPreviewPageContent(name) {
+  const key = `page.${name}`;
+  const token = await readPreviewToken();
+  if (!token) return { ...(await getPageContent(name)), preview: false };
+  let result = null;
+  try {
+    result = await request(ALL_KEYS, token);
+  } catch {
+    try {
+      result = await request(ALL_KEYS, null);
+    } catch {
+      result = null;
+    }
+  }
+  return { sections: build(ALL_KEYS, result)[key]?.sections || [], preview: Boolean(result?.preview) };
 }
 
 /** The enabled sections of a page, in CMS order. */

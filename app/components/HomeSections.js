@@ -2,23 +2,29 @@
 
 import { CmsLink } from "./CmsLink";
 import { fmt } from "../lib/format";
-import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { fetchAllActivities } from "../lib/api";
+import { Fragment, memo, useEffect, useMemo, useRef, useState } from "react";
+import { getActivities } from "../lib/api";
+import { useInView } from "../lib/useInView";
 import { getHolidayHome } from "../lib/holidays";
 import { getCruiseHome } from "../lib/cruises";
 import { getEventHome } from "../lib/events";
 import { gsap, ScrollTrigger, prefersReducedMotion, useIsoLayoutEffect, useReveal } from "../lib/motion";
 import { useApp } from "./AppProvider";
 import { useMotion } from "./MotionShell";
-import BestSellerCards from "./BestSellerCards";
-import ExperienceCards from "./ExperienceCards";
+import dynamic from "next/dynamic";
+import { preload } from "react-dom";
 import ShowcaseCard, { ShowcaseSkeleton } from "./ShowcaseCard";
 import MobileHero from "./MobileHero";
-import PartnersStrip from "./PartnersStrip";
 import { useIsMobile } from "../lib/useIsMobile";
 import { HolidayCard, CardSkeletons as HolidaySkeletons } from "./holidays/HolidayParts";
-import { CruiseCard } from "./cruises/CruiseParts";
-import { EventCard } from "./events/EventParts";
+
+// Everything below the fold is its own chunk: it is still server-rendered, but its JavaScript loads separately
+// from the hero, so the first screen becomes interactive sooner.
+const BestSellerCards = dynamic(() => import("./BestSellerCards"));
+const ExperienceCards = dynamic(() => import("./ExperienceCards"));
+const PartnersStrip = dynamic(() => import("./PartnersStrip"));
+const CruiseCard = dynamic(() => import("./cruises/CruiseParts").then((m) => m.CruiseCard));
+const EventCard = dynamic(() => import("./events/EventParts").then((m) => m.EventCard));
 
 const SLIDE_MS = 6500;
 
@@ -79,6 +85,8 @@ function Skeletons({ count }) {
  */
 const Hero = memo(function Hero({ content }) {
   const SLIDES = content.slides;
+  // The first slide is the largest paint on the page: fetch it at high priority, before the hero JS runs.
+  if (SLIDES[0]?.image?.url) preload(SLIDES[0].image.url, { as: "image", fetchPriority: "high" });
   const { loaded } = useMotion();
   const [slide, setSlide] = useState(0);
   const heroRef = useRef(null);
@@ -190,7 +198,7 @@ const Hero = memo(function Hero({ content }) {
   );
 });
 
-export default function HomeSections({ partners = null }) {
+export default function HomeSections({ sections = [], partners = null }) {
   const { currency } = useApp();
   const isMobile = useIsMobile();
 
@@ -216,41 +224,53 @@ export default function HomeSections({ partners = null }) {
   const eventsRef = useRef(null);
   const whyRef = useRef(null);
 
+  // Each group of sections loads its data only when it is about to scroll into view (700px ahead), so the first
+  // paint (hero + categories) never waits on the catalog, holiday, cruise or event requests. Results are
+  // cached in lib/clientCache, so revisiting the home page or opening search reuses them.
+  const activitiesNear = useInView([citiesRef, bestRef, brandsRef]);
+  const holidaysNear = useInView([holidaysRef]);
+  const cruisesNear = useInView([cruisesRef]);
+  const eventsNear = useInView([eventsRef]);
+
   // Fetch activities
   useEffect(() => {
+    if (!activitiesNear) return undefined;
     const controller = new AbortController();
-    fetchAllActivities({ currency, signal: controller.signal })
+    getActivities(currency, { signal: controller.signal })
       .then((data) => { setActError(false); setItems(data); })
       .catch((err) => err.name !== "AbortError" && setActError(true));
     return () => controller.abort();
-  }, [currency]);
+  }, [currency, activitiesNear]);
 
   // Fetch holidays home data
   useEffect(() => {
+    if (!holidaysNear) return undefined;
     const controller = new AbortController();
     getHolidayHome({ currency, signal: controller.signal })
       .then((data) => setHolidayData(data))
       .catch((err) => err.name !== "AbortError" && setHolidayData(null));
     return () => controller.abort();
-  }, [currency]);
+  }, [currency, holidaysNear]);
 
   // Fetch cruises home data
   useEffect(() => {
+    if (!cruisesNear) return undefined;
     const controller = new AbortController();
     getCruiseHome({ currency, signal: controller.signal })
       .then((data) => setCruiseData(data))
       .catch((err) => err.name !== "AbortError" && setCruiseData(null));
     return () => controller.abort();
-  }, [currency]);
+  }, [currency, cruisesNear]);
 
   // Fetch events home data
   useEffect(() => {
+    if (!eventsNear) return undefined;
     const controller = new AbortController();
     getEventHome({ currency, signal: controller.signal })
       .then((data) => setEventData(data))
       .catch((err) => err.name !== "AbortError" && setEventData(null));
     return () => controller.abort();
-  }, [currency]);
+  }, [currency, eventsNear]);
 
   // ── Derived activity data ──────────────────────────────────────────────────
   const cities = useMemo(() => {
@@ -299,61 +319,61 @@ export default function HomeSections({ partners = null }) {
 
   const scrollRail = (dir) => rail.current?.scrollBy({ left: dir * 360, behavior: "smooth" });
 
-  return (
-    <>
-      {isMobile ? <MobileHero slides={SLIDES} /> : <Hero />}
+  const renderers = {
+    hero: (c) => (isMobile ? <MobileHero slides={c.slides} content={c} /> : <Hero content={c} />),
 
-      {/* ── What are you looking for? category banner ── */}
+    categoryTiles: (c) => (
       <section className="mk-container mk-section mk-cat-banner">
         <div className="mk-section-head" data-reveal>
           <div>
-            <h2>What are you looking for?</h2>
-            <p className="mk-sub">Explore our full range of travel services.</p>
+            <h2>{c.heading}</h2>
+            <p className="mk-sub">{c.subheading}</p>
           </div>
         </div>
         <div className="mk-cat-tiles">
-          {CATEGORY_TILES.map((tile) => (
-            <Link
-              key={tile.href}
-              href={tile.href}
+          {c.tiles.map((tile) => (
+            <CmsLink
+              key={tile.id}
+              href={tile.link.href}
               className="mk-cat-tile"
-              style={{ background: tile.bg }}
-              aria-label={tile.label}
+              style={{ background: `linear-gradient(145deg, ${tile.gradientFrom} 0%, ${tile.gradientMid} 55%, ${tile.gradientTo} 100%)` }}
+              aria-label={tile.link.label}
             >
               {/* Icon bubble — top-right */}
               <span className="mk-cat-icon" aria-hidden="true">{tile.emoji}</span>
 
               {/* Text block — bottom-left */}
               <span className="mk-cat-body">
-                <strong className="mk-cat-label">{tile.label}</strong>
+                <strong className="mk-cat-label">{tile.link.label}</strong>
                 <span className="mk-cat-sub">{tile.sub}</span>
                 {/* Arrow pill slides up on hover */}
                 <span className="mk-cat-arrow">
-                  Explore
+                  {c.arrowLabel}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
                 </span>
               </span>
-            </Link>
+            </CmsLink>
           ))}
         </div>
       </section>
+    ),
 
-      {/* ── Best Cities to Visit (activity destinations) ── */}
+    bestCities: (c) => (
       <section className="mk-container mk-section" ref={citiesRef}>
         <div className="mk-section-head" data-reveal>
-          <h2>Best Cities to Visit</h2>
+          <h2>{c.heading}</h2>
           <div className="mk-rail-controls">
-            <Link className="mk-link" href="/destination">View all</Link>
-            <button aria-label="Previous" onClick={() => scrollRail(-1)}>‹</button>
-            <button aria-label="Next" onClick={() => scrollRail(1)}>›</button>
+            <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
+            <button aria-label={c.previousLabel} onClick={() => scrollRail(-1)}>‹</button>
+            <button aria-label={c.nextLabel} onClick={() => scrollRail(1)}>›</button>
           </div>
         </div>
         <div className="mk-rail" ref={rail}>
           {items
             ? cities.map((city) => (
-                <Link
+                <CmsLink
                   key={city.name}
                   data-reveal="right"
                   className="mk-city"
@@ -364,53 +384,56 @@ export default function HomeSections({ partners = null }) {
                     <div className="mk-city-img">
                       <img src={city.image} alt="" loading="lazy" onError={showFallback} />
                     </div>
-                    <h3>Things to do in {city.name}</h3>
-                    <p>{city.count} experiences</p>
+                    <h3>{fmt(c.cityTitle, { city: city.name })}</h3>
+                    <p>{fmt(c.cityCount, { count: city.count })}</p>
                     <span className="mk-city-go" aria-hidden="true">→</span>
                   </div>
-                </Link>
+                </CmsLink>
               ))
             : Array.from({ length: 4 }, (_, i) => <div key={i} className="mk-city mk-skeleton" aria-hidden="true" />)}
         </div>
       </section>
+    ),
 
-      {/* ── Best-Selling Activities ── */}
+    bestSellers: (c) => (
       <section className="mk-container mk-section" ref={bestRef}>
         <div className="mk-section-head" data-reveal>
-          <h2>Best-Selling Experiences</h2>
-          <Link className="mk-link" href="/activities">View all activities</Link>
+          <h2>{c.heading}</h2>
+          <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
         </div>
-        {actError && <p className="mk-error">We could not load experiences right now. Please try again shortly.</p>}
-        {!actError && <BestSellerCards items={items ? bestSelling : null} />}
+        {actError && <p className="mk-error">{c.errorMessage}</p>}
+        {!actError && <BestSellerCards items={items ? bestSelling : null} content={c} />}
       </section>
+    ),
 
-      {/* ── Featured Holiday Packages ── */}
+    holidays: (c) => (
       <section className="mk-container mk-section" ref={holidaysRef}>
         <div className="mk-section-head" data-reveal>
           <div>
-            <h2>Featured Holiday Packages</h2>
-            <p className="mk-sub">Multi-day itineraries, hand-picked for you.</p>
+            <h2>{c.heading}</h2>
+            <p className="mk-sub">{c.subheading}</p>
           </div>
-          <Link className="mk-link" href="/holidays">View all holidays</Link>
+          <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
         </div>
         <div className="mk-grid mk-grid-4">
           {holidayData
             ? featuredHolidays.length > 0
               ? featuredHolidays.map((it) => <HolidayCard key={it.id || it.slug} item={it} reveal />)
-              : <p className="mk-empty">No holiday packages available right now.</p>
+              : <p className="mk-empty">{c.emptyMessage}</p>
             : <HolidaySkeletons count={4} />}
         </div>
       </section>
+    ),
 
-      {/* ── Cruise Teaser ── */}
-      {(cruiseData === null || featuredCruises.length > 0) && (
+    cruises: (c) =>
+      (cruiseData === null || featuredCruises.length > 0) && (
         <section className="mk-container mk-section" ref={cruisesRef}>
           <div className="mk-section-head" data-reveal>
             <div>
-              <h2>Set Sail — Explore Cruises</h2>
-              <p className="mk-sub">Ocean and river sailings from the region and beyond.</p>
+              <h2>{c.heading}</h2>
+              <p className="mk-sub">{c.subheading}</p>
             </div>
-            <Link className="mk-link" href="/cruises">View all cruises</Link>
+            <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
           </div>
           <div className="mk-grid mk-grid-4">
             {cruiseData
@@ -418,17 +441,17 @@ export default function HomeSections({ partners = null }) {
               : Array.from({ length: 4 }, (_, i) => <div key={i} className="sc-card mk-skeleton" aria-hidden="true" style={{ minHeight: 280 }} />)}
           </div>
         </section>
-      )}
+      ),
 
-      {/* ── Events Teaser ── */}
-      {(eventData === null || featuredEvents.length > 0) && (
+    events: (c) =>
+      (eventData === null || featuredEvents.length > 0) && (
         <section className="mk-container mk-section" ref={eventsRef}>
           <div className="mk-section-head" data-reveal>
             <div>
-              <h2>Upcoming Events</h2>
-              <p className="mk-sub">Concerts, shows and experiences happening soon.</p>
+              <h2>{c.heading}</h2>
+              <p className="mk-sub">{c.subheading}</p>
             </div>
-            <Link className="mk-link" href="/events">View all events</Link>
+            <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
           </div>
           <div className="mk-grid mk-grid-4">
             {eventData
@@ -436,36 +459,47 @@ export default function HomeSections({ partners = null }) {
               : Array.from({ length: 4 }, (_, i) => <div key={i} className="sc-card mk-skeleton" aria-hidden="true" style={{ minHeight: 280 }} />)}
           </div>
         </section>
-      )}
+      ),
 
-      {/* ── Explore by Experience (activity trip types) ── */}
+    exploreByExperience: (c) => (
       <section className="mk-container mk-section" ref={brandsRef}>
         <div className="mk-section-head" data-reveal>
           <div>
-            <h2>Explore by Experience Type</h2>
-            <p className="mk-sub">Pick a style of trip and see what we offer.</p>
+            <h2>{c.heading}</h2>
+            <p className="mk-sub">{c.subheading}</p>
           </div>
-          <Link className="mk-link mk-only-mobile" href="/activities">View all</Link>
+          <CmsLink className="mk-link mk-only-mobile" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
         </div>
-        <ExperienceCards items={items} />
+        <ExperienceCards items={items} content={c} />
       </section>
+    ),
 
-      <PartnersStrip data={partners} id="home-partners" />
+    partners: () => <PartnersStrip data={partners} id="home-partners" />,
 
+    why: (c) => (
       <section className="mk-why" ref={whyRef}>
         <div className="mk-container">
-          <h2 data-reveal>Why book with Karnish</h2>
+          <h2 data-reveal>{c.heading}</h2>
           <div className="mk-why-grid">
-            {WHY.map(([title, text], i) => (
-              <div key={title} data-reveal>
+            {c.items.map((item, i) => (
+              <div key={item.id} data-reveal>
                 <span className="mk-why-num">0{i + 1}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
+    ),
+  };
+
+  return (
+    <>
+      {sections.map((section) => {
+        const render = renderers[section.type];
+        return render ? <Fragment key={section.id}>{render(section.data)}</Fragment> : null;
+      })}
     </>
   );
 }

@@ -3,6 +3,11 @@ import EventListing from "../../../../components/events/EventListing";
 import { listEvents, listingQuery, parseListingParams } from "../../../../lib/events";
 import { getServerCurrency } from "../../../../lib/currencyServer";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 function decode(value) {
   try {
     return decodeURIComponent(value);

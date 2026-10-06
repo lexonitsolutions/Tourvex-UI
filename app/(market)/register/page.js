@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Sign-in moved to Clerk (/sign-up). Keep old links and bookmarks working.
 export default async function RegisterRedirect({ searchParams }) {
   const params = (await searchParams) || {};

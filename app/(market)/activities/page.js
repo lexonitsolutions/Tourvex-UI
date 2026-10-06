@@ -5,6 +5,11 @@ import { fetchAllActivities } from "../../lib/api";
 import { getServerCurrency } from "../../lib/currencyServer";
 import { getPartnersSafe } from "../../lib/partners";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // A single value only: several (comma list or repeated) means a multi-filter, which gets the generic title.
 const one = (v) => {
   const list = (Array.isArray(v) ? v : [v]).flatMap((x) => String(x || "").split(",")).map((x) => x.trim()).filter(Boolean);

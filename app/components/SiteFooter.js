@@ -1,8 +1,12 @@
 import { CmsLink } from "./CmsLink";
+import { cacheLife } from "next/cache";
 import { fmt } from "../lib/format";
 
 /** Footer: every text, link and the logo come from the CMS (global.footer). Server component. */
-export default function SiteFooter({ content }) {
+export default async function SiteFooter({ content }) {
+  // Cached (keyed by the CMS content passed in) so the prerendered shell may use `new Date()` for the copyright year.
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
   const contact = content.contact || {};
   const hasContact = [contact.phone, contact.email, contact.address, contact.hours].some(Boolean);
   const socials = content.socials || [];

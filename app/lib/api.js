@@ -1,3 +1,5 @@
+import { cachedRequest, withSignal } from "./clientCache";
+
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4100/api/v1"
 ).replace(/\/$/, "");
@@ -9,10 +11,15 @@ export class ApiError extends Error {
   }
 }
 
+const isServer = typeof window === "undefined";
+const SERVER_REVALIDATE_SECONDS = 60;
+
 export async function apiRequest(path, { method = "GET", body, token, signal } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     signal,
+    // Public GETs rendered on the server go through Next's data cache; anything signed-in or mutating never does.
+    ...(isServer && method === "GET" && !token ? { next: { revalidate: SERVER_REVALIDATE_SECONDS } } : {}),
     headers: {
       Accept: "application/json",
       ...(body ? { "Content-Type": "application/json" } : {}),
@@ -40,18 +47,11 @@ export async function fetchAllActivities({ currency = "AED", signal } = {}) {
   return [first, ...rest].flatMap((page) => page.items);
 }
 
-const activityCache = new Map();
+const CATALOG_TTL_MS = 5 * 60_000;
 
-/** Memoized per currency so the search page and home page share one catalog fetch per session. */
-export function getActivities(currency = "AED") {
-  if (!activityCache.has(currency)) {
-    const request = fetchAllActivities({ currency }).catch((error) => {
-      activityCache.delete(currency);
-      throw error;
-    });
-    activityCache.set(currency, request);
-  }
-  return activityCache.get(currency);
+/** Shared per currency for 5 minutes, so home, search and the listing reuse one catalog fetch. `signal` only abandons this caller's wait. */
+export function getActivities(currency = "AED", { signal } = {}) {
+  return withSignal(cachedRequest(`catalog:${currency}`, () => fetchAllActivities({ currency }), { ttl: CATALOG_TTL_MS }), signal);
 }
 
 export function formatPrice(amount, currency) {

@@ -1,5 +1,6 @@
 import { API_BASE_URL, ApiError, apiRequest } from "./api";
 import { withCurrency } from "./currencyCookie";
+import { cachedRequest, withSignal } from "./clientCache";
 
 /**
  * Cruises API client. Contract: Tourvex-API/docs/CRUISES_API.md
@@ -82,8 +83,8 @@ const isServer = typeof window === "undefined";
 // On the server prefer the internal API URL (same variable next.config.mjs uses for the media rewrite).
 const BASE = isServer ? (process.env.API_INTERNAL_URL || API_BASE_URL).replace(/\/$/, "") : API_BASE_URL;
 
-async function request(path, { signal, revalidate = 60, currency } = {}) {
-  const response = await fetch(`${BASE}${withCurrency(path, currency)}`, {
+async function fetchJson(url, { signal, revalidate }) {
+  const response = await fetch(url, {
     signal,
     headers: { Accept: "application/json" },
     ...(isServer ? { next: { revalidate } } : {}),
@@ -94,6 +95,13 @@ async function request(path, { signal, revalidate = 60, currency } = {}) {
     throw new ApiError(message || `Request failed (${response.status})`, response.status);
   }
   return data;
+}
+
+/** Server: Next's data cache (`revalidate`). Browser: shared for 60 s, so repeat visits to a page don't refetch. */
+function request(path, { signal, revalidate = 60, currency } = {}) {
+  const url = `${BASE}${withCurrency(path, currency)}`;
+  if (isServer) return fetchJson(url, { signal, revalidate });
+  return withSignal(cachedRequest(url, () => fetchJson(url, {})), signal);
 }
 
 /** @returns {Promise<{ banners: any[], cities: any[], sections: any[], lines: string[], currency: string }>} */

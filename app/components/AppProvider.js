@@ -81,9 +81,12 @@ export default function AppProvider({ children, initialCurrency = "AED" }) {
   /** Short-lived Clerk session token for `Authorization: Bearer` calls to our API (null when signed out). */
   const getAccessToken = useCallback(() => (isSignedIn ? getToken() : Promise.resolve(null)), [isSignedIn, getToken]);
 
+  /** Adopts the currency the server read from the cookie (see CurrencySeed). Unlike setCurrency it writes nothing and does not refresh. */
+  const adoptServerCurrency = useCallback((value) => setCurrencyState(normalizeCurrency(value)), []);
+
   const value = useMemo(
-    () => ({ user, ready: isLoaded, currency, setCurrency, switching, logout, getAccessToken }),
-    [user, isLoaded, currency, setCurrency, switching, logout, getAccessToken]
+    () => ({ user, ready: isLoaded, currency, setCurrency, adoptServerCurrency, switching, logout, getAccessToken }),
+    [user, isLoaded, currency, setCurrency, adoptServerCurrency, switching, logout, getAccessToken]
   );
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

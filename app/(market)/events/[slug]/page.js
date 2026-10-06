@@ -5,6 +5,11 @@ import EventLoadError from "../../../components/events/EventLoadError";
 import { getEvent, isNotFound } from "../../../lib/events";
 import { getServerCurrency } from "../../../lib/currencyServer";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 /** Deduped between generateMetadata and the page for one request. Returns { data } or { notFound } or { failed }. */

@@ -3,6 +3,11 @@ import CruiseListing from "../../../../components/cruises/CruiseListing";
 import { listCruises, listingQuery, parseListingParams } from "../../../../lib/cruises";
 import { getServerCurrency } from "../../../../lib/currencyServer";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 function decode(value) {
   try {
     return decodeURIComponent(value);

@@ -6,9 +6,15 @@ import "./_ui/tailwind.css";
 import "./_ui/theme.css";
 import "./_ui/motion.css";
 import "./_ui/polish.css";
+import { Suspense } from "react";
 import AdminProviders from "./AdminProviders";
 import { NO_FLASH_SCRIPT } from "./_ui/theme/theme-store";
 import { ThemeSync } from "./_ui/theme/ThemeProvider";
+
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 // The admin lives outside the (market) group, so it never mounts the marketplace header/footer/tab bar/preloader/Lenis.
 // The root layout already provides ClerkProvider. Never indexed.
@@ -24,7 +30,10 @@ export default function AdminLayout({ children }) {
     <div data-adm-themeroot="" style={{ display: "contents" }} suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: NO_FLASH_SCRIPT }} />
       <ThemeSync />
-      <AdminProviders>{children}</AdminProviders>
+      {/* The admin shell reads the URL on the client (usePathname/useParams); Suspense keeps that out of the prerender. */}
+      <Suspense fallback={null}>
+        <AdminProviders>{children}</AdminProviders>
+      </Suspense>
     </div>
   );
 }
