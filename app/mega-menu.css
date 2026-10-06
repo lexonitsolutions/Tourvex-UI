@@ -592,3 +592,19 @@ a.mm-deal-pill-card, a.mm-deal-pill-card:hover, a.mm-deal-pill-card:focus, a.mm-
   overflow-wrap: normal !important;
   hyphens: none !important;
 }
+
+/* Left category list: the label looks IDENTICAL in every state. Hover and active only change the row's surface, border and
+   chevron badge; colour, weight, size, spacing and font smoothing are pinned so the text can never appear to change. */
+.mm-cat-btn, .mm-cat-btn:hover, .mm-cat-btn:focus, .mm-cat-btn:focus-visible, .mm-cat-btn:active, .mm-cat-btn.is-active {
+  color: #334155;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.mm-cat-btn .mm-cat-label, .mm-cat-btn:hover .mm-cat-label, .mm-cat-btn.is-active .mm-cat-label {
+  color: inherit; font-weight: 500; font-size: 13px; letter-spacing: 0; transition: none; text-shadow: none;
+}
+.mm-cat-btn:focus-visible { outline: none; }
