@@ -1,0 +1,175 @@
+"use client"
+
+import * as React from "react"
+import { cn } from "@/app/admin/_ui/lib/utils"
+import { usePortalContainer } from "@/app/admin/_ui/lib/portal"
+import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
+
+import { Button } from "@/app/admin/_ui/components/button"
+
+function AlertDialog({
+  ...props
+}) {
+  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
+}
+
+function AlertDialogTrigger({
+  ...props
+}) {
+  return (<AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />);
+}
+
+function AlertDialogPortal({
+  ...props
+}) {
+  const container = usePortalContainer()
+  return <AlertDialogPrimitive.Portal container={container} data-slot="alert-dialog-portal" {...props} />;
+}
+
+function AlertDialogOverlay({
+  className,
+  ...props
+}) {
+  return (
+    <AlertDialogPrimitive.Overlay
+      data-slot="alert-dialog-overlay"
+      className={cn(
+        "adm-ov tw:fixed tw:inset-0 tw:z-[320] tw:bg-(--adm-scrim)",
+        className
+      )}
+      {...props} />
+  );
+}
+
+function AlertDialogContent({
+  className,
+  size = "default",
+  ...props
+}) {
+  return (
+    <AlertDialogPortal>
+      <AlertDialogOverlay />
+      <AlertDialogPrimitive.Content
+        data-slot="alert-dialog-content"
+        data-size={size}
+        className={cn(
+          "adm-dlg tw:group/alert-dialog-content tw:fixed tw:top-[50%] tw:left-[50%] tw:z-[320] tw:grid tw:w-full tw:max-w-[calc(100%-2rem)] tw:translate-x-[-50%] tw:translate-y-[-50%] tw:gap-4 tw:rounded-[20px] tw:border tw:border-(--adm-card-edge) tw:bg-(--adm-overlay) tw:p-6 tw:shadow-(--adm-shadow-lg) tw:data-[size=sm]:max-w-xs tw:data-[size=default]:sm:max-w-lg",
+          className
+        )}
+        {...props} />
+    </AlertDialogPortal>
+  );
+}
+
+function AlertDialogHeader({
+  className,
+  ...props
+}) {
+  return (
+    <div
+      data-slot="alert-dialog-header"
+      className={cn(
+        "tw:grid tw:grid-rows-[auto_1fr] tw:place-items-center tw:gap-1.5 tw:text-center tw:has-data-[slot=alert-dialog-media]:grid-rows-[auto_auto_1fr] tw:has-data-[slot=alert-dialog-media]:gap-x-6 tw:sm:group-data-[size=default]/alert-dialog-content:place-items-start tw:sm:group-data-[size=default]/alert-dialog-content:text-left tw:sm:group-data-[size=default]/alert-dialog-content:has-data-[slot=alert-dialog-media]:grid-rows-[auto_1fr]",
+        className
+      )}
+      {...props} />
+  );
+}
+
+function AlertDialogFooter({
+  className,
+  ...props
+}) {
+  return (
+    <div
+      data-slot="alert-dialog-footer"
+      className={cn(
+        "tw:flex tw:flex-col-reverse tw:gap-2 tw:group-data-[size=sm]/alert-dialog-content:grid tw:group-data-[size=sm]/alert-dialog-content:grid-cols-2 tw:sm:flex-row tw:sm:justify-end",
+        className
+      )}
+      {...props} />
+  );
+}
+
+function AlertDialogTitle({
+  className,
+  ...props
+}) {
+  return (
+    <AlertDialogPrimitive.Title
+      data-slot="alert-dialog-title"
+      className={cn(
+        "tw:text-lg tw:font-semibold tw:sm:group-data-[size=default]/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2",
+        className
+      )}
+      {...props} />
+  );
+}
+
+function AlertDialogDescription({
+  className,
+  ...props
+}) {
+  return (
+    <AlertDialogPrimitive.Description
+      data-slot="alert-dialog-description"
+      className={cn("tw:text-sm tw:text-muted-foreground", className)}
+      {...props} />
+  );
+}
+
+function AlertDialogMedia({
+  className,
+  ...props
+}) {
+  return (
+    <div
+      data-slot="alert-dialog-media"
+      className={cn(
+        "tw:mb-2 tw:inline-flex tw:size-16 tw:items-center tw:justify-center tw:rounded-md tw:bg-muted tw:sm:group-data-[size=default]/alert-dialog-content:row-span-2 tw:*:[svg:not([class*=size-])]:size-8",
+        className
+      )}
+      {...props} />
+  );
+}
+
+function AlertDialogAction({
+  className,
+  variant = "default",
+  size = "default",
+  ...props
+}) {
+  return (
+    <Button variant={variant} size={size} asChild>
+      <AlertDialogPrimitive.Action data-slot="alert-dialog-action" className={cn(className)} {...props} />
+    </Button>
+  );
+}
+
+function AlertDialogCancel({
+  className,
+  variant = "outline",
+  size = "default",
+  ...props
+}) {
+  return (
+    <Button variant={variant} size={size} asChild>
+      <AlertDialogPrimitive.Cancel data-slot="alert-dialog-cancel" className={cn(className)} {...props} />
+    </Button>
+  );
+}
+
+export {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogOverlay,
+  AlertDialogPortal,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+}

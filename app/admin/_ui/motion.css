@@ -1,0 +1,290 @@
+/* ==========================================================================
+   Admin motion system: tokens, keyframes, reusable classes and component motion.
+   Imported LAST from app/admin/layout.js (after theme.css) so it can refine kit/dash/list rules at equal specificity.
+   Rules (see MOTION_AND_DESIGN.md):
+   - animate only transform and opacity (plus clip-path / grid-template-rows where already used, and colours on SMALL controls);
+   - never animate blurred box-shadows, filters or layout properties on large surfaces;
+   - entrance animations use fill-mode `backwards` (never `both`/`forwards`): a forwards-filled `transform: none` would
+     outrank :hover transforms for the rest of the element's life;
+   - reduced motion is opt-in per app/lib/motionPolicy.js: every block is keyed on html[data-honor-reduced-motion].
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- tokens (portal host is also .adm-root) */
+.adm-root {
+  --adm-d-fast: 120ms;
+  --adm-d-base: 200ms;
+  --adm-d-slow: 320ms;
+  --adm-d-page: 420ms;
+  --adm-e-std: cubic-bezier(0.2, 0, 0, 1);       /* default: quick start, soft landing */
+  --adm-e-emph: cubic-bezier(0.32, 0.72, 0, 1);  /* page, drawers, large moves */
+  --adm-e-in: cubic-bezier(0.4, 0, 1, 1);        /* exits */
+  --adm-e-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot: switches, checks, empty-state icon only */
+  --adm-stagger: 48ms;                           /* step of the --i stagger helper */
+  --adm-rise: 10px;                              /* travel of fade-up */
+  --adm-skel-shine: rgba(255, 255, 255, 0.55);
+}
+[data-adm-theme="dark"][data-adm-dark] .adm-root,
+.adm-root[data-adm-theme="dark"][data-adm-dark],
+.adm-root.dark,
+.adm-root [data-adm-scheme="dark"] { --adm-skel-shine: rgba(150, 175, 230, 0.16); }
+
+/* ---------------------------------------------------------------- keyframes */
+@keyframes adm-fade-in { from { opacity: 0; } }
+@keyframes adm-fade-out { to { opacity: 0; } }
+@keyframes adm-fade-up { from { opacity: 0; transform: translateY(var(--adm-rise)); } }
+@keyframes adm-scale-in { from { opacity: 0; transform: scale(0.96); } }
+@keyframes adm-scale-out { to { opacity: 0; transform: scale(0.97); } }
+@keyframes adm-slide-in-right { from { transform: translateX(100%); } }
+@keyframes adm-slide-out-right { to { transform: translateX(100%); } }
+@keyframes adm-slide-in-left { from { transform: translateX(-100%); } }
+@keyframes adm-slide-out-left { to { transform: translateX(-100%); } }
+@keyframes adm-slide-in-bottom { from { transform: translateY(100%); } }
+@keyframes adm-slide-out-bottom { to { transform: translateY(100%); } }
+@keyframes adm-slide-in-top { from { transform: translateY(-100%); } }
+@keyframes adm-slide-out-top { to { transform: translateY(-100%); } }
+/* dialog: a short rise + scale, centred by the individual `translate` property (so transform is free) */
+@keyframes adm-dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.965); } }
+@keyframes adm-dialog-out { to { opacity: 0; transform: translateY(4px) scale(0.98); } }
+/* popovers / menus / tooltips grow out of the trigger: the offset comes from the data-side rules below */
+@keyframes adm-pop-in { from { opacity: 0; transform: translate(var(--adm-pop-x, 0), var(--adm-pop-y, 0)) scale(0.96); } }
+@keyframes adm-pop-out { to { opacity: 0; transform: scale(0.97); } }
+@keyframes adm-shimmer { to { transform: translateX(100%); } }
+@keyframes adm-pulse-ring { 0% { transform: scale(0.6); opacity: 0.55; } 70%, 100% { transform: scale(2.4); opacity: 0; } }
+@keyframes adm-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes adm-collapse-in { from { grid-template-rows: 0fr; opacity: 0; } }
+@keyframes adm-collapse-out { to { grid-template-rows: 0fr; opacity: 0; } }
+@keyframes adm-draw { to { stroke-dashoffset: 0; } }
+@keyframes adm-check-pop { from { transform: scale(0.6); opacity: 0; } }
+@keyframes adm-reveal-x { from { clip-path: inset(-8px 100% -8px -8px); } to { clip-path: inset(-8px -8px -8px -8px); } }
+@keyframes adm-grow-y { from { transform: scaleY(0); } }
+@keyframes adm-grow-x { from { transform: scaleX(0); } }
+@property --adm-sweep { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+@keyframes adm-sweep { from { --adm-sweep: 0%; } to { --adm-sweep: 100%; } }
+
+/* ---------------------------------------------------------------- reusable classes */
+.adm-anim-fade-in { animation: adm-fade-in var(--adm-d-base) var(--adm-e-std) backwards; }
+.adm-anim-fade-up { animation: adm-fade-up var(--adm-d-slow) var(--adm-e-emph) backwards; animation-delay: calc(var(--i, 0) * var(--adm-stagger)); }
+.adm-anim-scale-in { animation: adm-scale-in var(--adm-d-base) var(--adm-e-std) backwards; animation-delay: calc(var(--i, 0) * var(--adm-stagger)); }
+.adm-anim-slide-in-right { animation: adm-slide-in-right var(--adm-d-slow) var(--adm-e-emph) backwards; }
+.adm-anim-slide-in-left { animation: adm-slide-in-left var(--adm-d-slow) var(--adm-e-emph) backwards; }
+.adm-anim-slide-in-bottom { animation: adm-slide-in-bottom var(--adm-d-slow) var(--adm-e-emph) backwards; }
+/* stagger helper: children get --i from their position (first 10); override per element with style="--i: n" */
+.adm-stagger > * { animation-delay: calc(var(--i, 0) * var(--adm-stagger)); }
+.adm-stagger > :nth-child(2) { --i: 1; } .adm-stagger > :nth-child(3) { --i: 2; } .adm-stagger > :nth-child(4) { --i: 3; }
+.adm-stagger > :nth-child(5) { --i: 4; } .adm-stagger > :nth-child(6) { --i: 5; } .adm-stagger > :nth-child(7) { --i: 6; }
+.adm-stagger > :nth-child(8) { --i: 7; } .adm-stagger > :nth-child(9) { --i: 8; } .adm-stagger > :nth-child(n + 10) { --i: 9; }
+
+/* skeleton: one shimmer for every placeholder; the highlight is a pseudo-element moved with transform */
+.adm-skel { position: relative; overflow: hidden; isolation: isolate; background: var(--adm-skel-a); }
+.adm-skel::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, var(--adm-skel-shine), transparent); animation: adm-shimmer 1.5s var(--adm-e-std) infinite; }
+
+/* live dot: a ring that scales out and fades (replaces a static glow); add .adm-pulse to any small dot */
+.adm-pulse { position: relative; }
+.adm-pulse::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; animation: adm-pulse-ring 2s var(--adm-e-std) infinite; pointer-events: none; }
+.adm-pill-chip i { position: relative; color: var(--adm-teal); }
+.adm-pill-chip i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: currentColor; opacity: 0; animation: adm-pulse-ring 2.4s var(--adm-e-std) infinite; }
+
+/* ---------------------------------------------------------------- page transitions (app/admin/template.js) */
+.adm-page { min-width: 0; }
+.adm-page > * { animation: adm-fade-up var(--adm-d-page) var(--adm-e-emph) backwards; animation-delay: calc(var(--adm-pi, 0) * 56ms); }
+.adm-page > :nth-child(2) { --adm-pi: 1; } .adm-page > :nth-child(3) { --adm-pi: 2; } .adm-page > :nth-child(4) { --adm-pi: 3; }
+.adm-page > :nth-child(5) { --adm-pi: 4; } .adm-page > :nth-child(n + 6) { --adm-pi: 5; }
+/* the dashboard and report grids stagger their own cards (--i); the wrapper must not animate on top of them */
+.adm-page > :is(.adm-kcs, .adm-bento, .adm-reportcards) { animation: none; }
+.adm-dashhead { animation: adm-fade-up var(--adm-d-page) var(--adm-e-emph) backwards; }
+
+/* dashboard / reports cards: same stagger, tokenised, and `backwards` so :hover lift works after the entrance */
+.adm-kc, .adm-bt, .adm-root a.adm-reportcard, .adm-root a.adm-reportcard:hover {
+  animation: adm-fade-up var(--adm-d-page) var(--adm-e-emph) backwards;
+  animation-delay: calc(var(--i, 0) * var(--adm-stagger));
+}
+/* small tinted cards ease their lift shadow; the big bento panels never animate a shadow (border only) */
+.adm-kc, .adm-root a.adm-reportcard { transition: transform var(--adm-d-slow) var(--adm-e-emph), box-shadow var(--adm-d-slow) var(--adm-e-emph); }
+.adm-bt { transition: border-color var(--adm-d-base) var(--adm-e-std); }
+.adm-bt.adm-spot:hover { border-color: var(--adm-line-strong); box-shadow: var(--adm-shadow-card); }
+
+/* ---------------------------------------------------------------- buttons, controls, focus */
+.adm-root .adm-btn, .adm-root .adm-iconbtn, .adm-root .adm-sf__btn, .adm-root .adm-tbtn, .adm-root .adm-link, .adm-root .adm-copy {
+  transition: transform var(--adm-d-fast) var(--adm-e-std), background-color var(--adm-d-fast) var(--adm-e-std), border-color var(--adm-d-fast) var(--adm-e-std),
+    color var(--adm-d-fast) var(--adm-e-std), box-shadow var(--adm-d-fast) var(--adm-e-std), opacity var(--adm-d-fast) var(--adm-e-std);
+}
+.adm-root .adm-btn:active:not(:disabled), .adm-root .adm-sf__btn:active, .adm-root .adm-tbtn:active { transform: scale(0.98); }
+.adm-root .adm-iconbtn:active:not(:disabled) { transform: scale(0.94); }
+.adm-root .adm-btn--primary:hover:not(:disabled) { transform: translateY(-1px); }
+.adm-root .adm-btn--primary:active:not(:disabled) { transform: scale(0.98); }
+.adm-root .adm-bt__link .adm-icon, .adm-root .adm-reportcard__go .adm-icon { transition: transform var(--adm-d-base) var(--adm-e-std); }
+.adm-root .adm-bt__link:hover .adm-icon, .adm-reportcard:hover .adm-reportcard__go .adm-icon { transform: translateX(2px); }
+
+.adm-root .adm-input.adm-input, .adm-root .adm-search__input.adm-search__input {
+  transition: border-color var(--adm-d-fast) var(--adm-e-std), background-color var(--adm-d-fast) var(--adm-e-std), box-shadow var(--adm-d-base) var(--adm-e-std);
+}
+.adm-root .adm-field__label { transition: color var(--adm-d-fast) var(--adm-e-std); }
+.adm-root .adm-field:focus-within .adm-field__label { color: var(--adm-brand-ink); }
+.adm-root .adm-search .adm-icon { transition: color var(--adm-d-fast) var(--adm-e-std); }
+.adm-root .adm-search:focus-within .adm-icon { color: var(--adm-teal); }
+.adm-root .adm-tab { transition: color var(--adm-d-fast) var(--adm-e-std); }
+.adm-root .adm-top__search { transition: border-color var(--adm-d-fast) var(--adm-e-std), color var(--adm-d-fast) var(--adm-e-std), background-color var(--adm-d-fast) var(--adm-e-std); }
+
+/* badges, avatars, chips */
+.adm-root .adm-badge, .adm-root .adm-fchip, .adm-root .adm-chip, .adm-root .adm-delta, .adm-root .adm-tbtn__badge { transition: background-color var(--adm-d-base) var(--adm-e-std), color var(--adm-d-base) var(--adm-e-std), transform var(--adm-d-base) var(--adm-e-std); }
+.adm-avatar { transition: transform var(--adm-d-base) var(--adm-e-spring); }
+.adm-profile:hover .adm-avatar, .adm-usercell:hover .adm-avatar { transform: scale(1.06); }
+.adm-fchip { animation: adm-scale-in var(--adm-d-base) var(--adm-e-spring) backwards; }
+.adm-tbtn__badge { animation: adm-check-pop var(--adm-d-base) var(--adm-e-spring) backwards; }
+.adm-root .adm-profile { transition: background-color var(--adm-d-fast) var(--adm-e-std), border-color var(--adm-d-fast) var(--adm-e-std); }
+.adm-profile .adm-icon { transition: transform var(--adm-d-base) var(--adm-e-std); }
+.adm-profile[data-state="open"] .adm-icon, .adm-profile[aria-expanded="true"] .adm-icon { transform: rotate(180deg); }
+
+/* ---------------------------------------------------------------- shell: sidebar, edge arrow, breadcrumb, notification dot */
+.adm-nav__link::before { content: ""; position: absolute; left: -8px; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: var(--adm-teal); transform: scaleY(0.3); opacity: 0; transition: transform var(--adm-d-slow) var(--adm-e-emph), opacity var(--adm-d-base) var(--adm-e-std); }
+.adm-nav__link.is-active::before { transform: none; opacity: 1; }
+.adm-nav__link .adm-icon { transition: transform var(--adm-d-base) var(--adm-e-std), opacity var(--adm-d-base) var(--adm-e-std); }
+.adm-nav__link:hover .adm-icon { transform: translateX(1.5px); opacity: 1; }
+.adm-nav__sublink { transition: color var(--adm-d-fast) var(--adm-e-std), background-color var(--adm-d-fast) var(--adm-e-std), transform var(--adm-d-base) var(--adm-e-std); }
+.adm-nav__sublink:hover { transform: translateX(2px); }
+.adm-nav__sub { transition: border-color var(--adm-d-base) var(--adm-e-std); }
+@media (min-width: 901px) {
+  /* same left timing as admin.css, plus a press state; the rail clip-path / margin transition is untouched */
+  .adm-edge { transition: left 0.34s cubic-bezier(0.32, 0.72, 0, 1), transform var(--adm-d-fast) var(--adm-e-std), background-color var(--adm-d-base), color var(--adm-d-base), box-shadow var(--adm-d-base); }
+  .adm-edge:active { transform: scale(0.9); }
+  .adm-edge:hover .adm-icon { transform: translateX(-1.5px); }
+  .adm-shell.is-collapsed .adm-edge:hover .adm-icon { transform: rotate(180deg) translateX(-1.5px); }
+}
+.adm-crumbs a { transition: color var(--adm-d-fast) var(--adm-e-std); }
+.adm-crumbs [aria-current="page"] { animation: adm-fade-in var(--adm-d-slow) var(--adm-e-std) backwards; }
+.adm-crumbs li > svg, .adm-crumbs [role="presentation"] { animation: adm-fade-in var(--adm-d-slow) var(--adm-e-std) backwards; }
+.adm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--adm-danger); color: var(--adm-danger); }
+
+/* ---------------------------------------------------------------- tabs: content cross-fade, segmented controls */
+.adm-tabpanel { animation: adm-fade-in var(--adm-d-base) var(--adm-e-std) backwards; }
+.adm-root .adm-seg__btn, .adm-root .adm-rseg__btn, .adm-metric-tabs button { transition: background-color var(--adm-d-base) var(--adm-e-std), color var(--adm-d-base) var(--adm-e-std), transform var(--adm-d-fast) var(--adm-e-std); }
+.adm-root .adm-seg__btn:active, .adm-root .adm-rseg__btn:active, .adm-metric-tabs button:active { transform: scale(0.96); }
+.adm-root .adm-rseg__btn[aria-pressed="true"], .adm-root .adm-seg__btn[aria-pressed="true"], .adm-metric-tabs button[aria-pressed="true"] { animation: adm-fade-in var(--adm-d-base) var(--adm-e-std); }
+
+/* ---------------------------------------------------------------- overlays: shared classes used by the _ui components */
+/* backdrop */
+.adm-ov[data-state="open"] { animation: adm-fade-in var(--adm-d-base) var(--adm-e-std) both; }
+.adm-ov[data-state="closed"] { animation: adm-fade-out var(--adm-d-fast) var(--adm-e-in) both; }
+/* centred dialogs / alert dialogs / command palette */
+.adm-dlg[data-state="open"] { animation: adm-dialog-in var(--adm-d-slow) var(--adm-e-emph) both; }
+.adm-dlg[data-state="closed"] { animation: adm-dialog-out var(--adm-d-fast) var(--adm-e-in) both; }
+/* sheets / drawers: slide from their own edge, emphasized easing, faster exit */
+.adm-sheet[data-state="open"] { animation-duration: var(--adm-d-slow); animation-timing-function: var(--adm-e-emph); animation-fill-mode: both; }
+.adm-sheet[data-state="closed"] { animation-duration: var(--adm-d-base); animation-timing-function: var(--adm-e-in); animation-fill-mode: both; }
+.adm-sheet--right[data-state="open"] { animation-name: adm-slide-in-right; } .adm-sheet--right[data-state="closed"] { animation-name: adm-slide-out-right; }
+.adm-sheet--left[data-state="open"] { animation-name: adm-slide-in-left; } .adm-sheet--left[data-state="closed"] { animation-name: adm-slide-out-left; }
+.adm-sheet--top[data-state="open"] { animation-name: adm-slide-in-top; } .adm-sheet--top[data-state="closed"] { animation-name: adm-slide-out-top; }
+.adm-sheet--bottom[data-state="open"] { animation-name: adm-slide-in-bottom; } .adm-sheet--bottom[data-state="closed"] { animation-name: adm-slide-out-bottom; }
+/* popovers, dropdowns, selects, tooltips: scale + fade from the trigger-side origin, with a small slide away from the anchor */
+.adm-pop[data-side="bottom"] { --adm-pop-y: -6px; } .adm-pop[data-side="top"] { --adm-pop-y: 6px; }
+.adm-pop[data-side="left"] { --adm-pop-x: 6px; } .adm-pop[data-side="right"] { --adm-pop-x: -6px; }
+.adm-pop[data-state="open"], .adm-pop[data-state="delayed-open"], .adm-pop[data-state="instant-open"] { animation: adm-pop-in var(--adm-d-base) var(--adm-e-emph) both; }
+.adm-pop[data-state="closed"] { animation: adm-pop-out var(--adm-d-fast) var(--adm-e-in) both; }
+/* collapsible / accordion: height through grid-template-rows (0fr <-> 1fr) */
+.adm-collapse { display: grid; grid-template-rows: 1fr; }
+.adm-collapse > * { min-height: 0; overflow: hidden; }
+.adm-collapse[data-state="open"] { animation: adm-collapse-in var(--adm-d-slow) var(--adm-e-emph); }
+.adm-collapse[data-state="closed"] { animation: adm-collapse-out var(--adm-d-base) var(--adm-e-in) both; }
+[data-slot="accordion-trigger"] > svg { transition: transform var(--adm-d-base) var(--adm-e-std); }
+[data-slot="accordion-trigger"][data-state="open"] > svg { transform: rotate(180deg); }
+/* check / radio micro-animations (Radix mounts the indicator when checked) */
+[data-slot="checkbox-indicator"] { animation: adm-check-pop var(--adm-d-base) var(--adm-e-spring); }
+[data-slot="checkbox-indicator"] svg path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: adm-draw var(--adm-d-base) var(--adm-e-std) 40ms forwards; }
+[data-slot="radio-group-indicator"] svg { animation: adm-check-pop var(--adm-d-base) var(--adm-e-spring); }
+[data-slot="checkbox"], [data-slot="radio-group-item"], [data-slot="switch"] { transition: background-color var(--adm-d-base) var(--adm-e-std), border-color var(--adm-d-base) var(--adm-e-std), box-shadow var(--adm-d-fast) var(--adm-e-std); }
+[data-slot="checkbox"]:active, [data-slot="radio-group-item"]:active { transform: scale(0.92); }
+[data-slot="switch-thumb"] { transition: transform var(--adm-d-base) var(--adm-e-spring); }
+[data-slot="switch"]:active [data-slot="switch-thumb"] { transform: scaleX(1.18); transform-origin: left center; }
+[data-slot="switch"][data-state="checked"]:active [data-slot="switch-thumb"] { transform-origin: right center; }
+[data-slot="progress-indicator"] { transition: transform var(--adm-d-page) var(--adm-e-emph); }
+
+/* toasts (sonner): token radius + the same easing, stacking is sonner's own */
+.adm-root [data-sonner-toaster] { --width: 372px; }
+.adm-root [data-sonner-toast] { border-radius: 14px; box-shadow: var(--adm-shadow-pop); transition-timing-function: var(--adm-e-emph); }
+
+/* ---------------------------------------------------------------- tables */
+.adm-dt2 tbody tr { transition: background-color var(--adm-d-fast) var(--adm-e-std); }
+.adm-dt2 tbody[data-phase="rows"] { animation: adm-fade-in var(--adm-d-base) var(--adm-e-std) backwards; }
+.adm-dt2__bulk { animation: adm-fade-up var(--adm-d-slow) var(--adm-e-emph) backwards; --adm-rise: 12px; transform-origin: 50% 100%; }
+.adm-dt2 [data-sort] svg { transition: transform var(--adm-d-base) var(--adm-e-std), opacity var(--adm-d-base) var(--adm-e-std); }
+.adm-dt2 [data-sort="desc"] svg { transform: rotate(180deg); }
+.adm-dt2__table thead button { transition: background-color var(--adm-d-fast) var(--adm-e-std), color var(--adm-d-fast) var(--adm-e-std); }
+.adm-root .adm-pager .adm-btn, .adm-dt2 nav button { transition: background-color var(--adm-d-fast) var(--adm-e-std), transform var(--adm-d-fast) var(--adm-e-std); }
+.adm-lcard { transition: transform var(--adm-d-base) var(--adm-e-std), border-color var(--adm-d-fast) var(--adm-e-std), opacity var(--adm-d-base) var(--adm-e-std); }
+.adm-lcard:hover { transform: translateY(-2px); }
+.adm-lcard.is-dragging { transform: scale(0.98); }
+.adm-board__col { transition: border-color var(--adm-d-base) var(--adm-e-std); }
+.adm-root .adm-feed__item .adm-feed__ico { transition: transform var(--adm-d-base) var(--adm-e-spring); }
+.adm-root a.adm-feed__item:hover .adm-feed__ico { transform: scale(1.08); }
+
+/* ---------------------------------------------------------------- charts: draw in once, when scrolled into view (useReveal -> data-reveal) */
+[data-reveal="pending"].adm-reveal-clip, [data-reveal="pending"] .adm-reveal-clip { clip-path: inset(-8px 100% -8px -8px); }
+[data-reveal="in"].adm-reveal-clip, [data-reveal="in"] .adm-reveal-clip { animation: adm-reveal-x 900ms var(--adm-e-emph) backwards; animation-delay: var(--adm-reveal-delay, 0ms); }
+[data-reveal="pending"] .adm-reveal-x { transform: scaleX(0) !important; }
+[data-reveal="in"] .adm-reveal-x { animation: adm-grow-x 800ms var(--adm-e-emph) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
+[data-reveal="pending"] .adm-reveal-y { transform: scaleY(0); }
+[data-reveal="in"] .adm-reveal-y { animation: adm-grow-y 700ms var(--adm-e-emph) backwards; animation-delay: calc(var(--i, 0) * 28ms); transform-box: fill-box; transform-origin: 50% 100%; }
+[data-reveal="pending"] .adm-reveal-y { transform-box: fill-box; transform-origin: 50% 100%; }
+.adm-reveal-x { transform-origin: left; }
+[data-reveal="pending"].adm-reveal-sweep { -webkit-mask-image: conic-gradient(#000 0%, transparent 0%); mask-image: conic-gradient(#000 0%, transparent 0%); }
+[data-reveal="in"].adm-reveal-sweep { --adm-sweep: 100%; -webkit-mask-image: conic-gradient(#000 var(--adm-sweep), transparent var(--adm-sweep)); mask-image: conic-gradient(#000 var(--adm-sweep), transparent var(--adm-sweep)); animation: adm-sweep 900ms var(--adm-e-emph) backwards; }
+.adm-hbars li:nth-child(2) { --i: 1; } .adm-hbars li:nth-child(3) { --i: 2; } .adm-hbars li:nth-child(4) { --i: 3; } .adm-hbars li:nth-child(5) { --i: 4; } .adm-hbars li:nth-child(n + 6) { --i: 5; }
+.adm-funnel__row:nth-child(2) { --i: 1; } .adm-funnel__row:nth-child(3) { --i: 2; } .adm-funnel__row:nth-child(4) { --i: 3; } .adm-funnel__row:nth-child(5) { --i: 4; } .adm-funnel__row:nth-child(n + 6) { --i: 5; }
+/* hbars / funnel previously played on mount: they now wait for the reveal (their own keyframe is replaced above) */
+.adm-hbars__track i, .adm-funnel__bar i { animation: none; transform-origin: left; }
+.adm-areachart__dot { transition: left var(--adm-d-fast) var(--adm-e-std), top var(--adm-d-fast) var(--adm-e-std); }
+.adm-tip { animation: adm-fade-in var(--adm-d-fast) var(--adm-e-std) backwards; }
+.adm-chart rect { transition: opacity var(--adm-d-fast) var(--adm-e-std); }
+.adm-chart rect:hover { opacity: 0.82; }
+
+/* ---------------------------------------------------------------- empty / error / status states */
+.adm-empty, .adm-noaccess, .adm-chart-empty { animation: adm-fade-up var(--adm-d-slow) var(--adm-e-emph) backwards; }
+.adm-empty__icon { animation: adm-float 3.8s ease-in-out 0.6s infinite; }
+.adm-empty--error .adm-empty__icon { animation: none; }
+.adm-inline-error, .adm-field__error { animation: adm-fade-up var(--adm-d-base) var(--adm-e-std) backwards; --adm-rise: 4px; }
+.adm-scan__result { animation: adm-scale-in var(--adm-d-base) var(--adm-e-spring) backwards; }
+.adm-screen__card { animation: adm-fade-up var(--adm-d-page) var(--adm-e-emph) backwards; }
+.adm-switchrow, .adm-settings-bar { transition: opacity var(--adm-d-base) var(--adm-e-std); }
+.adm-refreshing { transition: opacity var(--adm-d-base) var(--adm-e-std); }
+
+/* ---------------------------------------------------------------- theme switch: a short colour cross-fade, only while toggling.
+   theme-store.js puts .adm-theming on the theme root and the portal host for ~380ms. Colours only (no shadows, no layout). */
+.adm-theming .adm-root, .adm-theming .adm-root *, .adm-theming .adm-root *::before, .adm-theming .adm-root *::after,
+.adm-root.adm-theming, .adm-root.adm-theming *, .adm-root.adm-theming *::before, .adm-root.adm-theming *::after {
+  transition-property: background-color, border-color, color, fill, stroke, outline-color !important;
+  transition-duration: 300ms !important;
+  transition-timing-function: var(--adm-e-std) !important;
+  transition-delay: 0s !important;
+}
+/* entrance animations must not restart or fight the cross-fade */
+.adm-theming .adm-skel::after { transition: none !important; }
+
+/* ---------------------------------------------------------------- reduced motion (opt-in policy, see app/lib/motionPolicy.js) */
+@media (prefers-reduced-motion: reduce) {
+  html[data-honor-reduced-motion] .adm-root *,
+  html[data-honor-reduced-motion] .adm-root *::before,
+  html[data-honor-reduced-motion] .adm-root *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  html[data-honor-reduced-motion] .adm-skel::after,
+  html[data-honor-reduced-motion] .adm-pulse::after,
+  html[data-honor-reduced-motion] .adm-pill-chip i::after { display: none; }
+  html[data-honor-reduced-motion] [data-reveal="pending"] .adm-reveal-clip,
+  html[data-honor-reduced-motion] [data-reveal="pending"].adm-reveal-clip { clip-path: none; }
+  html[data-honor-reduced-motion] [data-reveal="pending"] .adm-reveal-x,
+  html[data-honor-reduced-motion] [data-reveal="pending"] .adm-reveal-y { transform: none; }
+  html[data-honor-reduced-motion] [data-reveal="pending"].adm-reveal-sweep { -webkit-mask-image: none; mask-image: none; }
+}
+
+/* ---------------------------------------------------------------- status tiles (lists.css no longer sets transitions) */
+.adm-root .adm-tile { transition: transform var(--adm-d-base) var(--adm-e-std), box-shadow var(--adm-d-base) var(--adm-e-std); }
+.adm-root .adm-tile:active { transform: scale(0.985); }
+.adm-tile .adm-tile__icon { transition: transform var(--adm-d-base) var(--adm-e-spring), background-color var(--adm-d-base) var(--adm-e-std); }
+.adm-tile:hover .adm-tile__icon { transform: rotate(-6deg) scale(1.08); }
+.adm-tile__value { animation: adm-fade-in var(--adm-d-slow) var(--adm-e-std) backwards; }
+.adm-tabs[data-ready="1"] .adm-tabs__ind { transition-duration: var(--adm-d-slow); transition-timing-function: var(--adm-e-emph); }

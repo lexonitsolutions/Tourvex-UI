@@ -1,0 +1,54 @@
+/* "In partnership with" logo strip. Everything is prefixed pt-. Only transform/opacity are animated. */
+.pt-strip { --pt-gap: 18px; padding: 64px 0 8px; }
+.pt-strip :is(h2, p, ul) { margin: 0; padding: 0; }
+.pt-strip ul { list-style: none; }
+.pt-head { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 30px; text-align: center; }
+.pt-head h2 { font-size: clamp(26px, 3vw, 36px); line-height: 1.15; text-transform: none; letter-spacing: normal; color: var(--mk-navy); }
+.pt-head p { max-width: 640px; font-size: 16.5px; line-height: 1.5; font-family: inherit; color: var(--mk-text); }
+
+.pt-viewport {
+  position: relative; overflow: hidden; padding: 6px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.pt-track { display: flex; width: max-content; animation: pt-slide var(--pt-dur, 40s) linear infinite; will-change: transform; }
+.pt-copy { display: flex; flex: none; }
+.pt-copy > li { flex: none; margin-right: var(--pt-gap); }
+@keyframes pt-slide { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+
+.pt-viewport:hover .pt-track,
+.pt-viewport:focus-within .pt-track,
+.pt-strip.is-offscreen .pt-track { animation-play-state: paused; }
+
+/* Tiles. `.mk` prefix keeps display stable against the legacy `a:hover { display: inline-block }`. */
+.mk .pt-tile { display: flex; align-items: center; justify-content: center; width: 208px; height: 100px; padding: 16px 20px; border: 1px solid var(--mk-line); border-radius: 18px; background: #fff; color: var(--mk-navy); }
+.mk .pt-tile.is-link:hover, .mk .pt-tile.is-link:focus-visible { display: flex; border-color: var(--mk-primary); }
+.pt-tile img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; filter: grayscale(1); opacity: 0.72; transition: opacity 0.3s; }
+.pt-tile:hover img, .pt-tile:focus-visible img { filter: none; opacity: 1; }
+.pt-word { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; text-align: center; }
+.pt-word strong { max-width: 100%; overflow: hidden; font-family: "Barlow Condensed", system-ui, sans-serif; font-size: 25px; font-weight: 700; line-height: 1.1; letter-spacing: 0.01em; text-transform: none; color: var(--mk-navy); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.pt-word small { max-width: 100%; overflow: hidden; font-size: 12.5px; font-weight: 600; line-height: 1.2; letter-spacing: 0.04em; text-transform: none; text-overflow: ellipsis; white-space: nowrap; color: var(--mk-primary-dark); }
+.pt-tile:focus-visible { outline: 2px solid var(--mk-primary); outline-offset: 2px; }
+
+/* Static scroll-snap row (phones, and reduced motion when the project opts in) */
+@media (max-width: 760px) {
+  .pt-strip { --pt-gap: 12px; padding-top: 44px; }
+  .pt-head { align-items: flex-start; text-align: left; margin-bottom: 20px; }
+  .pt-viewport { overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 4px 16px; -webkit-mask-image: none; mask-image: none; }
+  .pt-viewport::-webkit-scrollbar { display: none; }
+  .pt-track { animation: none; will-change: auto; }
+  .pt-dup { display: none; }
+  .pt-copy > li { scroll-snap-align: start; }
+  .mk .pt-tile { width: 164px; height: 84px; padding: 12px 14px; border-radius: 16px; }
+  .pt-word strong { font-size: 22px; }
+  .pt-tile img { filter: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Opt-in only: see app/lib/motionPolicy.js */
+  html[data-honor-reduced-motion] .pt-viewport { overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: thin; -webkit-mask-image: none; mask-image: none; }
+  html[data-honor-reduced-motion] .pt-track { animation: none; will-change: auto; }
+  html[data-honor-reduced-motion] .pt-dup { display: none; }
+  html[data-honor-reduced-motion] .pt-copy > li { scroll-snap-align: start; }
+  html[data-honor-reduced-motion] .pt-tile img { transition: none; }
+}

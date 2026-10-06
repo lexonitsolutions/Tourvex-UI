@@ -1,0 +1,136 @@
+/* Shared compact card (ShowcaseCard). Same behaviour as the /activities cards: white rounded card, 6px lift, growing shadow,
+   1.08 image zoom, a round top-right arrow that rotates 45deg and turns teal, and a price + "Details" footer.
+   The growing shadow lives on a pseudo-element that only fades its opacity (compositor only, layer promoted up front).
+   Everything animates transform/opacity only. One real link per card is stretched over it with ::after, so extras
+   such as a wishlist heart sit above the link (z-index) and are never nested inside it.
+   Legacy style.css quirks handled here: `a:hover { display: inline-block }` (0,1,1) is out-ranked by `.mk .sc-link` (0,2,0);
+   headings are upper-cased and tight; a `*` rule zeroes margins. */
+
+.sc { position: relative; min-width: 0; --sc-h: 190; --sc-r: 16px; }
+.sc-lift {
+  position: relative; display: flex; flex-direction: column; height: 100%; isolation: isolate; border-radius: var(--sc-r); background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 36, 84, 0.07); transform: translate3d(0, 0, 0); transition: transform 0.35s ease;
+}
+.sc-lift::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; will-change: opacity;
+  box-shadow: 0 24px 46px rgba(15, 36, 84, 0.17); transition: opacity 0.35s ease;
+}
+.sc-lift:hover, .sc-lift:focus-within { transform: translate3d(0, -6px, 0); }
+.sc-lift:hover::before, .sc-lift:focus-within::before { opacity: 1; }
+
+/* Media. The visual clips and zooms; the tag and top-right control sit outside it so they stay above the stretched link. */
+.sc-media { position: relative; flex: none; }
+.sc-visual {
+  position: relative; display: grid; place-items: center; aspect-ratio: 16 / 11; overflow: hidden; isolation: isolate;
+  border-radius: var(--sc-r) var(--sc-r) 0 0; background: var(--mk-bg);
+}
+.sc-visual.is-tint { background: linear-gradient(135deg, hsl(var(--sc-h) 75% 95%), hsl(calc(var(--sc-h) + 16) 62% 87%)); }
+.sc-visual img {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; object-fit: cover;
+  transform: scale(1) translateZ(0); backface-visibility: hidden; transition: transform 0.5s ease;
+}
+.sc-lift:hover .sc-visual img, .sc-lift:focus-within .sc-visual img { transform: scale(1.08) translateZ(0); }
+
+.sc-tag {
+  position: absolute; z-index: 3; top: 10px; left: 10px; max-width: calc(100% - 64px); padding: 4px 10px; overflow: hidden; border-radius: 30px; pointer-events: none;
+  background: rgba(15, 36, 84, 0.74); color: #fff; font-size: 10.5px; font-weight: 700; line-height: 1.3; letter-spacing: 0.05em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap;
+}
+.sc-arrow {
+  position: absolute; z-index: 3; top: 10px; right: 10px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; pointer-events: none;
+  background: rgba(255, 255, 255, 0.94); color: var(--mk-navy); transform: rotate(0deg); transition: transform 0.28s ease, background-color 0.25s ease, color 0.25s ease;
+}
+.sc-lift:hover .sc-arrow, .sc-lift:focus-within .sc-arrow { transform: rotate(45deg); background: var(--mk-primary); color: #fff; }
+.sc-top { position: absolute; z-index: 3; top: 8px; right: 8px; pointer-events: none; }
+.sc-top > * { pointer-events: auto; }
+.sc .sc-top .hol-heart { position: static; width: 34px; height: 34px; }
+
+/* Body */
+.sc-body { display: flex; flex-direction: column; flex: 1; padding: 13px 15px 14px; }
+.sc .sc-loc { display: flex; align-items: center; gap: 5px; margin: 0 0 5px; color: var(--mk-primary); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; line-height: 1.2; text-transform: uppercase; }
+.sc-loc svg { flex: none; }
+.sc-loc span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc .sc-title {
+  display: -webkit-box; margin: 0 0 8px; overflow: hidden; color: var(--mk-navy); font-size: 20px; font-weight: 700; line-height: 1.15; letter-spacing: normal; text-transform: none;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.mk .sc-link { display: inline; color: inherit; text-decoration: none; }
+.sc-link::after { content: ""; position: absolute; z-index: 1; inset: 0; border-radius: var(--sc-r); }
+.mk .sc-link:focus-visible { outline: 0; }
+.sc-link:focus-visible::after { outline: 2px solid var(--mk-primary); outline-offset: 2px; }
+
+.sc .sc-meta { display: flex; flex-direction: column; gap: 4px; margin: 0 0 12px; padding: 0; list-style: none; color: var(--mk-text); font-size: 12.5px; line-height: 1.3; }
+.sc .sc-meta li { display: flex; align-items: center; gap: 6px; min-width: 0; margin: 0; padding: 0; }
+.sc-meta li > svg { flex: none; color: var(--mk-primary); width: 14px; height: 14px; }
+.sc-meta li > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sc-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 11px; border-top: 1px solid rgba(15, 36, 84, 0.08); }
+.sc-meta + .sc-foot, .sc-title + .sc-foot { margin-top: auto; }
+.sc .sc-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px 6px; min-width: 0; margin: 0; }
+.sc-price small { font-size: 11.5px; line-height: 1.2; }
+.sc-price strong { color: var(--mk-navy); font-family: "Barlow Condensed", sans-serif; font-size: 21px; line-height: 1; font-weight: 700; }
+.sc-price s { font-size: 12px; opacity: 0.65; }
+.sc-save { position: absolute; z-index: 3; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 30px; pointer-events: none; background: #e4572e; color: #fff; font-size: 11px; font-weight: 700; line-height: 1.35; }
+.sc-cta { display: inline-flex; align-items: center; gap: 4px; flex: none; color: var(--mk-primary); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.sc-cta svg { transition: transform 0.28s ease; }
+.sc-lift:hover .sc-cta svg, .sc-lift:focus-within .sc-cta svg { transform: translate3d(4px, 0, 0); }
+
+/* Skeleton */
+.sc-skel { min-width: 0; }
+.sc-skel-img, .sc-skel-line { background: linear-gradient(90deg, #eef2f5, #f8fafb, #eef2f5); background-size: 200% 100%; animation: sc-shimmer 1.4s infinite; }
+.sc-skel-img { aspect-ratio: 16 / 11; border-radius: 16px; }
+.sc-skel-line { width: 82%; height: 16px; margin-top: 12px; border-radius: 8px; }
+.sc-skel-line.is-short { width: 48%; }
+@keyframes sc-shimmer { to { background-position: -200% 0; } }
+
+/* Shared responsive grid (Search): 4 columns on desktop, 3 on tablet, 2 on phones */
+.sc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.sc-grid > .sc { animation: sc-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes sc-in { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 1100px) {
+  .sc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .sc { --sc-r: 14px; }
+  .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .sc-visual { aspect-ratio: 4 / 3; }
+  .sc-tag { top: 8px; left: 8px; max-width: calc(100% - 52px); padding: 3px 8px; font-size: 10px; }
+  .sc-arrow { top: 8px; right: 8px; width: 28px; height: 28px; }
+  .sc-top { top: 6px; right: 6px; }
+  .sc .sc-top .hol-heart { width: 30px; height: 30px; }
+  .sc-body { padding: 10px 11px 12px; }
+  .sc .sc-loc { margin-bottom: 4px; font-size: 10px; }
+  .sc .sc-title { margin-bottom: 6px; font-size: 17px; }
+  .sc .sc-meta { gap: 3px; margin-bottom: 9px; font-size: 11.5px; }
+  .sc .sc-meta li:nth-child(n + 3) { display: none; }
+  .sc-foot { padding-top: 9px; }
+  .sc-price small { font-size: 11px; }
+  .sc-price strong { font-size: 18px; }
+  .sc-price s { display: none; }
+  .sc-save { left: 8px; bottom: 8px; padding: 2px 8px; font-size: 10.5px; }
+  .sc-cta { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Opt-in only: see app/lib/motionPolicy.js */
+  html[data-honor-reduced-motion] .sc-lift,
+  html[data-honor-reduced-motion] .sc-lift::before,
+  html[data-honor-reduced-motion] .sc-visual img,
+  html[data-honor-reduced-motion] .sc-arrow,
+  html[data-honor-reduced-motion] .sc-cta svg { transition: none; }
+  html[data-honor-reduced-motion] .sc-lift:hover,
+  html[data-honor-reduced-motion] .sc-lift:focus-within { transform: none; }
+  html[data-honor-reduced-motion] .sc-grid > .sc,
+  html[data-honor-reduced-motion] .sc-skel-img,
+  html[data-honor-reduced-motion] .sc-skel-line { animation: none; }
+}
+
+/* Touch devices: no sticky hover; a quick press instead */
+@media (hover: none) {
+  .sc-lift:hover { transform: none; }
+  .sc-lift:hover::before { opacity: 0; }
+  .sc-lift:hover .sc-visual img { transform: none; }
+  .sc-lift:hover .sc-arrow { transform: none; background: rgba(255, 255, 255, 0.94); color: var(--mk-navy); }
+  .sc-lift:hover .sc-cta svg { transform: none; }
+  .sc-lift:active { transform: scale(0.98); transition-duration: 0.12s; }
+}

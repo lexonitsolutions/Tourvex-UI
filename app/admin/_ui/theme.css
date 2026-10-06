@@ -1,0 +1,445 @@
+/* shadcn/ui theme + legacy kit tokens for the ADMIN, mapped onto the Tourvex palette (navy #0f2454, teal #2095ae, soft pastel tints).
+   Imported AFTER admin.css / kit.css / dash.css from app/admin/layout.js. This file is the SINGLE SOURCE of every colour token that
+   changes with the theme: the legacy --adm-* neutrals/status/tint/shadow tokens, the --dsh-* dashboard tints and the shadcn
+   variables. Component CSS never uses a colour literal for a surface, border, ink or shadow: it reads these tokens, so a screen
+   themes correctly in light, dark and forced panels without per-selector overrides.
+
+   Scopes
+   - light (default):  .adm-root, and any forced light panel  [data-adm-scheme="light"]
+   - dark:             [data-adm-theme="dark"][data-adm-dark] .adm-root       (page level; needs BOTH attributes, see below)
+                       .adm-root.dark, [data-adm-scheme="dark"]                (forced panels, used by the /admin/_ui gallery)
+   The attributes live on the layout wrapper [data-adm-themeroot] and the portal host, NOT on <html>.
+   `data-adm-dark` is the "dark UI is live" switch (DARK_UI_ENABLED in _ui/theme/theme-store.js). */
+
+.adm-root,
+.adm-root [data-adm-scheme="light"] {
+  color-scheme: light;
+  /* ---- layered surfaces (page < card < raised < overlay) ---- */
+  --adm-bg: #f3f5f9;
+  --adm-surface: #ffffff;
+  --adm-surface-2: #f8f9fc;
+  --adm-surface-3: #f5f7fb;            /* table header, quiet fills */
+  --adm-surface-hover: #f7f9fc;        /* row / menu hover */
+  --adm-surface-selected: #eaf5f8;     /* selected row, active filter pill */
+  --adm-surface-selected-hover: #e3f1f5;
+  --adm-control-bg: #ffffff;           /* inputs, selects, pills */
+  --adm-overlay: #ffffff;              /* menus, popovers, dialogs, drawers */
+  --adm-track: #eaeef5;                /* segmented control / tab track */
+  --adm-track-active: #ffffff;         /* active segment */
+  --adm-fill-neutral: #eef1f6;         /* count pills */
+  --adm-fill-hover: #e9edf4;           /* kebab / icon hover */
+  --adm-wash-from: #ffffff;
+  --adm-wash-to: #f7fafd;
+  --adm-skel-a: #e9edf4;
+  --adm-skel-b: #f4f6fa;
+  /* ---- hairlines ---- */
+  --adm-line: #e3e8f0;
+  --adm-line-soft: #edf0f6;
+  --adm-line-strong: #cbd3e1;
+  --adm-input-border: #7e8aa5;         /* >= 3:1 on surfaces (WCAG 1.4.11) */
+  --adm-input-border-hover: #5d6987;
+  /* ---- ink ---- */
+  --adm-text: #16213f;
+  --adm-ink: #0f2454;                  /* headings, strong labels */
+  --adm-muted: #5d6987;
+  --adm-faint: #626d89;
+  --adm-th: #5d6987;
+  --adm-link: #187589;
+  --adm-on-tint-label: #38425d;
+  --adm-on-tint-caption: #4a5470;
+  /* ---- brand ---- */
+  --adm-navy: #0f2454;
+  --adm-navy-900: #0a1a40;
+  --adm-navy-800: #12295f;
+  --adm-teal: #2095ae;
+  --adm-teal-dark: #197a8f;
+  --adm-teal-soft: #e5f3f6;
+  --adm-primary: #197a8f;
+  --adm-primary-hover: #146a7d;
+  --adm-primary-grad: #1e8097;
+  --adm-on-primary: #ffffff;
+  --adm-solid: #0f2454;                /* pressed chips, current page, dark pills */
+  --adm-on-solid: #ffffff;
+  --adm-brand-ink: #0d5a6d;
+  --adm-brand-chip: #e7f3f6;
+  --adm-brand-line: rgba(32, 149, 174, 0.55);
+  --adm-brand-hover: rgba(13, 90, 109, 0.14);
+  --adm-side-from: #0a1a40;
+  --adm-side-to: #0f2454;
+  --adm-side-edge: rgba(255, 255, 255, 0);
+  --adm-bulk-from: #0a1a40;
+  --adm-bulk-to: #12295f;
+  /* ---- status ---- */
+  --adm-success: #167a55;
+  --adm-success-soft: #e4f5ee;
+  --adm-warning: #9e5d09;
+  --adm-warning-soft: #fdf1dc;
+  --adm-danger: #c0334a;
+  --adm-danger-soft: #fce8eb;
+  --adm-danger-solid: #c0334a;
+  --adm-danger-solid-hover: #a62a3e;
+  --adm-on-danger: #ffffff;
+  --adm-info: #2457b8;
+  --adm-info-soft: #e6eefc;
+  --adm-amber: #d89b2b;
+  --adm-warning-line: #f0d9aa;
+  --adm-danger-line: #f1c4cc;
+  /* status pills (list kit): bg / ink */
+  --adm-b-success: #dff4e9;  --adm-b-success-ink: #0f6446;
+  --adm-b-warning: #fdefd0;  --adm-b-warning-ink: #84490a;
+  --adm-b-danger: #fde4e8;   --adm-b-danger-ink: #a3263c;
+  --adm-b-info: #e1eafc;     --adm-b-info-ink: #1d46a0;
+  --adm-b-brand: #dcf0f4;    --adm-b-brand-ink: #0d5a6d;
+  --adm-b-neutral: #eceff5;  --adm-b-neutral-ink: #4a5575;
+  /* scanner verdicts (white text on each) */
+  --adm-scan-ok: #12805a;
+  --adm-scan-bad: #c0334a;
+  --adm-scan-warn: #94590a;
+  /* ---- charts ---- */
+  --adm-c1: #2095ae;
+  --adm-c2: #0f2454;
+  --adm-c3: #bf8926;
+  --adm-c4: #8392b2;
+  --adm-c5: #c7d2e6;
+  --adm-c-good: #1f9f72;
+  --adm-c-bad: #d2557a;
+  --adm-tip-bg: rgba(10, 26, 64, 0.94);
+  /* ---- interaction + depth ---- */
+  --adm-hover: rgba(15, 36, 84, 0.06);
+  --adm-hover-2: rgba(15, 36, 84, 0.08);
+  --adm-focus-glow: rgba(32, 149, 174, 0.22);
+  --adm-focus-glow-soft: rgba(32, 149, 174, 0.18);
+  --adm-top-bg: rgba(255, 255, 255, 0.92);
+  --adm-scrim: rgba(8, 18, 48, 0.55);
+  --adm-ring-offset: #ffffff;
+  --adm-ring: 0 0 0 2px var(--adm-ring-offset), 0 0 0 4px var(--adm-teal);
+  --adm-brand-shadow: 0 6px 16px rgba(25, 122, 143, 0.28);
+  --adm-shadow-sm: 0 1px 2px rgba(15, 36, 84, 0.06);
+  --adm-shadow-md: 0 8px 24px rgba(15, 36, 84, 0.12);
+  --adm-shadow-lg: 0 24px 60px rgba(10, 26, 64, 0.28);
+  --adm-shadow-card: 0 1px 2px rgba(15, 36, 84, 0.04), 0 8px 24px -12px rgba(15, 36, 84, 0.14);
+  --adm-shadow-lift: 0 2px 4px rgba(15, 36, 84, 0.05), 0 18px 34px -14px rgba(15, 36, 84, 0.22);
+  --adm-shadow-table: 0 1px 2px rgba(15, 36, 84, 0.04), 0 14px 32px -22px rgba(15, 36, 84, 0.22);
+  --adm-shadow-pop: 0 18px 40px -12px rgba(15, 36, 84, 0.28), 0 2px 6px rgba(15, 36, 84, 0.06);
+  --adm-shadow-edge: 0 4px 14px rgba(10, 26, 64, 0.22), 0 1px 3px rgba(10, 26, 64, 0.14);
+  --adm-shade: rgba(15, 36, 84, 0.12);   /* scroll-edge shadows */
+  /* pointer-follow glow + white pills that sit on pastel tints */
+  --adm-glow: rgba(255, 255, 255, 0.85);
+  --adm-glow-tile: rgba(255, 255, 255, 0.6);
+  --adm-spot: rgba(32, 149, 174, 0.1);
+  --adm-on-tint: #ffffff;
+  --adm-on-tint-soft: rgba(255, 255, 255, 0.55);
+  --adm-on-tint-soft-2: rgba(255, 255, 255, 0.6);
+  --adm-pill-shadow: 0 1px 2px rgba(15, 36, 84, 0.08);
+  /* ---- pastel tints (status tiles + KPI cards): bg / ink (AA on bg) / ring (selected outline) ---- */
+  --adm-warning-line-2: #e0b95c;
+  --adm-summary-from: #e9f6f9;
+  --adm-summary-to: #f1f4fd;
+  --adm-summary-line: #d9ebf0;
+  --adm-shadow-seg: 0 1px 3px rgba(15, 36, 84, 0.16), 0 4px 10px -6px rgba(15, 36, 84, 0.3);
+  --adm-shadow-seg-sm: 0 1px 3px rgba(15, 36, 84, 0.14);
+  --adm-shadow-bulk: 0 10px 24px -12px rgba(10, 26, 64, 0.6);
+  --adm-shadow-tile: 0 14px 26px -12px;
+  --adm-icon-shadow: 0 2px 6px rgba(15, 36, 84, 0.08);
+  --adm-pill-shadow-2: 0 2px 6px -2px rgba(15, 36, 84, 0.2);
+  --adm-brand-pill-shadow: 0 4px 10px -4px rgba(25, 122, 143, 0.6);
+  --adm-avatar-ring: 0 0 0 2px #ffffff, 0 1px 4px rgba(15, 36, 84, 0.18);
+  /* ---- pastel tints (status tiles + KPI cards): bg / ink (AA on bg) / ring (selected outline) ---- */
+  --adm-tint-mint: #d9f2e6;       --adm-tint-mint-ink: #14614a;       --adm-tint-mint-ring: #2e9e6e;
+  --adm-tint-butter: #fbefc4;     --adm-tint-butter-ink: #765404;     --adm-tint-butter-ring: #b98a17;
+  --adm-tint-peach: #fde0cf;      --adm-tint-peach-ink: #873a0c;      --adm-tint-peach-ring: #d77b47;
+  --adm-tint-rose: #fbdce6;       --adm-tint-rose-ink: #86284a;       --adm-tint-rose-ring: #d9628c;
+  --adm-tint-periwinkle: #dfe3fb; --adm-tint-periwinkle-ink: #2c3788; --adm-tint-periwinkle-ring: #6b78e0;
+  --adm-tint-sky: #d6ecf8;        --adm-tint-sky-ink: #1a5580;        --adm-tint-sky-ring: #3a9bd3;
+  --adm-tint-violet: #e8defa;     --adm-tint-violet-ink: #4a2a8a;     --adm-tint-violet-ring: #8b63d6;
+  --adm-tint-teal: #d5eef2;       --adm-tint-teal-ink: #0f5668;       --adm-tint-teal-ring: #2095ae;
+  --adm-tint-green: var(--adm-tint-mint);   --adm-tint-green-ink: var(--adm-tint-mint-ink);   --adm-tint-green-ring: var(--adm-tint-mint-ring);
+  --adm-tint-amber: var(--adm-tint-butter); --adm-tint-amber-ink: var(--adm-tint-butter-ink); --adm-tint-amber-ring: var(--adm-tint-butter-ring);
+  /* dashboard KPI card tints (slightly different pastels than the tiles; kept as shipped) */
+  --dsh-tint-mint-bg: #dcf3e8;   --dsh-tint-mint-ink: #0e5a3d;   --dsh-tint-mint-spark: #2fa57a;
+  --dsh-tint-butter-bg: #fbf0c8; --dsh-tint-butter-ink: #745404; --dsh-tint-butter-spark: #d4a017;
+  --dsh-tint-peach-bg: #fde2d1;  --dsh-tint-peach-ink: #86380f;  --dsh-tint-peach-spark: #e0793f;
+  --dsh-tint-rose-bg: #fadbe5;   --dsh-tint-rose-ink: #8a2243;   --dsh-tint-rose-spark: #d2557a;
+  --dsh-tint-periwinkle-bg: #e0e5fb; --dsh-tint-periwinkle-ink: #2b3a8f; --dsh-tint-periwinkle-spark: #5d6fd6;
+  --dsh-tint-sky-bg: #d7edf8;    --dsh-tint-sky-ink: #0e4f70;    --dsh-tint-sky-spark: #2f95c4;
+  --dsh-tint-violet-bg: #eadffa; --dsh-tint-violet-ink: #4b2790; --dsh-tint-violet-spark: #8a5bd6;
+  --dsh-tint-teal-bg: #d5eef2;   --dsh-tint-teal-ink: #0d5566;   --dsh-tint-teal-spark: #2095ae;
+  /* ---- shadcn/ui variables ---- */
+  --radius: 0.625rem;
+  --background: var(--adm-bg);
+  --foreground: var(--adm-text);
+  --card: var(--adm-surface);
+  --card-foreground: var(--adm-text);
+  --popover: var(--adm-overlay);
+  --popover-foreground: var(--adm-text);
+  --primary: var(--adm-teal-dark);
+  --primary-foreground: #ffffff;
+  --secondary: #eaeef5;
+  --secondary-foreground: var(--adm-navy);
+  --muted: #eef1f7;
+  --muted-foreground: #5b6783;
+  --accent: var(--adm-teal-soft);
+  --accent-foreground: #0f5668;
+  --destructive: var(--adm-danger);
+  --destructive-foreground: #ffffff;
+  --success: var(--adm-success);
+  --success-foreground: #ffffff;
+  --warning: #935208;
+  --warning-foreground: #ffffff;
+  --info: var(--adm-info);
+  --info-foreground: #ffffff;
+  --border: var(--adm-line);
+  --input: var(--adm-input-border);
+  --ring: var(--adm-teal);
+  --chart-1: #2095ae;
+  --chart-2: #2457b8;
+  --chart-3: #b9770e;
+  --chart-4: #7a52c7;
+  --chart-5: #c4416f;
+  --sidebar: var(--adm-navy-900);
+  --sidebar-foreground: #cdd7ee;
+  --sidebar-primary: var(--adm-teal);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: var(--adm-teal);
+  --adm-layer-0: var(--adm-bg);
+  --adm-layer-1: var(--adm-surface);
+  --adm-layer-2: var(--adm-surface-2);
+  --adm-layer-3: #ffffff;
+  --success-soft: var(--adm-success-soft);
+  --warning-soft: var(--adm-warning-soft);
+  --info-soft: var(--adm-info-soft);
+  --destructive-soft: var(--adm-danger-soft);
+}
+
+[data-adm-theme="dark"][data-adm-dark] .adm-root,
+.adm-root[data-adm-theme="dark"][data-adm-dark],
+.adm-root.dark,
+.adm-root [data-adm-scheme="dark"],
+[data-adm-scheme="dark"].adm-root {
+  color-scheme: dark;
+  /* deep navy, layered: page < card < raised < overlay; hairline borders; lifted teal */
+  --adm-bg: #0a1226;
+  --adm-surface: #111b34;
+  --adm-surface-2: #16213e;
+  --adm-surface-3: #152140;
+  --adm-surface-hover: #172544;
+  --adm-surface-selected: #133349;
+  --adm-surface-selected-hover: #173b54;
+  --adm-control-bg: #0c1630;
+  --adm-overlay: #16213e;
+  --adm-track: #1a2748;
+  --adm-track-active: #2a3c66;
+  --adm-fill-neutral: #1c2a4c;
+  --adm-fill-hover: #1f2f55;
+  --adm-wash-from: #111b34;
+  --adm-wash-to: #0f1a31;
+  --adm-skel-a: #1a2848;
+  --adm-skel-b: #243558;
+  --adm-line: #22304f;
+  --adm-line-soft: #1a2744;
+  --adm-line-strong: #34497a;
+  --adm-input-border: #6a7fae;
+  --adm-input-border-hover: #8ea1cc;
+  --adm-text: #e8edf8;
+  --adm-ink: #f1f5ff;
+  --adm-muted: #9aa9c9;
+  --adm-faint: #8a9abf;
+  --adm-th: #9aa9c9;
+  --adm-link: #5fc7de;
+  --adm-on-tint-label: #cfd9f0;
+  --adm-on-tint-caption: #b3c0dd;
+  --adm-navy: #0f2454;
+  --adm-navy-900: #0a1a40;
+  --adm-navy-800: #12295f;
+  --adm-teal: #3bb4cf;
+  --adm-teal-dark: #3bb4cf;
+  --adm-teal-soft: #12384a;
+  --adm-primary: #3bb4cf;
+  --adm-primary-hover: #55c4dc;
+  --adm-primary-grad: #4cc0d8;
+  --adm-on-primary: #04202a;
+  --adm-solid: #3bb4cf;
+  --adm-on-solid: #04202a;
+  --adm-brand-ink: #8fd8e8;
+  --adm-brand-chip: #12384a;
+  --adm-brand-line: rgba(59, 180, 207, 0.5);
+  --adm-brand-hover: rgba(143, 216, 232, 0.16);
+  --adm-side-from: #0c1630;
+  --adm-side-to: #0e1a38;
+  --adm-side-edge: rgba(255, 255, 255, 0.07);
+  --adm-bulk-from: #1b2c55;
+  --adm-bulk-to: #223566;
+  --adm-success: #4fd1a0;
+  --adm-success-soft: #0f3326;
+  --adm-warning: #f0b54a;
+  --adm-warning-soft: #3a2b0b;
+  --adm-danger: #f2788a;
+  --adm-danger-soft: #3d1520;
+  --adm-danger-solid: #e0556b;
+  --adm-danger-solid-hover: #ea6b7f;
+  --adm-on-danger: #1c050b;
+  --adm-info: #7ea6f5;
+  --adm-info-soft: #12284f;
+  --adm-amber: #f0b54a;
+  --adm-warning-line: #5b4513;
+  --adm-danger-line: #6b2634;
+  --adm-b-success: #0f3326;  --adm-b-success-ink: #7ce3b8;
+  --adm-b-warning: #3a2b0b;  --adm-b-warning-ink: #f5c766;
+  --adm-b-danger: #3d1520;   --adm-b-danger-ink: #f7a1b0;
+  --adm-b-info: #12284f;     --adm-b-info-ink: #a5c2f9;
+  --adm-b-brand: #0f3a45;    --adm-b-brand-ink: #8fd8e8;
+  --adm-b-neutral: #1c2a4c;  --adm-b-neutral-ink: #b8c4de;
+  --adm-scan-ok: #0e7a55;
+  --adm-scan-bad: #b32a42;
+  --adm-scan-warn: #8a5309;
+  --adm-c1: #3bb4cf;
+  --adm-c2: #6c97f0;
+  --adm-c3: #f0b54a;
+  --adm-c4: #8ea0c8;
+  --adm-c5: #4b5d86;
+  --adm-c-good: #4fd1a0;
+  --adm-c-bad: #f07fa8;
+  --adm-tip-bg: #1f2e55;
+  --adm-hover: rgba(255, 255, 255, 0.07);
+  --adm-hover-2: rgba(255, 255, 255, 0.1);
+  --adm-focus-glow: rgba(59, 180, 207, 0.32);
+  --adm-focus-glow-soft: rgba(59, 180, 207, 0.26);
+  --adm-top-bg: rgba(10, 18, 38, 0.86);
+  --adm-scrim: rgba(3, 8, 20, 0.7);
+  --adm-ring-offset: #0a1226;
+  --adm-brand-shadow: 0 6px 18px rgba(59, 180, 207, 0.22);
+  --adm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.32);
+  --adm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.42);
+  --adm-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --adm-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --adm-shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.3), 0 18px 34px -14px rgba(0, 0, 0, 0.6);
+  --adm-shadow-table: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 32px -22px rgba(0, 0, 0, 0.6);
+  --adm-shadow-pop: 0 18px 40px -12px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --adm-shadow-edge: 0 4px 14px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --adm-shade: rgba(0, 0, 0, 0.35);
+  --adm-glow: rgba(255, 255, 255, 0.14);
+  --adm-glow-tile: rgba(255, 255, 255, 0.12);
+  --adm-spot: rgba(59, 180, 207, 0.16);
+  --adm-on-tint: rgba(255, 255, 255, 0.12);
+  --adm-on-tint-soft: rgba(255, 255, 255, 0.1);
+  --adm-on-tint-soft-2: rgba(255, 255, 255, 0.1);
+  --adm-pill-shadow: none;
+  --adm-warning-line-2: #7a5b1a;
+  --adm-summary-from: #0f2f3b;
+  --adm-summary-to: #141f45;
+  --adm-summary-line: #1d3a52;
+  --adm-shadow-seg: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --adm-shadow-seg-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --adm-shadow-bulk: 0 10px 24px -12px rgba(0, 0, 0, 0.7);
+  --adm-shadow-tile: 0 14px 26px -12px;
+  --adm-icon-shadow: none;
+  --adm-pill-shadow-2: none;
+  --adm-brand-pill-shadow: 0 4px 10px -4px rgba(59, 180, 207, 0.5);
+  --adm-avatar-ring: 0 0 0 2px #111b34, 0 1px 4px rgba(0, 0, 0, 0.4);
+  --adm-tint-mint: #123a2d;       --adm-tint-mint-ink: #9be5c3;       --adm-tint-mint-ring: #2e9e6e;
+  --adm-tint-butter: #3b300d;     --adm-tint-butter-ink: #f3d77a;     --adm-tint-butter-ring: #d9a21b;
+  --adm-tint-peach: #3f2314;      --adm-tint-peach-ink: #f9b891;      --adm-tint-peach-ring: #e0804a;
+  --adm-tint-rose: #40182c;       --adm-tint-rose-ink: #f5a8c4;       --adm-tint-rose-ring: #d9628c;
+  --adm-tint-periwinkle: #1f2650; --adm-tint-periwinkle-ink: #b5bdf5; --adm-tint-periwinkle-ring: #6b78e0;
+  --adm-tint-sky: #10334a;        --adm-tint-sky-ink: #8fcdee;        --adm-tint-sky-ring: #3a9bd3;
+  --adm-tint-violet: #2c1f55;     --adm-tint-violet-ink: #cdb6f6;     --adm-tint-violet-ring: #8b63d6;
+  --adm-tint-teal: #0f3a45;       --adm-tint-teal-ink: #86d6e6;       --adm-tint-teal-ring: #2095ae;
+  --dsh-tint-mint-bg: #123a2d;   --dsh-tint-mint-ink: #9be5c3;   --dsh-tint-mint-spark: #2fa57a;
+  --dsh-tint-butter-bg: #3b300d; --dsh-tint-butter-ink: #f3d77a; --dsh-tint-butter-spark: #d4a017;
+  --dsh-tint-peach-bg: #3f2314;  --dsh-tint-peach-ink: #f9b891;  --dsh-tint-peach-spark: #e0793f;
+  --dsh-tint-rose-bg: #40182c;   --dsh-tint-rose-ink: #f5a8c4;   --dsh-tint-rose-spark: #d2557a;
+  --dsh-tint-periwinkle-bg: #1f2650; --dsh-tint-periwinkle-ink: #b5bdf5; --dsh-tint-periwinkle-spark: #5d6fd6;
+  --dsh-tint-sky-bg: #10334a;    --dsh-tint-sky-ink: #8fcdee;    --dsh-tint-sky-spark: #2f95c4;
+  --dsh-tint-violet-bg: #2c1f55; --dsh-tint-violet-ink: #cdb6f6; --dsh-tint-violet-spark: #8a5bd6;
+  --dsh-tint-teal-bg: #0f3a45;   --dsh-tint-teal-ink: #86d6e6;   --dsh-tint-teal-spark: #2095ae;
+  /* ---- shadcn/ui variables ---- */
+  --background: #0a1226;
+  --foreground: #e8edf8;
+  --card: #111b34;
+  --card-foreground: #e8edf8;
+  --popover: #16213e;
+  --popover-foreground: #e8edf8;
+  --primary: #3bb4cf;
+  --primary-foreground: #04202a;
+  --secondary: #1b2849;
+  --secondary-foreground: #e8edf8;
+  --muted: #162140;
+  --muted-foreground: #9aa9c9;
+  --accent: #1e3050;
+  --accent-foreground: #e8edf8;
+  --destructive: #f2788a;
+  --destructive-foreground: #2b0a11;
+  --success: #4fd1a0;
+  --success-foreground: #04251a;
+  --warning: #f0b54a;
+  --warning-foreground: #2a1a02;
+  --info: #7ea6f5;
+  --info-foreground: #07142e;
+  --border: #26365a;
+  --input: #6a7fae;
+  --ring: #3bb4cf;
+  --chart-1: #3bb4cf;
+  --chart-2: #6c97f0;
+  --chart-3: #f0b54a;
+  --chart-4: #a98af0;
+  --chart-5: #f07fa8;
+  --sidebar: #0d1730;
+  --sidebar-foreground: #cdd7ee;
+  --sidebar-primary: #3bb4cf;
+  --sidebar-primary-foreground: #04202a;
+  --sidebar-accent: rgba(255, 255, 255, 0.07);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #3bb4cf;
+  --adm-layer-0: #0a1226;
+  --adm-layer-1: #111b34;
+  --adm-layer-2: #16213e;
+  --adm-layer-3: #1c2a4c;
+  --success-soft: #0f3326;
+  --warning-soft: #3a2b0b;
+  --info-soft: #12284f;
+  --destructive-soft: #3d1520;
+}
+
+/* A forced-scheme panel paints its own surface so it can sit inside a page of the other scheme. */
+.adm-root [data-adm-scheme] {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Portal host (Radix content rendered outside the shell). Zero-height; children are position:fixed. */
+.adm-ui-portal { min-height: 0; background: none; }
+
+/* ---- scoped mini-reset for shadcn elements -------------------------------------------------------------------------
+   /css/style.css (marketplace, loaded on every page) styles bare input/button/select/table/th/td/span/a elements.
+   Tailwind utilities are `important` so they win on the properties they set; this block neutralises the properties
+   shadcn components rely on NOT being set (margins, default borders, display of span/a). Low specificity on purpose,
+   so kit rules (.adm-root .adm-x) still win. */
+.adm-root :where([data-slot], [data-slot] *) { border-color: var(--border); }
+.adm-root input[data-slot], .adm-root textarea[data-slot], .adm-root select[data-slot] {
+  margin: 0; font-family: inherit; font-size: inherit; line-height: inherit; text-transform: none; box-shadow: none;
+}
+.adm-root button[data-slot], .adm-root [data-slot] button { border-width: 0; border-style: solid; font-family: inherit; text-transform: none; }
+.adm-root input[data-slot][type="checkbox"], .adm-root input[data-slot][type="radio"] { display: inline-block; }
+.adm-root :where(table, thead, tbody, tfoot, tr, th, td)[data-slot] { border: 0 solid var(--border); padding: 0; }
+/* kit-classed spans/links (adm-*) keep their own display (e.g. the profile trigger is a [data-slot] button) */
+.adm-root :where([data-slot]) :where(span, a):not([class*="adm-"]) { display: revert; text-decoration: none; }
+.adm-root :where([data-slot]) :where(p) { margin: 0; font-size: inherit; line-height: inherit; color: inherit; }
+.adm-root [data-slot] :where(h1, h2, h3, h4, h5, h6) { margin: 0; font-size: inherit; line-height: inherit; font-weight: inherit; color: inherit; font-family: inherit; }
+.adm-root [data-slot] :where(ul, ol) { list-style: none; margin: 0; padding: 0; }
+
+/* Sonner toasts: pick up the admin font. */
+.adm-root [data-sonner-toaster] { font-family: var(--adm-font); }
+
+/* react-day-picker renders a real <table>; neutralise the marketplace table/th/td borders + padding inside it. */
+.adm-root [data-slot="calendar"] :where(table, tr, th, td) { border: 0; padding: 0; }
+.adm-root [data-slot="calendar"] button { border: 0 solid transparent; }
+
+/* The marketplace styles ::placeholder globally (body colour + body font size); restore ours inside shadcn inputs. */
+.adm-root input[data-slot]::placeholder, .adm-root textarea[data-slot]::placeholder,
+.adm-root input[data-slot]::-webkit-input-placeholder, .adm-root textarea[data-slot]::-webkit-input-placeholder {
+  color: var(--muted-foreground); font-size: inherit; font-weight: inherit; opacity: 1;
+}

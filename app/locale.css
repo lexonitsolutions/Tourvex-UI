@@ -1,0 +1,86 @@
+/* Language & currency modal. Animates transform/opacity only; pre-built hidden, so opening is a class toggle. */
+.mk-loc { position: fixed; inset: 0; z-index: 210; display: grid; place-items: center; padding: 20px; pointer-events: none; visibility: hidden; perspective: 1800px; perspective-origin: 50% 12%; transition: visibility 0s linear 1.2s; }
+.mk-loc.is-open { pointer-events: auto; visibility: visible; transition-delay: 0s; }
+.mk-loc-scrim { position: absolute; inset: 0; width: 100%; border: 0; padding: 0; cursor: pointer; background: rgba(15, 36, 84, 0.5); opacity: 0; transition: opacity 0.7s ease 0.45s; }
+.mk-loc.is-open .mk-loc-scrim { opacity: 1; transition: opacity 0.4s ease; }
+.mk-loc-dialog {
+  position: relative; display: grid; grid-template-columns: 290px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); width: min(1000px, 100%); height: min(84vh, 780px);
+  background: #fff; border-radius: 26px; overflow: hidden; box-shadow: 0 40px 100px rgba(15, 36, 84, 0.3);
+  /* Hinged at the top edge, swinging open like a sheet of paper: rotateX + a little drop, on the GPU only. */
+  transform-origin: 50% 0; opacity: 0; transform: rotateX(-78deg) translate3d(0, -18px, 0) scale(0.98); backface-visibility: hidden; will-change: transform, opacity;
+  /* Close = the open motion played backwards: same duration, mirrored curve (0.7, 0, 0.75, 0.15), fade at the end. */
+  transition: opacity 0.4s ease 0.75s, transform 1.15s cubic-bezier(0.7, 0, 0.75, 0.15);
+}
+.mk-loc.is-open .mk-loc-dialog {
+  opacity: 1; transform: rotateX(0) translate3d(0, 0, 0) scale(1);
+  transition: opacity 0.4s ease, transform 1.15s cubic-bezier(0.25, 0.85, 0.3, 1);
+}
+/* The content settles in just after the sheet opens. */
+.mk-loc.is-open .mk-loc-langs, .mk-loc.is-open .mk-loc-currencies { animation: mk-loc-settle 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both; }
+.mk-loc.is-open .mk-loc-currencies { animation-delay: 0.36s; }
+@keyframes mk-loc-settle { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
+.mk-loc-close { position: absolute; top: 16px; right: 16px; z-index: 3; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #fff; color: var(--mk-text); display: grid; place-items: center; cursor: pointer; transition: background-color 0.2s, color 0.2s, transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1); }
+.mk-loc-close:hover { background: var(--mk-bg); color: var(--mk-navy); transform: rotate(90deg); }
+.mk .mk-loc h2 { margin: 0 0 14px; font-size: 28px; text-transform: none; letter-spacing: normal; line-height: 1.15; }
+
+.mk-loc-langs { min-height: 0; padding: 30px 24px 26px 30px; border-right: 1px solid var(--mk-line); }
+.mk-loc-lang { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 52px; margin-bottom: 10px; padding: 0 16px; border: 1px solid var(--mk-line); border-radius: 14px; background: #fff; color: var(--mk-navy); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s; }
+.mk-loc-lang small { font-size: 13px; font-weight: 500; color: var(--mk-text); }
+.mk-loc-lang:hover:not(:disabled) { border-color: var(--mk-primary); }
+.mk-loc-lang.is-active { border: 1.5px solid var(--mk-navy); background: var(--mk-bg); }
+.mk-loc-lang:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.mk-loc-currencies { min-height: 0; padding: 28px 28px 26px 28px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #b9c3d0 transparent; }
+.mk-loc-currencies::-webkit-scrollbar { width: 8px; }
+.mk-loc-currencies::-webkit-scrollbar-thumb { background: #c5cedb; border-radius: 8px; }
+.mk-loc-currencies::-webkit-scrollbar-thumb:hover { background: #9fadc0; }
+.mk-loc-note { margin: 0 44px 22px 0; padding: 10px 14px; border-radius: 12px; background: #eef7fa; color: var(--mk-navy); font-size: 14px; line-height: 1.45; }
+.mk-loc-currencies h2:not(:first-of-type) { margin-top: 22px; }
+.mk-loc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.mk-loc-cur {
+  position: relative; display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 44px; padding: 6px 12px; border: 1px solid var(--mk-line); border-radius: 11px; background: #fff;
+  color: var(--mk-navy); font: inherit; font-size: 13.5px; text-align: left; cursor: pointer; transition: border-color 0.2s, background-color 0.2s, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s;
+}
+.mk-loc-cur:hover { border-color: var(--mk-primary); transform: translate3d(0, -2px, 0); box-shadow: 0 8px 18px rgba(15, 36, 84, 0.08); }
+.mk-loc-cur.is-active { border: 1.5px solid var(--mk-navy); background: var(--mk-bg); }
+.mk-loc-flag { flex: none; width: 21px; height: 15px; border-radius: 3px; object-fit: cover; box-shadow: 0 0 0 1px rgba(15, 36, 84, 0.14); background: var(--mk-bg); }
+.mk-loc-code { flex: none; font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; }
+.mk-loc-name { flex: 1; min-width: 0; color: var(--mk-text); font-size: 12.5px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mk-loc-check { flex: none; color: var(--mk-primary); }
+
+.mk-loc :is(button):focus-visible { outline: 2px solid var(--mk-primary); outline-offset: 2px; }
+@media (max-width: 900px) {
+  .mk-loc-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .mk-loc { padding: 0; align-items: end; }
+  .mk-loc-dialog { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); width: 100%; height: 90vh; max-height: 90vh; border-radius: 24px 24px 0 0; transform-origin: 50% 100%; transform: translate3d(0, 100%, 0); opacity: 1; transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1); }
+  .mk-loc.is-open .mk-loc-dialog { transform: translate3d(0, 0, 0); transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1); }
+  .mk-loc { transition-duration: 0s; transition-delay: 0.6s; }
+  .mk-loc.is-open { transition-delay: 0s; }
+  .mk-loc-scrim { transition: opacity 0.6s ease; }
+  .mk-loc-langs { padding: 22px 20px 6px; border-right: 0; }
+  .mk-loc-langs h2 { font-size: 26px; margin-bottom: 10px; }
+  .mk-loc-langs [role="radiogroup"] { display: flex; gap: 10px; }
+  .mk-loc-lang { width: auto; flex: 1; margin-bottom: 0; }
+  .mk-loc-currencies { padding: 16px 20px 24px; }
+  .mk-loc-note { margin-right: 0; }
+  .mk-loc-close { top: 12px; right: 12px; }
+}
+@media (max-width: 420px) {
+  .mk-loc-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Opt-in only: see app/lib/motionPolicy.js */
+  html[data-honor-reduced-motion] .mk-loc-dialog,
+  html[data-honor-reduced-motion] .mk-loc-scrim,
+  html[data-honor-reduced-motion] .mk-loc-cur,
+  html[data-honor-reduced-motion] .mk-loc-close { transition: none; }
+  html[data-honor-reduced-motion] .mk-loc.is-open .mk-loc-langs,
+  html[data-honor-reduced-motion] .mk-loc.is-open .mk-loc-currencies { animation: none; }
+}
+
+/* Shared "prices are indicative, charged in AED" note (locale modal, enquiry and checkout areas). */
+.mk .mk-fx-note { font-size: inherit; line-height: 1.45; text-transform: none; letter-spacing: normal; }
+.mk .mk-fx-note b { font-weight: 700; }
+.mk .mk-fx-note .mk-fx-attr { display: block; margin-top: 2px; font-size: 0.82em; opacity: 0.75; }

@@ -1,0 +1,126 @@
+[
+  {
+    "id": "lead_1728065001",
+    "reference": "HOL-847291",
+    "holidaySlug": "dubai-skyline-city-break",
+    "holidayTitle": "Dubai Skyline City Break",
+    "destination": "Dubai",
+    "country": "United Arab Emirates",
+    "duration": "3 Nights / 4 Days",
+    "travelDate": "Sun, Oct 11, 2026",
+    "travelersCount": 5,
+    "travelersLabel": "5 adults",
+    "adults": 5,
+    "children": 0,
+    "infants": 0,
+    "totalAmount": 7950,
+    "currency": "AED",
+    "formattedPrice": "AED 7,950",
+    "name": "Rashid Al-Nuaimi",
+    "phone": "+971 50 123 4567",
+    "countryCode": "+971",
+    "email": "rashid.alnuaimi@example.com",
+    "nationality": "Emirati",
+    "optOutMarketing": false,
+    "notes": "Prefer high floor hotel rooms facing Burj Khalifa. Early check-in needed.",
+    "source": "Proceed to Book (Customer Details Form)",
+    "status": "New",
+    "createdAt": "2026-10-04T18:15:00.000Z",
+    "updatedAt": "2026-10-04T18:15:00.000Z",
+    "timeline": [
+      {
+        "type": "created",
+        "message": "Lead received via Proceed to Book (Customer Details Form). Nationality: Emirati.",
+        "author": "System",
+        "createdAt": "2026-10-04T18:15:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "lead_1728059002",
+    "reference": "HOL-719384",
+    "holidaySlug": "luxury-desert-safari-experience",
+    "holidayTitle": "Luxury Desert Safari & Stargazing",
+    "destination": "Dubai",
+    "country": "United Arab Emirates",
+    "duration": "2 Nights / 3 Days",
+    "travelDate": "Wed, Oct 14, 2026",
+    "travelersCount": 2,
+    "travelersLabel": "2 adults",
+    "adults": 2,
+    "children": 0,
+    "infants": 0,
+    "totalAmount": 3400,
+    "currency": "AED",
+    "formattedPrice": "AED 3,400",
+    "name": "Sarah Jenkins",
+    "phone": "+44 7911 123456",
+    "countryCode": "+44",
+    "email": "sarah.j@traveluk.co.uk",
+    "nationality": "British",
+    "optOutMarketing": true,
+    "notes": "Vegetarian dinner preference during the desert camp evening.",
+    "source": "Proceed to Book (Customer Details Form)",
+    "status": "Contacted",
+    "createdAt": "2026-10-04T14:30:00.000Z",
+    "updatedAt": "2026-10-04T15:10:00.000Z",
+    "timeline": [
+      {
+        "type": "created",
+        "message": "Lead received via Proceed to Book (Customer Details Form). Nationality: British.",
+        "author": "System",
+        "createdAt": "2026-10-04T14:30:00.000Z"
+      },
+      {
+        "type": "note",
+        "message": "Sent WhatsApp message with private dunes camp proposal. Awaiting traveler reply.",
+        "author": "Karnish Travel Specialist",
+        "createdAt": "2026-10-04T15:10:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "lead_1728043003",
+    "reference": "HOL-638201",
+    "holidaySlug": "abu-dhabi-cultural-escape",
+    "holidayTitle": "Abu Dhabi Cultural & Louvre Explorer",
+    "destination": "Abu Dhabi",
+    "country": "United Arab Emirates",
+    "duration": "4 Nights / 5 Days",
+    "travelDate": "Sat, Oct 17, 2026",
+    "travelersCount": 4,
+    "travelersLabel": "2 adults, 2 children",
+    "adults": 2,
+    "children": 2,
+    "infants": 0,
+    "totalAmount": 6200,
+    "currency": "AED",
+    "formattedPrice": "AED 6,200",
+    "name": "Vikram Malhotra",
+    "phone": "+91 98200 12345",
+    "countryCode": "+91",
+    "email": "vikram.malhotra@corporate.in",
+    "nationality": "Indian",
+    "optOutMarketing": false,
+    "notes": "Includes 2 kids (ages 7 and 10). Require Yas Island theme park tickets.",
+    "source": "Proceed to Book (Customer Details Form)",
+    "status": "Quoted",
+    "createdAt": "2026-10-03T11:20:00.000Z",
+    "updatedAt": "2026-10-04T09:45:00.000Z",
+    "timeline": [
+      {
+        "type": "created",
+        "message": "Lead received via Proceed to Book (Customer Details Form). Nationality: Indian.",
+        "author": "System",
+        "createdAt": "2026-10-03T11:20:00.000Z"
+      },
+      {
+        "type": "note",
+        "message": "Quotation for Warner Bros + Ferrari World combo tickets sent via email.",
+        "author": "Operations Team",
+        "createdAt": "2026-10-04T09:45:00.000Z"
+      }
+    ]
+  }
+]
+]

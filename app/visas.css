@@ -1,0 +1,324 @@
+/* Visas pages. Everything is prefixed vis-. Pages also carry .hol-page, which supplies the legacy resets (p margins,
+   heading case, list styles, img transitions) and a few shared pieces from holidays.css (breadcrumb, section head,
+   rail, skeleton, state panel, .hol-block). Legacy style.css quirk: `a:hover { display: inline-block }` (0,1,1), so every
+   link that is flex/grid/block re-asserts its display below with a `.mk` prefix (0,2,0). */
+
+.vis-page { --vis-ease: cubic-bezier(0.22, 1, 0.36, 1); --vis-soft: 0 10px 30px rgba(15, 36, 84, 0.08); }
+.vis-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.vis-section { padding-top: 56px; }
+
+/* Flag ---------------------------------------------------------------- */
+.vis-flag { position: relative; display: block; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 8px 22px rgba(15, 36, 84, 0.2); border: 3px solid #fff; }
+.vis-flag img { display: block; width: 100%; height: 100%; object-fit: cover; transition: none; }
+.vis-flag.is-hero { width: 340px; border-width: 6px; border-radius: 22px; box-shadow: 0 34px 70px rgba(4, 14, 40, 0.38); transform: rotate(-4deg); }
+.vis-flag.is-banner { flex: none; width: 210px; border-width: 5px; border-radius: 18px; box-shadow: 0 24px 50px rgba(4, 14, 40, 0.36); transform: rotate(-3deg); }
+
+/* Hero carousel ------------------------------------------------------- */
+.vis-hero-wrap { position: relative; padding-top: 28px; }
+.vis-track {
+  position: relative; display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none;
+}
+.vis-track::-webkit-scrollbar { display: none; }
+.vis-slide {
+  position: relative; flex: 0 0 100%; min-height: 500px; display: flex; align-items: center; border-radius: 26px; overflow: hidden; isolation: isolate; scroll-snap-align: start;
+  color: #fff; background: linear-gradient(125deg, #0f2454 0%, #17508a 52%, #2095ae 100%);
+}
+.vis-slide.is-v1 { background: linear-gradient(125deg, #0b3a56 0%, #1a7690 50%, #5bbfd2 100%); }
+.vis-slide.is-v2 { background: linear-gradient(125deg, #1b2c6e 0%, #2b5fa6 50%, #2095ae 100%); }
+.vis-slide::before { content: ""; position: absolute; z-index: -1; right: -8%; top: -30%; width: 620px; height: 620px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 68%); }
+.vis-slide::after { content: ""; position: absolute; z-index: -1; left: -10%; bottom: -45%; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(143, 211, 227, 0.22), rgba(143, 211, 227, 0) 70%); }
+.vis-slide-mark {
+  position: absolute; z-index: -1; right: 4%; bottom: -70px; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 440px; line-height: 1; color: rgba(255, 255, 255, 0.07); text-transform: uppercase; user-select: none; pointer-events: none;
+}
+.vis-hero-skel { min-height: 500px; border-radius: 26px; flex: none; width: 100%; }
+.vis-copy { position: relative; z-index: 2; max-width: 600px; padding: 56px 64px; }
+.vis-eyebrow { margin: 0 0 10px; letter-spacing: 0.34em; text-transform: uppercase; font-size: 14px; font-weight: 600; color: #8fd3e3; }
+.vis-slide h1.vis-hero-title { color: #fff; font-size: clamp(46px, 6.4vw, 88px); font-weight: 700; line-height: 1; }
+.vis-word { display: inline-block; white-space: nowrap; margin-right: 0.26em; }
+.vis-word:last-child { margin-right: 0; }
+.vis-char-mask { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.04em 0.01em 0.1em; margin: -0.04em 0 -0.1em; }
+.vis-char { display: inline-block; will-change: transform; }
+.vis-slide .vis-hero-tag { font-size: clamp(20px, 2.3vw, 28px); font-weight: 600; margin: 16px 0 8px; color: #fff; }
+.vis-slide .vis-hero-sub { max-width: 500px; margin: 0 0 28px; font-size: 18px; color: #fff; opacity: 0.92; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.mk .vis-hero-cta { display: inline-block; }
+.vis-art { position: absolute; z-index: 1; right: 8%; top: 50%; margin-top: -135px; }
+
+.vis-dots { display: flex; justify-content: center; gap: 10px; padding: 18px 0 0; contain: layout paint; }
+.vis-dots button { position: relative; width: 12px; height: 6px; padding: 0; border: 0; border-radius: 6px; overflow: hidden; background: rgba(15, 36, 84, 0.2); transition: width 0.4s var(--vis-ease); }
+.vis-dots button.is-active { width: 64px; }
+.vis-dots button i { position: absolute; inset: 0; background: var(--mk-primary); transform-origin: left; transform: scaleX(0); }
+.vis-dots button.is-active i { animation: vis-fill linear forwards; }
+@keyframes vis-fill { to { transform: scaleX(1); } }
+.vis-hero-wrap.is-idle .vis-dots button.is-active i, .mk-menu-open .vis-dots button.is-active i { animation-play-state: paused; }
+
+/* Finder -------------------------------------------------------------- */
+.vis-finder-wrap { padding-top: 20px; }
+.vis-finder { padding: 28px 32px 26px; border: 1px solid var(--mk-line); border-radius: 26px; background: linear-gradient(180deg, #f3fafc, #fff); box-shadow: var(--vis-soft); }
+.vis-finder-head { margin-bottom: 18px; }
+.vis-finder-head h2 { font-size: clamp(28px, 3vw, 36px); }
+.vis-finder-head p { margin-top: 6px; font-size: 17px; }
+.vis-search { position: relative; margin: 0; }
+.vis-search input {
+  display: block; width: 100%; height: 62px; padding: 0 56px 0 56px; border: 2px solid var(--mk-line); border-radius: 999px; background: #fff; font: inherit; font-size: 19px; font-weight: 500; color: var(--mk-navy);
+  transition: border-color 0.25s, box-shadow 0.25s; appearance: none; -webkit-appearance: none;
+}
+.vis-search input::placeholder { color: #8a93aa; opacity: 1; }
+.vis-search input::-webkit-search-cancel-button { display: none; }
+.vis-search input:hover { border-color: #bcd9e0; }
+.vis-search input:focus { outline: none; border-color: var(--mk-primary); box-shadow: 0 0 0 4px rgba(32, 149, 174, 0.16); }
+.vis-search-ico { position: absolute; left: 22px; top: 50%; margin-top: -11px; color: var(--mk-primary); pointer-events: none; }
+.vis-search-clear { position: absolute; right: 14px; top: 50%; display: grid; place-items: center; width: 36px; height: 36px; margin-top: -18px; padding: 0; border: 0; border-radius: 50%; background: var(--mk-bg); color: var(--mk-navy); transition: background-color 0.2s, color 0.2s; }
+.vis-search-clear:hover { background: var(--mk-primary); color: #fff; }
+.vis-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; font-size: 15px; }
+.vis-suggest > span { font-weight: 600; color: var(--mk-navy); margin-right: 2px; }
+.vis-suggest button { padding: 6px 16px; border: 1px solid var(--mk-line); border-radius: 999px; background: #fff; color: var(--mk-navy); font: inherit; font-size: 15px; font-weight: 600; transition: border-color 0.2s, background-color 0.2s, color 0.2s; }
+.vis-suggest button:hover { border-color: var(--mk-primary); color: var(--mk-primary); }
+.vis-results { margin-top: 0; }
+.vis-results > .vis-grid, .vis-results > .hol-state, .vis-results > .vis-results-head { margin-top: 28px; }
+.vis-results-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.vis-results-head h2 { font-size: clamp(24px, 2.6vw, 30px); }
+.vis-link-btn { padding: 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; flex: none; }
+.vis-results > .vis-results-head + .vis-grid { margin-top: 20px; }
+
+/* Grid and card --------------------------------------------------------
+   The card itself is the shared ShowcaseCard (app/showcase-card.css). Only the grid and the flag media composition
+   (tinted gradient comes from the card, plus watermark + flag) live here. */
+.vis-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(206px, 1fr)); gap: 20px; }
+.vis-grid.is-busy { opacity: 0.55; transition: opacity 0.2s; }
+.vis-grid-item { display: flex; min-width: 0; }
+.vis-grid-item > .sc { width: 100%; }
+.vis-results .vis-grid-item { animation: vis-in 0.55s var(--vis-ease) both; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes vis-in { from { opacity: 0; transform: translate3d(0, 20px, 0); } to { opacity: 1; transform: none; } }
+
+.vis-card-art { position: absolute; inset: 0; display: grid; place-items: center; }
+.vis-card-mark { position: absolute; z-index: -1; right: -4px; bottom: -16px; font-family: "Barlow Condensed", sans-serif; font-size: 112px; font-weight: 700; line-height: 1; text-transform: uppercase; color: hsl(var(--sc-h) 60% 38% / 0.1); pointer-events: none; user-select: none; }
+.vis-card-art .vis-flag { width: 46%; border-width: 3px; transform: scale(1) translateZ(0); transition: transform 0.5s ease; }
+.sc-lift:hover .vis-card-art .vis-flag, .sc-lift:focus-within .vis-card-art .vis-flag { transform: scale(1.08) translateZ(0); }
+
+.vis-skel-card { min-width: 0; }
+.vis-skel-img { aspect-ratio: 16 / 11; border-radius: 16px; }
+
+/* How it works + note --------------------------------------------------- */
+.vis-how { margin-top: 76px; padding: 64px 0 72px; background: var(--mk-bg); }
+.vis-how h2 { font-size: clamp(30px, 3.4vw, 40px); margin-bottom: 34px; }
+.vis-how-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; counter-reset: none; }
+.vis-how-grid li { padding: 28px; border: 1px solid var(--mk-line); border-radius: 24px; background: #fff; box-shadow: 0 6px 20px rgba(15, 36, 84, 0.05); }
+.vis-how-ico { position: relative; display: grid; place-items: center; width: 60px; height: 60px; margin-bottom: 18px; border-radius: 18px; background: #e4f3f7; color: var(--mk-primary); }
+.vis-how-ico b { position: absolute; top: -8px; right: -8px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--mk-navy); color: #fff; font-size: 14px; font-weight: 700; }
+.vis-how h3 { font-size: 25px; margin-bottom: 8px; }
+.vis-how p { font-size: 17px; line-height: 1.55; }
+.vis-note-wrap { padding-top: 40px; padding-bottom: 72px; }
+.vis-note { display: flex; gap: 18px; align-items: flex-start; padding: 26px 30px; border-radius: 24px; border: 1px solid #cfe6ec; background: linear-gradient(135deg, #eef8fb, #f8fcfd); }
+.vis-note-ico { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: #fff; color: var(--mk-primary); box-shadow: 0 3px 10px rgba(15, 36, 84, 0.08); }
+.vis-note h2 { font-size: 26px; margin-bottom: 6px; }
+.vis-note p { font-size: 17px; line-height: 1.55; max-width: 780px; }
+.mk .vis-note-link { display: inline-block; margin-top: 12px; font-weight: 600; color: var(--mk-primary); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Detail ------------------------------------------------------------------ */
+.vis-detail { padding-top: 24px; padding-bottom: 8px; }
+.vis-banner {
+  position: relative; display: flex; align-items: center; gap: 44px; margin-top: 18px; padding: 40px 48px; border-radius: 26px; overflow: hidden; isolation: isolate; color: #fff;
+  background: linear-gradient(125deg, #0f2454 0%, #17508a 55%, #2095ae 100%);
+}
+.vis-banner::before { content: ""; position: absolute; z-index: -1; right: -6%; top: -60%; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 68%); }
+.vis-banner-mark { position: absolute; z-index: -1; right: 3%; bottom: -60px; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 340px; line-height: 1; color: rgba(255, 255, 255, 0.07); text-transform: uppercase; user-select: none; pointer-events: none; }
+.vis-banner-copy { min-width: 0; }
+.vis-banner-copy h1 { color: #fff; font-size: clamp(36px, 4.6vw, 62px); line-height: 1.05; }
+.vis-banner-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px !important; }
+.vis-banner-chips li { display: flex; align-items: center; gap: 10px; padding: 9px 16px 9px 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.13); border: 1px solid rgba(255, 255, 255, 0.18); font-size: 16px; font-weight: 600; line-height: 1.25; }
+.vis-banner-chips li svg { flex: none; color: #8fd3e3; }
+.vis-banner-chips small { display: block; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.75; font-weight: 600; }
+.vis-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: 44px; align-items: start; }
+.vis-detail-aside { position: sticky; top: 96px; margin-top: 52px; }
+.vis-detail .hol-block.vis-first { margin-top: 44px; }
+
+.vis-highlights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; }
+.vis-highlights li { display: flex; align-items: flex-start; gap: 12px; font-size: 18px; line-height: 1.4; color: var(--mk-navy); }
+.vis-highlights li span, .vis-list li span { flex: none; display: grid; place-items: center; width: 26px; height: 26px; margin-top: 1px; border-radius: 50%; background: #e4f3f7; color: var(--mk-primary); }
+.vis-list { display: flex; flex-direction: column; gap: 12px; }
+.vis-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 18px; line-height: 1.45; color: var(--mk-navy); }
+.vis-docs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+.vis-docs li { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--mk-line); border-radius: 16px; background: #fff; font-size: 17px; line-height: 1.4; color: var(--mk-navy); }
+.vis-docs li span { position: relative; flex: none; width: 22px; height: 22px; margin-top: 1px; border: 2px solid var(--mk-primary); border-radius: 7px; }
+.vis-docs li span::after { content: ""; position: absolute; left: 5px; top: 1px; width: 6px; height: 11px; border: solid var(--mk-primary); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+
+.vis-steps { position: relative; }
+.vis-steps li { position: relative; display: flex; gap: 20px; padding-bottom: 30px; }
+.vis-steps li:last-child { padding-bottom: 0; }
+.vis-steps li:not(:last-child)::before { content: ""; position: absolute; left: 21px; top: 46px; bottom: 4px; width: 2px; border-radius: 2px; background: linear-gradient(180deg, var(--mk-primary), #cfe6ec); }
+.vis-step-num { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--mk-primary); color: #fff; font-family: "Barlow Condensed", sans-serif; font-size: 24px; font-weight: 700; box-shadow: 0 0 0 6px #e4f3f7; }
+.vis-steps h3 { font-size: 24px; margin: 6px 0 6px; }
+.vis-steps p { font-size: 17px !important; line-height: 1.55 !important; }
+
+.vis-faqs { display: flex; flex-direction: column; gap: 12px; }
+.vis-faq { border: 1px solid var(--mk-line); border-radius: 18px; background: #fff; transition: border-color 0.3s, box-shadow 0.3s; }
+.vis-faq:hover { border-color: #c4dfe6; }
+.vis-faq.is-open { border-color: rgba(32, 149, 174, 0.55); box-shadow: var(--vis-soft); }
+.vis-faq h3 { margin: 0; font-size: inherit; }
+.vis-faq h3 button { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 18px 22px; border: 0; background: none; text-align: left; border-radius: 18px; color: var(--mk-navy); }
+.vis-faq-q { flex: 1; font-family: "Barlow Condensed", sans-serif; font-size: 23px; font-weight: 600; line-height: 1.2; }
+.vis-faq-chev { flex: none; color: var(--mk-primary); transition: transform 0.45s var(--vis-ease); }
+.vis-faq.is-open .vis-faq-chev { transform: rotate(180deg); }
+/* Height is the one thing an accordion must change; a 0fr to 1fr grid track keeps it to one contained layout pass. */
+.vis-faq-panel { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 0.5s var(--vis-ease), visibility 0s linear 0.5s; }
+.vis-faq.is-open .vis-faq-panel { grid-template-rows: 1fr; visibility: visible; transition-delay: 0s; }
+.vis-faq-clip { min-height: 0; overflow: hidden; }
+.vis-faq-clip p { padding: 0 24px 22px; font-size: 17px !important; line-height: 1.6 !important; opacity: 0; transform: translate3d(0, -8px, 0); transition: opacity 0.4s ease, transform 0.5s var(--vis-ease); }
+.vis-faq.is-open .vis-faq-clip p { opacity: 1; transform: none; transition-delay: 0.08s; }
+
+.vis-notes { display: flex; gap: 14px; align-items: flex-start; margin-top: 44px; padding: 18px 22px; border-radius: 18px; border: 1px dashed #b9d6de; background: #f4fafc; color: var(--mk-navy); }
+.vis-notes svg { flex: none; margin-top: 2px; color: var(--mk-primary); }
+.vis-notes p { font-size: 16px; line-height: 1.55; }
+
+.vis-price-card { padding: 28px; border: 1px solid var(--mk-line); border-radius: 24px; background: #fff; box-shadow: 0 18px 44px rgba(15, 36, 84, 0.1); }
+.vis-pc-label { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mk-primary); }
+.vis-pc-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-top: 6px; }
+.vis-pc-price strong { font-family: "Barlow Condensed", sans-serif; font-size: 50px; line-height: 1; color: var(--mk-navy); font-weight: 700; }
+.vis-pc-price strong.is-text { font-size: 32px; }
+.vis-page .vis-pc-facts { display: flex; flex-direction: column; gap: 10px; margin: 20px 0 22px !important; padding: 18px 0; border-top: 1px solid var(--mk-line); border-bottom: 1px solid var(--mk-line); }
+.vis-pc-facts li { display: flex; align-items: center; gap: 10px; color: var(--mk-navy); font-weight: 600; font-size: 16px; }
+.vis-pc-facts svg { flex: none; color: var(--mk-primary); }
+.vis-pc-note { margin-top: 14px !important; font-size: 14px; text-align: center; line-height: 1.45 !important; }
+.mk .vis-start { display: block; }
+.vis-mobile-bar { display: none; }
+
+/* Enquiry sheet (portalled into .mk) ------------------------------------- */
+.vis-sheet { position: fixed; inset: 0; z-index: 210; display: grid; place-items: center; padding: 20px; visibility: hidden; pointer-events: none; transition: visibility 0s linear 0.5s; }
+.vis-sheet.is-open { visibility: visible; pointer-events: auto; transition-delay: 0s; }
+.vis-sheet-scrim { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: rgba(8, 20, 48, 0.58); opacity: 0; transition: opacity 0.4s ease; cursor: default; }
+.vis-sheet.is-open .vis-sheet-scrim { opacity: 1; }
+.vis-sheet-dialog {
+  position: relative; display: flex; flex-direction: column; width: min(660px, 100%); max-height: min(92vh, 900px); border-radius: 26px; background: #fff; color: var(--mk-text); box-shadow: 0 40px 90px rgba(8, 20, 48, 0.4);
+  opacity: 0; transform: translate3d(0, 28px, 0) scale(0.98); transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.vis-sheet.is-open .vis-sheet-dialog { opacity: 1; transform: none; }
+.vis-sheet-close { position: absolute; z-index: 3; top: 16px; right: 16px; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: var(--mk-bg); color: var(--mk-navy); transition: background-color 0.2s, color 0.2s; }
+.vis-sheet-close:hover { background: var(--mk-primary); color: #fff; }
+.vis-sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 30px 34px 32px; border-radius: inherit; }
+.vis-sheet :is(h2, h3, p) { margin: 0; text-transform: none; letter-spacing: normal; }
+.vis-sheet-head { display: flex; align-items: center; gap: 16px; margin: 0 44px 22px 0; }
+.vis-sheet-head .vis-flag { flex: none; width: 76px; border-width: 2px; border-radius: 10px; }
+.vis-sheet-head h2 { font-size: 32px; line-height: 1.1; color: var(--mk-navy); font-weight: 700; }
+.vis-sheet-head p { margin-top: 2px; font-size: 16px; }
+.vis-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; margin-bottom: 14px; }
+.vis-field { min-width: 0; }
+.vis-field label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; text-transform: none; color: var(--mk-navy); }
+.vis-field label em { font-style: normal; font-weight: 500; color: #7c85a0; }
+.vis-sheet .vis-field input, .vis-sheet .vis-field textarea {
+  display: block; width: 100%; max-width: 100%; height: 50px; line-height: 1.4; margin: 0; padding: 0 14px; border: 1.5px solid #d3dce5; border-radius: 12px; background: #fff; font: inherit; font-size: 16px; color: var(--mk-navy);
+  transition: border-color 0.2s, box-shadow 0.2s; appearance: none; -webkit-appearance: none; box-shadow: none;
+}
+.vis-sheet .vis-field input[type="date"] { min-height: 50px; }
+.vis-sheet .vis-field textarea { height: auto; min-height: 92px; padding: 12px 14px; resize: vertical; line-height: 1.45; }
+.vis-sheet .vis-field input:hover, .vis-sheet .vis-field textarea:hover { border: 1.5px solid #b5c9d4; background: #fff; }
+.vis-sheet .vis-field input:focus, .vis-sheet .vis-field textarea:focus { outline: none; border: 1.5px solid var(--mk-primary); background: #fff; box-shadow: 0 0 0 4px rgba(32, 149, 174, 0.16); }
+.vis-sheet .vis-field.has-error input, .vis-sheet .vis-field.has-error textarea { border: 1.5px solid #c9544f; }
+.vis-sheet .vis-field.has-error input:focus, .vis-sheet .vis-field.has-error textarea:focus { box-shadow: 0 0 0 4px rgba(201, 84, 79, 0.16); }
+.vis-error { margin-top: 5px !important; font-size: 13.5px; line-height: 1.35; color: #b3261e; }
+.vis-hint { font-size: 13.5px; line-height: 1.4; color: #6f7893; }
+.vis-form-error { margin: 0 0 16px !important; padding: 12px 16px; border-radius: 12px; background: #fdecea; border: 1px solid #f3c5c1; color: #8c1d18; font-size: 15px; line-height: 1.4; }
+.vis-consent { margin: 16px 0 18px; }
+.vis-consent label { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 16px; color: var(--mk-navy); line-height: 1.4; }
+.vis-consent input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--mk-primary); cursor: pointer; }
+.vis-consent.has-error input { outline: 2px solid #c9544f; outline-offset: 2px; }
+.mk .vis-submit { display: block; height: 54px; font-size: 18px; }
+.vis-privacy { margin-top: 12px !important; text-align: center; }
+.vis-success { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 44px; padding-bottom: 38px; }
+.vis-success-ico { display: grid; place-items: center; width: 68px; height: 68px; margin-bottom: 18px; border-radius: 50%; background: var(--mk-primary); color: #fff; box-shadow: 0 0 0 10px #e4f3f7; }
+.vis-success h2 { font-size: 34px; color: var(--mk-navy); font-weight: 700; margin-bottom: 8px; }
+.vis-success p { max-width: 420px; font-size: 17px; line-height: 1.5; }
+.vis-ref-label { margin-top: 22px !important; font-size: 13px !important; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mk-primary); }
+.vis-ref { margin: 4px 0 8px !important; padding: 10px 22px; border-radius: 14px; background: var(--mk-bg); border: 1px dashed #b9d6de; font-family: "Barlow Condensed", sans-serif; font-size: 34px !important; font-weight: 700; letter-spacing: 0.06em; color: var(--mk-navy); }
+.vis-success .mk-btn { margin-top: 22px; min-width: 160px; }
+
+/* Focus ------------------------------------------------------------------- */
+.vis-page :is(a, button):focus-visible, .vis-sheet :is(button, a):focus-visible { outline: 2px solid var(--mk-primary); outline-offset: 2px; }
+.vis-slide :is(a, button):focus-visible { outline-color: #fff; }
+.vis-consent input:focus-visible { outline: 2px solid var(--mk-primary); outline-offset: 2px; }
+
+/* Responsive -------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .vis-detail-grid { grid-template-columns: minmax(0, 1fr) 330px; gap: 32px; }
+  .vis-art { right: 5%; }
+  .vis-flag.is-hero { width: 290px; }
+}
+@media (max-width: 960px) {
+  .vis-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .vis-detail-aside { display: none; }
+  .vis-mobile-bar {
+    position: sticky; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 40px; padding: 12px 16px;
+    background: #fff; border-top: 1px solid var(--mk-line); box-shadow: 0 -8px 24px rgba(15, 36, 84, 0.1);
+  }
+  .vis-mobile-bar span { display: block; font-size: 13px; line-height: 1.1; }
+  .vis-mobile-bar strong { display: block; font-family: "Barlow Condensed", sans-serif; font-size: 26px; line-height: 1.1; color: var(--mk-navy); }
+  .vis-how-grid { grid-template-columns: 1fr; }
+  .vis-slide { min-height: 440px; }
+  .vis-slide-mark { font-size: 340px; }
+}
+@media (max-width: 760px) {
+  .vis-section { padding-top: 40px; }
+  .vis-eyebrow { letter-spacing: 0.2em; font-size: 13px; }
+  .vis-hero-wrap { padding-top: 16px; }
+  .vis-track { gap: 12px; margin: 0 -16px; padding: 0 16px; scroll-padding-inline: 16px; }
+  .vis-slide { flex-basis: 88%; flex-direction: column; align-items: flex-start; justify-content: flex-start; min-height: 440px; border-radius: 22px; }
+  .vis-hero-skel { min-height: 440px; }
+  .vis-art { position: relative; right: auto; top: auto; margin: 24px 0 0 22px; order: -1; }
+  .vis-flag.is-hero { width: 124px; border-width: 4px; border-radius: 14px; }
+  .vis-copy { padding: 22px 22px 32px; }
+  .vis-slide h1.vis-hero-title { font-size: clamp(38px, 11vw, 52px); }
+  .vis-slide .vis-hero-sub { font-size: 16px; margin-bottom: 22px; }
+  .vis-slide-mark { right: -2%; bottom: -30px; font-size: 260px; }
+  .vis-dots { padding-top: 14px; }
+  .vis-finder-wrap { padding-top: 12px; }
+  .vis-finder { padding: 20px 16px 18px; border-radius: 22px; }
+  .vis-finder-head p { font-size: 16px; }
+  .vis-search input { height: 56px; padding-left: 50px; font-size: 17px; }
+  .vis-search-ico { left: 18px; }
+  .vis-results-head { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .vis-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .vis-card-mark { font-size: 84px; bottom: -12px; }
+  .vis-card-art .vis-flag { width: 54%; }
+  .vis-how { margin-top: 56px; padding: 44px 0 52px; }
+  .vis-how-grid li { padding: 22px; }
+  .vis-note { flex-direction: column; padding: 22px 20px; gap: 12px; }
+  .vis-note-wrap { padding-bottom: calc(40px + var(--mk-tabbar-h, 0px)); }
+  .vis-banner { flex-direction: column; align-items: flex-start; gap: 20px; padding: 26px 22px 28px; border-radius: 22px; }
+  .vis-flag.is-banner { width: 116px; border-width: 4px; border-radius: 14px; }
+  .vis-banner-mark { font-size: 230px; bottom: -30px; }
+  .vis-banner-chips { gap: 8px; }
+  .vis-banner-chips li { padding: 8px 12px; font-size: 15px; }
+  .vis-highlights, .vis-docs { grid-template-columns: 1fr; }
+  .vis-faq h3 button { padding: 14px 16px; }
+  .vis-faq-q { font-size: 21px; }
+  .vis-faq-clip p { padding: 0 16px 18px; }
+  .vis-mobile-bar { bottom: var(--mk-tabbar-h, 0px); }
+  .vis-rail-item { flex-basis: min(236px, 66vw); }
+  /* Sheet becomes a bottom sheet above the tab bar */
+  .vis-sheet { place-items: end center; padding: 0; }
+  .vis-sheet-dialog { width: 100%; max-height: 94vh; border-radius: 24px 24px 0 0; opacity: 1; transform: translate3d(0, 100%, 0); transition: transform 0.55s cubic-bezier(0.32, 0.72, 0, 1); }
+  .vis-sheet.is-open .vis-sheet-dialog { transform: none; }
+  .vis-sheet-body { padding: 24px 18px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .vis-sheet-head h2 { font-size: 28px; }
+  .vis-form-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Opt-in only: see app/lib/motionPolicy.js */
+  html[data-honor-reduced-motion] .vis-results .vis-grid-item,
+  html[data-honor-reduced-motion] .vis-dots button.is-active i { animation: none; }
+  html[data-honor-reduced-motion] .vis-dots button.is-active i { transform: scaleX(1); }
+  html[data-honor-reduced-motion] .vis-card-art .vis-flag,
+  html[data-honor-reduced-motion] .vis-faq-panel,
+  html[data-honor-reduced-motion] .vis-faq-clip p,
+  html[data-honor-reduced-motion] .vis-faq-chev,
+  html[data-honor-reduced-motion] .vis-sheet-dialog,
+  html[data-honor-reduced-motion] .vis-sheet-scrim,
+  html[data-honor-reduced-motion] .vis-dots button { transition: none; }
+  html[data-honor-reduced-motion] .vis-faq-clip p { opacity: 1; transform: none; }
+  html[data-honor-reduced-motion] .vis-track { scroll-behavior: auto; }
+}
+
+/* Touch devices: no sticky hover; a quick press instead */
+@media (hover: none) {
+  .sc-lift:hover .vis-card-art .vis-flag { transform: none; }
+}

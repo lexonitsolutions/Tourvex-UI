@@ -1,0 +1,70 @@
+/* Best-Selling Experiences cards (the supplied animated feature card, rebuilt in plain CSS).
+   Motion is transform/opacity only. The "spring" is a cubic-bezier with a small overshoot. The card lifts on an inner
+   wrapper so it never fights the scroll-reveal transform on the list item. */
+.bs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; margin: 0; padding: 0; list-style: none; }
+.bs { position: relative; z-index: 0; min-width: 0; }
+.bs:hover, .bs:focus-within { z-index: 2; }
+
+.bs-lift {
+  --bs-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --bs-main: hsl(35 91% 55%); --bs-light: hsl(41 100% 85%); --bs-pale: hsl(24 98% 97%);
+  position: relative; height: 380px; isolation: isolate; border-radius: 22px; background: #fff; border: 1px solid var(--mk-line);
+  box-shadow: 0 2px 6px rgba(15, 36, 84, 0.05); transform: translate3d(0, 0, 0); transition: transform 0.6s var(--bs-spring);
+}
+.bs-lift.is-purple { --bs-main: hsl(262 85% 60%); --bs-light: hsl(261 100% 87%); --bs-pale: hsl(264 100% 98%); }
+.bs-lift.is-blue { --bs-main: hsl(211 100% 60%); --bs-light: hsl(210 100% 83%); --bs-pale: hsl(216 100% 98%); }
+.bs-lift::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; will-change: opacity;
+  box-shadow: 0 26px 44px -16px rgba(15, 36, 84, 0.3), 0 10px 18px -10px rgba(15, 36, 84, 0.14); transition: opacity 0.45s ease;
+}
+.bs-lift:hover, .bs-lift:focus-within { transform: translate3d(0, -10px, 0); }
+.bs-lift:hover::after, .bs-lift:focus-within::after { opacity: 1; }
+
+.mk .bs-link { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; padding: 18px; border-radius: inherit; overflow: hidden; color: inherit; }
+.bs-wash { position: absolute; inset: 0; z-index: 0; opacity: 0.55; background: radial-gradient(circle at 50% 30%, var(--bs-light) 0%, transparent 70%); }
+.bs-index { position: absolute; z-index: 2; top: 18px; left: 20px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 17px; font-weight: 700; color: #8b90a8; }
+
+.bs-photo {
+  position: absolute; z-index: 1; left: 50%; top: 52px; width: 64%; aspect-ratio: 4 / 3; margin-left: -32%; border-radius: 18px; overflow: hidden; isolation: isolate;
+  background: var(--bs-pale); box-shadow: 0 18px 30px -12px rgba(15, 36, 84, 0.38), 0 0 0 4px #fff; transform: translate3d(0, 0, 0) scale(1); transition: transform 0.6s var(--bs-spring);
+}
+.bs-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.bs-lift:hover .bs-photo, .bs-lift:focus-within .bs-photo { transform: translate3d(0, -14px, 0) scale(1.16); }
+
+.bs-panel { position: relative; z-index: 3; display: block; padding: 14px 16px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.92); border: 1px solid var(--mk-line); }
+.bs-tag { display: inline-block; max-width: 100%; margin-bottom: 8px; padding: 4px 11px; border-radius: 999px; background: var(--bs-pale); color: var(--bs-main); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bs-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; color: var(--mk-navy); font-family: "Barlow Condensed", system-ui, sans-serif; font-size: 21px; font-weight: 600; line-height: 1.2; }
+.bs-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(15, 36, 84, 0.08); }
+.bs-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px 6px; }
+.bs-price small { font-size: 12px; color: var(--mk-text); }
+.bs-price strong { color: var(--mk-navy); font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+.bs-price s { font-size: 12.5px; color: #98a0b8; }
+.bs-go { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--bs-pale); color: var(--bs-main); transition: transform 0.45s var(--bs-spring), background-color 0.3s ease, color 0.3s ease; }
+.bs-lift:hover .bs-go, .bs-lift:focus-within .bs-go { transform: translate3d(3px, 0, 0); background: var(--bs-main); color: #fff; }
+
+.bs-link:focus-visible { outline: 3px solid var(--bs-main); outline-offset: -3px; }
+
+.bs-skel > span { display: block; height: 380px; border-radius: 22px; background: linear-gradient(90deg, #eef2f5, #f8fafb, #eef2f5); background-size: 200% 100%; animation: mk-shimmer 1.4s infinite; }
+
+@media (max-width: 1100px) {
+  .bs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+}
+@media (max-width: 760px) {
+  /* App-style horizontal snap row */
+  .bs-grid { display: flex; gap: 12px; margin: 0 -16px; padding: 12px 16px 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .bs-grid::-webkit-scrollbar { display: none; }
+  .bs { flex: 0 0 min(72vw, 290px); scroll-snap-align: start; }
+  .bs-lift, .bs-skel > span { height: 350px; border-radius: 20px; }
+  .bs-link { padding: 14px; }
+  .bs-photo { top: 44px; width: 66%; margin-left: -33%; }
+  .bs-panel { padding: 12px 13px; }
+  .bs-title { font-size: 19px; }
+}
+@media (hover: none) {
+  /* Touch: no sticky hover, a quick press instead */
+  .bs-lift:hover { transform: none; }
+  .bs-lift:hover::after { opacity: 0; }
+  .bs-lift:hover .bs-photo { transform: none; }
+  .bs-lift:hover .bs-go { transform: none; background: var(--bs-pale); color: var(--bs-main); }
+  .bs-lift:active { transform: scale(0.98); transition-duration: 0.12s; }
+}

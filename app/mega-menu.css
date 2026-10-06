@@ -1,0 +1,499 @@
+/* ==========================================================================
+   MEGA MENU STYLES — LUXURY KARNISH TOURISM / TOURVEX THEME
+   - Ultra-smooth, snappy "card slide-down from menu" entrance
+   - Premium sidebar with icons, elegant pill states, and chevron micro-badges
+   - Enforce display: flex !important on all cards and links (fixes legacy a:hover display: inline-block)
+   - Guaranteed single-line layout (never wraps into 2nd line on hover)
+   - Clean hover highlight: NO transforms, NO image zoom, NO shifting, NO overlap
+   - Spacious, balanced dimensions
+   ========================================================================== */
+
+.mm-overlay-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-14px) scale(0.98);
+  transform-origin: top center;
+  width: min(1280px, calc(100vw - 32px));
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 22px;
+  box-shadow: 0 28px 75px -15px rgba(15, 36, 84, 0.22),
+              0 0 0 1px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.2s ease;
+  contain: layout style;
+}
+
+/* Invisible bridge so mouse hover never drops between dock tabs and panel */
+.mm-overlay-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -20px;
+  height: 20px;
+}
+
+/* Card slide-down entrance animation */
+.mm-overlay-panel.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* TOP SPLIT GRID: Left Sidebar + Right 3-Column Content */
+.mm-main-grid {
+  display: grid;
+  grid-template-columns: 315px 1fr;
+  min-height: 400px;
+  max-height: 440px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* LEFT SIDEBAR: Categories with icons and chevron badges */
+.mm-sidebar {
+  border-right: 1px solid #f1f5f9;
+  background: #fafbfc;
+  padding: 10px 8px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px;
+  overflow-y: auto;
+  max-height: 440px;
+}
+
+.mm-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.mm-sidebar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.mm-cat-btn {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+.mm-cat-icon {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 20px;
+}
+
+.mm-cat-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-size: 13px;
+}
+
+.mm-cat-chevron-badge {
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(148, 163, 184, 0.12);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.mm-cat-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.mm-cat-btn:hover .mm-cat-chevron-badge {
+  background: #047857;
+  color: #ffffff;
+}
+
+.mm-cat-btn.is-active {
+  background: #ffffff;
+  color: #064e3b;
+  font-weight: 700;
+  border-color: rgba(4, 120, 87, 0.2);
+  box-shadow: 0 2px 10px rgba(4, 120, 87, 0.08);
+}
+
+.mm-cat-btn.is-active .mm-cat-chevron-badge {
+  background: #047857;
+  color: #ffffff;
+}
+
+.mm-cat-btn.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3.5px;
+  background: #047857;
+  border-radius: 0 4px 4px 0;
+}
+
+/* RIGHT CONTENT PANEL: 3-column Destination & Activity Grid */
+.mm-content-panel {
+  padding: 16px 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 440px;
+}
+
+.mm-content-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.mm-content-panel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+.mm-content-panel::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Silky smooth cross-fade animation when switching categories */
+.mm-animate-fade {
+  animation: mmContentFade 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mmContentFade {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mm-items-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 14px;
+  width: 100%;
+}
+
+/* STRICT FLEX ROW ON CARDS: Even on hover, beats legacy a:hover display: inline-block */
+.mm-item-card,
+.mm-item-card:hover,
+.mm-item-card:focus,
+.mm-item-card:active,
+a.mm-item-card,
+a.mm-item-card:hover,
+a.mm-item-card:focus,
+a.mm-item-card:active {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 6px 10px !important;
+  border-radius: 10px !important;
+  text-decoration: none !important;
+  background: transparent;
+  border: 1px solid transparent !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Clean highlight without transform, shift, or overlap */
+.mm-item-card:hover,
+a.mm-item-card:hover {
+  background: #f0fdf4 !important;
+  border-color: rgba(4, 120, 87, 0.2) !important;
+}
+
+.mm-item-thumb-box {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  background: #f1f5f9 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+.mm-item-thumb {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.mm-item-meta {
+  min-width: 0 !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  justify-content: center !important;
+}
+
+.mm-item-title {
+  display: block !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  transition: color 0.15s ease !important;
+}
+
+.mm-item-card:hover .mm-item-title,
+a.mm-item-card:hover .mm-item-title {
+  color: #047857 !important;
+}
+
+.mm-item-sub {
+  display: block !important;
+  font-size: 11.5px !important;
+  color: #64748b !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* BOTTOM SECTION: Spacious, Luxury Trending Row */
+.mm-bottom-showcase-bar {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 18px !important;
+  padding: 12px 24px !important;
+  background: #fafbfc !important;
+  border-top: 1px solid #f1f5f9 !important;
+}
+
+.mm-bottom-lead {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.mm-bottom-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: #047857 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  white-space: nowrap !important;
+}
+
+.mm-sparkle-star {
+  color: #d97706;
+  font-size: 13px;
+}
+
+.mm-bottom-tagline {
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap !important;
+}
+
+.mm-bottom-cards-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* STRICT FLEX ROW ON BOTTOM DEALS: Even on hover */
+.mm-deal-pill-card,
+.mm-deal-pill-card:hover,
+.mm-deal-pill-card:focus,
+.mm-deal-pill-card:active,
+a.mm-deal-pill-card,
+a.mm-deal-pill-card:hover,
+a.mm-deal-pill-card:focus,
+a.mm-deal-pill-card:active {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 6px 10px !important;
+  border-radius: 12px !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.mm-deal-pill-card:hover,
+a.mm-deal-pill-card:hover {
+  background: #f0fdf4 !important;
+  border-color: #047857 !important;
+}
+
+.mm-deal-thumb-box {
+  position: relative !important;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  background: #e2e8f0 !important;
+}
+
+.mm-deal-pill-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.mm-deal-mini-badge {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: rgba(6, 78, 59, 0.9) !important;
+  color: #ffffff !important;
+  font-size: 8.5px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  padding: 1px 2px !important;
+  letter-spacing: 0.02em !important;
+}
+
+.mm-deal-pill-content {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  flex: 1 !important;
+  gap: 2px !important;
+  justify-content: center !important;
+}
+
+.mm-deal-pill-title {
+  display: block !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.25 !important;
+  transition: color 0.15s ease !important;
+}
+
+.mm-deal-pill-card:hover .mm-deal-pill-title,
+a.mm-deal-pill-card:hover .mm-deal-pill-title {
+  color: #047857 !important;
+}
+
+.mm-deal-pill-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 11.5px !important;
+}
+
+.mm-deal-pill-rating {
+  color: #f59e0b !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.mm-deal-pill-dot {
+  color: #cbd5e1 !important;
+  font-size: 10px !important;
+}
+
+.mm-deal-pill-old {
+  text-decoration: line-through !important;
+  color: #94a3b8 !important;
+  font-size: 11px !important;
+}
+
+.mm-deal-pill-price {
+  color: #064e3b !important;
+  font-weight: 800 !important;
+  font-size: 12.5px !important;
+  margin-left: auto !important;
+}
+
+/* HEADER SEARCH PILL */
+.mk-header-search-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 13.5px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.mk-header-search-pill:hover {
+  border-color: #047857;
+  color: #047857;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.1);
+}
+
+.mk-header-search-pill .sparkle {
+  color: #d97706;
+  font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+  .mm-overlay-panel {
+    display: none;
+  }
+}
