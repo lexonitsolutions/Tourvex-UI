@@ -263,3 +263,140 @@
 /* kit field text inside the editor: explicit tokens so global paragraph colours never win */
 .adm-cms .adm-field__hint, .adm-cms-picker .adm-field__hint { color: var(--adm-muted); }
 .adm-cms .adm-field__error, .adm-cms-picker .adm-field__error, .adm-cms .adm-inline-error { color: var(--adm-danger); }
+
+/* ==========================================================================
+   PREMIUM GLASS PASS (editor)
+   - Translucent surfaces with a light top edge, soft depth and a teal tint on the selected/active parts.
+   - Blur is limited to the small sticky header. The big panels and anything that sits next to the live preview use plain
+     translucent gradients: large backdrop-filter layers re-composite while the page scrolls or the pointer enters the
+     preview, which shows up as flicker.
+   - Hover only changes colours and shadows (never size, position or font), so nothing can shift under the pointer.
+   ========================================================================== */
+.adm-cms {
+  --cms-glass-a: color-mix(in srgb, var(--adm-surface) 94%, transparent);
+  --cms-glass-b: color-mix(in srgb, var(--adm-surface) 80%, transparent);
+  --cms-edge: color-mix(in srgb, var(--adm-line) 70%, var(--adm-surface));
+  --cms-hi: rgba(255, 255, 255, 0.7);
+  --cms-depth: 0 18px 40px -22px rgba(15, 36, 84, 0.28), 0 2px 6px rgba(15, 36, 84, 0.04);
+  --cms-tint: color-mix(in srgb, var(--adm-teal) 12%, transparent);
+  position: relative; isolation: isolate; gap: var(--adm-s4);
+}
+[data-adm-theme="dark"][data-adm-dark] .adm-cms { --cms-hi: rgba(255, 255, 255, 0.08); --cms-depth: 0 18px 40px -22px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.2); }
+/* soft ambient colour behind the editor so the glass has something to sit on */
+.adm-cms::before {
+  content: ""; position: absolute; z-index: -1; left: -24px; right: -24px; top: -20px; height: 420px; pointer-events: none;
+  background:
+    radial-gradient(60% 100% at 12% 0%, color-mix(in srgb, var(--adm-teal) 16%, transparent), transparent 70%),
+    radial-gradient(50% 90% at 92% 0%, color-mix(in srgb, #6366f1 10%, transparent), transparent 72%);
+}
+
+/* The top bar already shows Admin > Content > <page>, so the in-card breadcrumb was a duplicate that crowded the title. */
+.adm-cms-crumbs { display: none; }
+
+/* header bar: one tidy row, title and actions centred on the same line */
+.adm-cms-bar {
+  align-items: center; gap: 12px 24px; min-height: 72px; padding: 14px 20px; border-radius: 20px;
+  background: linear-gradient(135deg, var(--cms-glass-a), var(--cms-glass-b));
+  border: 1px solid var(--cms-edge);
+  box-shadow: var(--cms-depth), inset 0 1px 0 var(--cms-hi);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5);
+}
+.adm-cms-bar__title { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.adm-cms-bar__row { margin-top: 0; gap: 10px; align-items: center; }
+.adm-cms-bar__row h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.012em; line-height: 1.2; }
+.adm-cms-bar__state { padding-left: 2px; }
+.adm-cms-bar__actions { gap: 8px; align-items: center; }
+.adm-cms-bar__actions .adm-iconbtn { width: 40px; height: 40px; border-radius: 12px; }
+.adm-cms-bar__actions .adm-btn { white-space: nowrap; }
+
+/* cards */
+.adm-cms-rail, .adm-cms-panel, .adm-cms-preview {
+  border-radius: 20px; border: 1px solid var(--cms-edge);
+  background: linear-gradient(180deg, var(--cms-glass-a), var(--cms-glass-b));
+  box-shadow: var(--cms-depth), inset 0 1px 0 var(--cms-hi);
+}
+.adm-cms-aside, .adm-cms-grid > .adm-cms-rail { isolation: isolate; }
+.adm-cms-rail { padding: 14px; gap: 12px; scrollbar-gutter: stable; scrollbar-width: thin; }
+.adm-cms-panel { padding: 24px; }
+.adm-cms-panel__head { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 60%, transparent); }
+.adm-cms-panel__head h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.adm-cms-fields { gap: 22px 18px; }
+
+/* sections rail */
+.adm-cms-rail__head { padding: 2px 6px 6px; }
+.adm-cms-rail__head h2 { letter-spacing: 0.14em; }
+.adm-cms-rail__list { gap: 5px; }
+.adm-cms-rail__item {
+  border-radius: 14px; padding: 3px 6px 3px 0;
+  transition: background-color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.adm-cms-rail__item:hover { background: color-mix(in srgb, var(--adm-teal) 7%, transparent); }
+.adm-cms-rail__item.is-selected {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--adm-teal) 18%, var(--adm-surface)), color-mix(in srgb, var(--adm-teal) 6%, var(--adm-surface)));
+  border-color: color-mix(in srgb, var(--adm-teal) 40%, transparent);
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--adm-teal) 60%, transparent), inset 0 1px 0 var(--cms-hi);
+}
+.adm-cms-rail__item.is-selected::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--adm-teal); }
+.adm-cms-rail__num { width: 26px; height: 26px; border-radius: 9px; }
+.adm-cms-rail__main { gap: 10px; padding: 9px 4px; }
+.adm-cms-rail__text b { font-size: 14px; font-weight: 600; }
+
+/* repeater items and grouped fields */
+.adm-cms-li, .adm-cms-group {
+  border-radius: 16px; border: 1px solid color-mix(in srgb, var(--adm-line) 75%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--adm-surface-2) 85%, transparent), color-mix(in srgb, var(--adm-surface-2) 55%, transparent));
+}
+.adm-cms-li { transition: border-color 0.22s ease, box-shadow 0.22s ease, opacity 0.2s ease, transform 0.2s ease; }
+.adm-cms-li:hover, .adm-cms-li:focus-within {
+  border-color: color-mix(in srgb, var(--adm-teal) 35%, var(--adm-line));
+  box-shadow: 0 12px 26px -18px color-mix(in srgb, var(--adm-teal) 55%, transparent);
+}
+.adm-cms-li__head { padding: 6px 8px 6px 4px; }
+.adm-cms-li__body { padding: 8px 18px 20px; }
+
+/* preview card */
+.adm-cms-preview__bar { padding: 10px 12px; border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 55%, transparent); }
+.adm-cms-seg { border-radius: 14px; padding: 4px; background: color-mix(in srgb, var(--adm-track) 80%, transparent); }
+.adm-cms-seg button { height: 30px; border-radius: 10px; padding: 0 12px; }
+.adm-cms-preview__note { padding: 8px 14px; background: transparent; border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 40%, transparent); }
+.adm-cms-preview__stage {
+  background:
+    radial-gradient(80% 60% at 50% 0%, color-mix(in srgb, var(--adm-teal) 10%, transparent), transparent 70%),
+    var(--adm-surface-3);
+  contain: layout paint;
+}
+.adm-cms-preview__stage.is-mobile .adm-cms-preview__device { border-radius: 22px; margin-top: 12px; box-shadow: 0 0 0 1px var(--adm-line-strong), 0 20px 40px -20px rgba(15, 36, 84, 0.4); }
+/* The live site inside reacts to hover (menus, glows). Until the visitor clicks, a shield keeps the pointer from reaching it. */
+.adm-cms-preview__shield {
+  position: absolute; inset: 0; z-index: 3; display: grid; place-items: end center; padding: 0 0 18px; border: 0; background: transparent; cursor: pointer; opacity: 1;
+}
+.adm-cms-preview__shield span {
+  padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--adm-ink);
+  background: color-mix(in srgb, var(--adm-surface) 88%, transparent); border: 1px solid var(--cms-edge);
+  box-shadow: 0 8px 20px -10px rgba(15, 36, 84, 0.35); opacity: 0; transform: translateY(4px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.adm-cms-preview__shield:hover span, .adm-cms-preview__shield:focus-visible span { opacity: 1; transform: none; }
+.adm-cms-preview__shield:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--adm-teal); }
+
+@media (max-width: 899px) {
+  .adm-cms-bar { min-height: 0; padding: 14px; }
+  .adm-cms-panel { padding: 16px; }
+  .adm-cms-bar__row h1 { font-size: 19px; }
+}
+
+/* wider sections rail so names like "Category tiles" are not cut off next to the switch and menu */
+.adm-cms-grid.has-rail { grid-template-columns: 284px minmax(0, 1fr); }
+.adm-cms-grid.has-rail.has-preview { grid-template-columns: 284px minmax(0, 1fr) minmax(340px, 400px); }
+.adm-cms-rail__main { padding-right: 0; }
+.adm-cms-rail__text { flex: 1; }
+.adm-cms-rail__text b { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; line-height: 1.25; overflow-wrap: anywhere; }
+/* Some global header rule zeroes the bottom padding of <header>, which pushed the title against the card's lower edge. */
+.adm-root .adm-cms > .adm-cms-bar { padding: 14px 20px; }
+@media (max-width: 899px) { .adm-root .adm-cms > .adm-cms-bar { padding: 14px; } }
+
+/* The legacy public stylesheet has `header { padding-bottom: 0 !important }`, which also hits these admin <header>s.
+   Only !important at higher specificity can win, so the intended padding is restored here. */
+.adm-root header.adm-cms-bar { padding-bottom: 14px !important; }
+.adm-root header.adm-cms-panel__head { padding-bottom: 16px !important; }
+.adm-root header.adm-cms-preview__bar { padding-bottom: 10px !important; }

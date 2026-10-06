@@ -19,6 +19,8 @@ function PreviewPane({ docKey, refreshKey, onClose }) {
   const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState({ key: null, url: "", error: null });
   const [box, setBox] = useState({ w: 0, h: 0 });
+  // The site inside the frame reacts to hover; until the visitor clicks, a shield stops the pointer reaching it.
+  const [live, setLive] = useState(false);
   const stage = useRef(null);
   const key = `${docKey}|${refreshKey}|${attempt}`;
 
@@ -66,7 +68,7 @@ function PreviewPane({ docKey, refreshKey, onClose }) {
         </div>
       </header>
       <p className="adm-cms-preview__note">Shows the saved draft. Save your changes to update it.</p>
-      <div ref={stage} className={cx("adm-cms-preview__stage", device === "mobile" && "is-mobile")}>
+      <div ref={stage} className={cx("adm-cms-preview__stage", device === "mobile" && "is-mobile")} onMouseLeave={() => setLive(false)}>
         {!settled ? (
           <div className="adm-cms-preview__loading" aria-busy="true"><Skeleton height="100%" /></div>
         ) : result.error ? (
@@ -82,6 +84,11 @@ function PreviewPane({ docKey, refreshKey, onClose }) {
             />
           </div>
         )}
+        {settled && !result.error && !live ? (
+          <button type="button" className="adm-cms-preview__shield" onClick={() => setLive(true)} aria-label="Click to interact with the preview">
+            <span>Click to interact</span>
+          </button>
+        ) : null}
       </div>
     </section>
   );

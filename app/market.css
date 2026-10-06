@@ -597,3 +597,16 @@
   .mk-cat-tiles { grid-template-columns: 1fr 1fr; gap: 8px; }
   .mk-cat-tile { min-height: 120px; }
 }
+
+/* Header fit on narrower desktops.
+   `.mk .mk-pill { display: inline-flex }` (and the search pill's) outrank `.mk-hide-md { display: none }`, so the Help and
+   search pills never hid and pushed the language, profile and cart buttons off the right edge. Re-assert the hide at the
+   same specificity, later in the file. */
+@media (max-width: 1100px) { .mk .mk-hide-md { display: none; } }
+/* Between 1101px and 1279px everything still shows; the dock and pills tighten so the right-hand buttons stay on screen. */
+@media (min-width: 1101px) and (max-width: 1279px) {
+  .mk .mk-dock-item { padding: 0 11px; gap: 6px; font-size: 14.5px; }
+  .mk .mk-header-search-pill { padding: 0 12px; }
+  .mk .mk-header-search-pill .sparkle { display: none; }
+  .mk .mk-pill { padding: 0 12px; }
+}
