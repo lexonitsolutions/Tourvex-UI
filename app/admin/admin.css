@@ -127,7 +127,7 @@
 .adm-nav__sub { margin: 2px 0 6px 21px; padding-left: 14px; border-left: 1px solid var(--adm-side-line-2); }
 .adm-nav__sublink { display: block; padding: 6px var(--adm-s3); border-radius: 6px; font-size: 14px; color: var(--adm-side-ink-2); }
 .adm-nav__sublink:hover { color: var(--adm-side-white); }
-.adm-nav__sublink.is-active { color: var(--adm-side-white); font-weight: 600; }
+.adm-nav__sublink.is-active { color: var(--adm-side-white); font-weight: 500; }
 .adm-root .adm-side :focus-visible { box-shadow: 0 0 0 2px var(--adm-side-from), 0 0 0 4px var(--adm-teal); }
 .adm-side__foot { padding: var(--adm-s2); border-top: 1px solid var(--adm-side-line); display: grid; gap: 2px; }
 

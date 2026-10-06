@@ -497,3 +497,98 @@ a.mm-deal-pill-card:hover .mm-deal-pill-title {
     display: none;
   }
 }
+
+/* ==========================================================================
+   PREMIUM GLASS PASS
+   - Frosted panel; hover/active states change colour, background and shadow only (font weight and size are fixed, so text
+     never shifts when the pointer moves between rows)
+   - The category list fades out at its bottom edge and keeps padding below the last row, so the highlighted row is never
+     cut off by the panel edge
+   ========================================================================== */
+.mm-overlay-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(246, 249, 252, 0.8));
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 34px 80px -18px rgba(15, 36, 84, 0.3), 0 0 0 1px rgba(15, 36, 84, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.mm-main-grid { border-bottom: 1px solid rgba(15, 36, 84, 0.06); }
+
+.mm-sidebar {
+  background: rgba(255, 255, 255, 0.4);
+  border-right: 1px solid rgba(15, 36, 84, 0.06);
+  padding: 12px 10px 28px;
+  gap: 4px;
+  scroll-padding: 12px 0 28px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 36, 84, 0.2) transparent;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 26px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 26px), transparent);
+}
+
+.mm-cat-btn {
+  padding: 9px 12px 9px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background-color 0.24s ease, color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+}
+.mm-cat-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(15, 36, 84, 0.07), inset 0 1px 0 #ffffff;
+  color: #0f172a;
+}
+.mm-cat-btn.is-active {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(236, 253, 245, 0.82));
+  color: #065f46;
+  font-weight: 500;
+  border-color: rgba(4, 120, 87, 0.22);
+  box-shadow: 0 8px 20px rgba(4, 120, 87, 0.12), inset 0 1px 0 #ffffff;
+}
+/* The accent bar sits inside the rounded row instead of poking out of its left edge. */
+.mm-cat-btn.is-active::before { left: 5px; top: 11px; bottom: 11px; width: 3px; border-radius: 3px; }
+.mm-cat-chevron-badge { transition: background-color 0.24s ease, color 0.24s ease, transform 0.24s ease; }
+.mm-cat-btn.is-active .mm-cat-chevron-badge { transform: translateX(1px); }
+
+.mm-content-panel { padding: 18px 22px; scrollbar-width: thin; scrollbar-color: rgba(15, 36, 84, 0.2) transparent; }
+.mm-item-card, .mm-item-card:hover, .mm-item-card:focus, .mm-item-card:active,
+a.mm-item-card, a.mm-item-card:hover, a.mm-item-card:focus, a.mm-item-card:active {
+  transition: background-color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease !important;
+}
+.mm-item-card:hover, a.mm-item-card:hover {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(4, 120, 87, 0.22) !important;
+  box-shadow: 0 8px 22px rgba(15, 36, 84, 0.08), inset 0 1px 0 #ffffff !important;
+}
+
+.mm-bottom-showcase-bar {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-top: 1px solid rgba(15, 36, 84, 0.06) !important;
+  padding: 14px 24px !important;
+}
+.mm-deal-pill-card, .mm-deal-pill-card:hover, .mm-deal-pill-card:focus, .mm-deal-pill-card:active,
+a.mm-deal-pill-card, a.mm-deal-pill-card:hover, a.mm-deal-pill-card:focus, a.mm-deal-pill-card:active {
+  background: rgba(255, 255, 255, 0.74) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 2px 10px rgba(15, 36, 84, 0.06), inset 0 1px 0 #ffffff !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: background-color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease !important;
+}
+.mm-deal-pill-card:hover, a.mm-deal-pill-card:hover {
+  background: rgba(236, 253, 245, 0.88) !important;
+  border-color: rgba(4, 120, 87, 0.35) !important;
+  box-shadow: 0 8px 22px rgba(4, 120, 87, 0.12), inset 0 1px 0 #ffffff !important;
+}
+/* The thumbnail badge ("Instant Confirmation") used to wrap mid-word inside the 50px image. */
+.mm-deal-thumb-box { width: 56px !important; height: 56px !important; }
+.mm-deal-mini-badge {
+  font-size: 7.5px !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0 !important;
+  padding: 2px 1px !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}

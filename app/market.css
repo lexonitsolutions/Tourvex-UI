@@ -317,7 +317,7 @@
    At specificity 0,1,1 it beats any single-class rule, so every link below used to change its display
    type the moment it was hovered (a flex row collapsed, widths jumped, neighbours shifted).
    Re-assert each link's display with a `.mk` prefix (0,2,0) so hover can never change layout. */
-.mk .mk-dock-item, .mk .mk-pill { display: inline-flex; }
+.mk .mk-dock-item, .mk .mk-pill, .mk .mk-header-search-pill { display: inline-flex; }
 .mk .mk-logo, .mk .mk-dropdown-item, .mk .mk-city, .mk .mk-exp-link, .mk .mk-footer a { display: block; }
 .mk .mk-mega-promo, .mk .mk-s-city, .mk .mm-item-card, .mk .mm-deal-pill-card, .mk .mm-bottom-item { display: flex !important; }
 .mk .mk-btn { display: inline-block; }
