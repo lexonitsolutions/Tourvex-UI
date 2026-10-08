@@ -7,7 +7,7 @@ import { CURRENCY_CODES } from "../lib/currencies";
 import { CURRENCY_STORAGE_KEY, hasCurrencyCookie, normalizeCurrency, writeCurrencyCookie } from "../lib/currencyCookie";
 import { completePendingWish } from "../lib/wishlistAuth";
 
-const AppContext = createContext(null);
+export const AppContext = createContext(null);
 
 export const CURRENCIES = CURRENCY_CODES;
 

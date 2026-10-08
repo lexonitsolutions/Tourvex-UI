@@ -4,7 +4,7 @@ import { memo, useId } from "react";
 import { Field, Switch, SelectField } from "../../_kit";
 import { Input } from "../../_ui/components/input";
 import { Textarea } from "../../_ui/components/textarea";
-import { useFormContext } from "./formContext";
+import { customFieldType, useFormContext } from "./formContext";
 import { CONTROL, Counter, TEXTAREA } from "./parts";
 import SchemaForm from "./SchemaForm";
 import ListField from "./ListField";
@@ -37,7 +37,7 @@ function TextControl({ field, value, path, multiline }) {
 function NumberControl({ field, value, path }) {
   const { errors, readOnly, onChange } = useFormContext();
   return (
-    <Field label={field.label} hint={field.help} error={errors[path]}>
+    <Field label={field.label} hint={field.help} error={errors[path]} required={field.required}>
       {(a11y) => (
         <Input
           className={CONTROL}
@@ -45,6 +45,7 @@ function NumberControl({ field, value, path }) {
           inputMode="decimal"
           min={field.min}
           max={field.max}
+          step={field.step}
           value={value ?? ""}
           disabled={readOnly}
           onChange={(e) => onChange(path, e.target.value === "" ? null : Number(e.target.value))}
@@ -89,6 +90,7 @@ function GroupControl({ field, value, path }) {
 
 function FieldRenderer({ field, value, path }) {
   const { errors, readOnly, onChange } = useFormContext();
+  const custom = customFieldType(field.type);
   let body;
   switch (field.type) {
     case "text":
@@ -129,10 +131,12 @@ function FieldRenderer({ field, value, path }) {
     case "group":
       body = <GroupControl field={field} value={value} path={path} />;
       break;
-    default:
-      body = <p className="adm-muted">Unsupported field type &quot;{field.type}&quot; ({field.label}).</p>;
+    default: {
+      const Custom = custom?.Component;
+      body = Custom ? <Custom field={field} value={value} path={path} /> : <p className="adm-muted">Unsupported field type &quot;{field.type}&quot; ({field.label}).</p>;
+    }
   }
-  return <div className={WIDE.has(field.type) ? "adm-cms-field is-wide" : "adm-cms-field"}>{body}</div>;
+  return <div className={WIDE.has(field.type) || custom?.wide ? "adm-cms-field is-wide" : "adm-cms-field"}>{body}</div>;
 }
 
 export default memo(FieldRenderer);

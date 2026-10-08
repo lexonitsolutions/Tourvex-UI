@@ -1,0 +1,157 @@
+/* Catalog module (/admin/catalog/<type>): holiday packages, cruises, events, visas. Prefix adm-cat-.
+   The editor sits inside the content editor's glass shell (.adm-cms: translucent gradient cards, light top edge, teal accents), so
+   this file only adds what the catalog needs on top: section nav, money / chips / lines / dates / gallery controls, list cells and
+   the mobile action dock. Colours come from the --adm-* tokens (light + dark). Hover only changes colours and shadows, never
+   size, weight or position. backdrop-filter is used on the small sticky bars only. */
+
+/* ------------------------------------------------------------------ list page */
+.adm-cat-titlecell { display: flex; align-items: center; gap: 12px; min-width: 280px; }
+.adm-cat-mini {
+  flex: none; display: grid; place-items: center; width: 52px; height: 40px; overflow: hidden; border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--adm-line) 70%, transparent); background: var(--adm-surface-3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.adm-cat-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.adm-cat-mini.is-text { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--adm-brand-ink); background: linear-gradient(135deg, color-mix(in srgb, var(--adm-teal) 22%, var(--adm-surface)), color-mix(in srgb, var(--adm-teal) 8%, var(--adm-surface))); }
+.adm-cat-titlecell__text { display: grid; gap: 1px; min-width: 0; }
+.adm-cat-titlecell__text small { font-size: 12px; color: var(--adm-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px; overflow-wrap: normal; }
+.adm-root a.adm-cat-titlelink, .adm-root a.adm-cat-titlelink:hover, .adm-root a.adm-cat-titlelink:focus, .adm-root a.adm-cat-titlelink:active {
+  display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--adm-ink); font-weight: 600; text-decoration: none;
+}
+.adm-root a.adm-cat-titlelink:hover { color: var(--adm-link); }
+.adm-cat-status { display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+
+/* ------------------------------------------------------------------ editor chrome */
+.adm-cat .adm-cat-back { margin-bottom: 4px; font-size: var(--adm-fs-xs); }
+.adm-root a.adm-cat-back, .adm-root a.adm-cat-back:hover, .adm-root a.adm-cat-back:focus { display: inline-flex; align-items: center; gap: 4px; }
+.adm-cat .adm-cms-bar { z-index: 25; }
+
+.adm-cat-layout { display: grid; gap: var(--adm-s4); align-items: start; grid-template-columns: 236px minmax(0, 1fr); }
+
+/* section nav (left card on desktop, a scrolling pill row on small screens) */
+.adm-cat-nav {
+  position: sticky; top: calc(var(--adm-top-h, 56px) + 100px); isolation: isolate; padding: 12px; border-radius: 20px;
+  border: 1px solid var(--cms-edge); background: linear-gradient(180deg, var(--cms-glass-a), var(--cms-glass-b));
+  box-shadow: var(--cms-depth), inset 0 1px 0 var(--cms-hi);
+}
+.adm-cat-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.adm-cat-nav__btn {
+  position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; text-align: left;
+  border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--adm-text); cursor: pointer;
+  font: inherit; font-size: 14px; font-weight: 600;
+  transition: background-color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, color 0.22s ease;
+}
+.adm-cat-nav__btn:hover { background: color-mix(in srgb, var(--adm-teal) 7%, transparent); color: var(--adm-ink); }
+.adm-cat-nav__btn:focus-visible { outline: none; box-shadow: var(--adm-ring); }
+.adm-cat-nav__btn.is-active {
+  color: var(--adm-ink);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--adm-teal) 18%, var(--adm-surface)), color-mix(in srgb, var(--adm-teal) 6%, var(--adm-surface)));
+  border-color: color-mix(in srgb, var(--adm-teal) 40%, transparent);
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--adm-teal) 60%, transparent), inset 0 1px 0 var(--cms-hi);
+}
+.adm-cat-nav__btn.is-active::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--adm-teal); }
+.adm-cat-nav__num {
+  flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  background: var(--adm-fill-neutral); color: var(--adm-muted);
+}
+.adm-cat-nav__btn.is-active .adm-cat-nav__num { background: var(--adm-teal); color: #fff; }
+.adm-cat-nav__label { flex: 1; min-width: 0; line-height: 1.25; overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------------------ money */
+.adm-cat-money { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: 8px; }
+.adm-cat-money__row { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr) 120px; align-items: start; }
+
+/* ------------------------------------------------------------------ chips */
+.adm-cat-chips { display: grid; gap: 8px; }
+.adm-cat-chips__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.adm-cat-chip {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 4px 6px 4px 11px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 600; color: var(--adm-brand-ink);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--adm-teal) 16%, var(--adm-surface)), color-mix(in srgb, var(--adm-teal) 6%, var(--adm-surface)));
+  border: 1px solid color-mix(in srgb, var(--adm-teal) 30%, transparent);
+}
+.adm-cat-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-cat-chip.has-error { border-color: var(--adm-danger-line); color: var(--adm-danger); background: var(--adm-danger-soft); }
+.adm-cat-chip button {
+  display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+.adm-cat-chip button:hover { background: color-mix(in srgb, currentColor 16%, transparent); }
+.adm-cat-chip button:focus-visible { outline: none; box-shadow: var(--adm-ring); }
+.adm-cat-chips.is-readonly .adm-cat-chip { padding-right: 11px; }
+
+/* ------------------------------------------------------------------ lines (highlights, inclusions ...) and dates */
+.adm-cat-lines, .adm-cat-dates { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.adm-cat-line { display: flex; align-items: flex-start; gap: 10px; }
+.adm-cat-line__n { flex: none; width: 22px; padding-top: 11px; text-align: right; font-size: 12px; font-weight: 600; color: var(--adm-faint); }
+.adm-cat-line__main { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.adm-cat-line__actions { flex: none; display: flex; gap: 2px; padding-top: 5px; }
+.adm-cat-line.has-error input, .adm-cat-date.has-error input { border-color: var(--adm-danger); }
+.adm-cat-dates { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px 12px; }
+.adm-cat-date { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px; }
+.adm-cat-date .adm-field__error { grid-column: 1 / -1; }
+
+/* ------------------------------------------------------------------ images */
+.adm-cat-thumb {
+  position: relative; overflow: hidden; width: 100%; aspect-ratio: 4 / 3; border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--adm-line) 75%, transparent); background: var(--adm-surface-3);
+}
+.adm-cat-thumb--cover { width: min(100%, 280px); aspect-ratio: 16 / 9; flex: none; }
+.adm-cat-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.adm-cat-thumb span { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 4px; font-size: var(--adm-fs-xs); color: var(--adm-muted); }
+.adm-cat-gallery__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.adm-cat-gcard {
+  display: grid; gap: 10px; align-content: start; padding: 10px; border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--adm-line) 75%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--adm-surface-2) 85%, transparent), color-mix(in srgb, var(--adm-surface-2) 55%, transparent));
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.adm-cat-gcard:hover, .adm-cat-gcard:focus-within { border-color: color-mix(in srgb, var(--adm-teal) 35%, var(--adm-line)); box-shadow: 0 12px 26px -18px color-mix(in srgb, var(--adm-teal) 55%, transparent); }
+.adm-cat-gcard__frame { position: relative; }
+.adm-cat-gcard__badge {
+  position: absolute; left: 8px; top: 8px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; color: #fff;
+  background: color-mix(in srgb, var(--adm-teal) 88%, #000); box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.4);
+}
+.adm-cat-gcard__badge.is-num { background: rgba(15, 36, 84, 0.72); }
+.adm-cat-gcard__actions { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.adm-cat-gcard__actions .adm-btn { margin-left: auto; }
+
+/* ------------------------------------------------------------------ mobile action dock (small sticky bar, blur allowed) */
+.adm-cat-dock { display: none; }
+
+@media (max-width: 899px) {
+  .adm-cat { padding-bottom: 84px; }
+  .adm-cat-layout { grid-template-columns: minmax(0, 1fr); }
+  .adm-cat-nav { position: static; padding: 6px; border-radius: 16px; overflow-x: auto; scrollbar-width: thin; }
+  .adm-cat-nav ul { display: flex; gap: 4px; width: max-content; min-width: 100%; }
+  .adm-cat-nav__btn { width: auto; white-space: nowrap; padding: 8px 12px; }
+  .adm-cat-nav__label { overflow-wrap: normal; }
+  .adm-cat-nav__btn.is-active::before { display: none; }
+  .adm-cat-money__row { grid-template-columns: minmax(0, 1fr) 96px; }
+  /* the dock carries Save / Publish on small screens, so the bar keeps only View on site and the menu */
+  .adm-cat-actions > .adm-btn--primary, .adm-cat-actions > .adm-btn--secondary { display: none; }
+  .adm-cat-dock {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--adm-surface) 90%, transparent);
+    border-top: 1px solid var(--cms-edge); box-shadow: 0 -12px 28px -18px rgba(15, 36, 84, 0.35), inset 0 1px 0 var(--cms-hi);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  }
+  .adm-cat-dock__state { font-size: var(--adm-fs-xs); color: var(--adm-muted); min-width: 0; }
+  .adm-cat-dock__state.is-dirty { color: var(--adm-warning); font-weight: 600; }
+  .adm-cat-dock__btns { display: flex; gap: 8px; margin-left: auto; }
+  .adm-cat-dock__btns .adm-btn { white-space: nowrap; }
+  .adm-cat-line { gap: 6px; }
+  .adm-cat-line__n { display: none; }
+  .adm-cat-gallery__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The legacy public stylesheet has `header { padding-bottom: 0 !important }`. The editor reuses the content editor's header classes, which
+   are already protected in content.css; nothing else in the catalog renders a <header>. */
+.adm-cat-money > legend { padding: 0; margin: 0; }
+
+/* Wide catalog tables (cruises, events): the other columns never wrap, so without a floor the browser squeezes the title cell
+   (its inner wrapper may shrink to nothing) to a sliver. Keep the title column readable; the table scrolls sideways instead. */
+.adm-root .adm-dt2__table td:has(.adm-cat-titlecell) { min-width: 300px; }
+.adm-root .adm-dt2__table td:has(.adm-cat-titlecell) .adm-dt2__cell { justify-items: start; text-align: left; }

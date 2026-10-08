@@ -83,6 +83,14 @@ export function defaultValue(field) {
       return Array.from({ length: field.min || 0 }, () => newListItem(field));
     case "group":
       return defaultsForFields(field.fields);
+    // field types registered by the catalog editor (see app/admin/catalog)
+    case "money":
+      return { amount: null, currency: "AED" };
+    case "chips":
+    case "strings":
+    case "dates":
+    case "gallery":
+      return [];
     default:
       return "";
   }

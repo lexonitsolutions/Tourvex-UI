@@ -13,6 +13,7 @@ import {
 } from "../../_lib/cms";
 import { formatDateTime, humanize } from "../../_lib/format";
 import { FormContext } from "./formContext";
+import { useLeaveGuard } from "./leaveGuard";
 import SchemaForm from "./SchemaForm";
 import SectionRail from "./SectionRail";
 import PreviewPane from "./PreviewPane";
@@ -75,39 +76,6 @@ function subscribeViewport(cb) {
 /** 0 = narrow (tabs), 1 = mid (rail + form, preview in a drawer), 2 = wide (three panes). */
 function useViewport() {
   return useSyncExternalStore(subscribeViewport, () => (window.matchMedia(wideQuery).matches ? 2 : window.matchMedia(midQuery).matches ? 1 : 0), () => 1);
-}
-
-/** Warns before reload/close (beforeunload) and before in-app link navigation while `isDirty()` is true. */
-function useLeaveGuard(isDirty, onBlocked) {
-  const dirtyRef = useRef(isDirty);
-  const blockedRef = useRef(onBlocked);
-  useLayoutEffect(() => {
-    dirtyRef.current = isDirty;
-    blockedRef.current = onBlocked;
-  });
-  useEffect(() => {
-    const beforeUnload = (e) => {
-      if (!dirtyRef.current()) return;
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    const onClick = (e) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const a = e.target.closest?.("a[href]");
-      if (!a || a.target === "_blank" || a.hasAttribute("download") || !dirtyRef.current()) return;
-      const url = new URL(a.href, window.location.href);
-      if (url.origin !== window.location.origin || (url.pathname === window.location.pathname && url.search === window.location.search)) return;
-      e.preventDefault();
-      e.stopPropagation();
-      blockedRef.current(`${url.pathname}${url.search}${url.hash}`);
-    };
-    window.addEventListener("beforeunload", beforeUnload);
-    document.addEventListener("click", onClick, true);
-    return () => {
-      window.removeEventListener("beforeunload", beforeUnload);
-      document.removeEventListener("click", onClick, true);
-    };
-  }, []);
 }
 
 const when = (v) => (v ? formatDateTime(v) : "");

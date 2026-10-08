@@ -20,6 +20,7 @@ function summaryOf(field, item) {
     else if (f.type === "richtext") text = stripMarkdown(v);
     else if (f.type === "link") text = v?.label;
     else if (f.type === "image") text = v?.alt;
+    else if (f.type === "datetime") text = typeof v === "string" ? v.replace("T", " ") : "";
     text = String(text || "").replace(/\s+/g, " ").trim();
     if (text) return text.length > 64 ? `${text.slice(0, 63)}…` : text;
   }

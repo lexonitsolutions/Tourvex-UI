@@ -354,3 +354,14 @@
 /* Same legacy `header { padding-bottom: 0 !important }` fix for the other admin card/board headers. */
 .adm-root header.adm-board__head { padding-bottom: 10px !important; }
 .adm-root header.adm-card__head { padding-bottom: var(--adm-s3) !important; }
+
+/* Badge shown only in a local development build while the dev sign-in is active (see admin/DevAdminSession.js).
+   It renders outside .adm-root, so it styles itself and does not rely on the admin tokens. */
+.adm-dev-session {
+  position: fixed; left: 14px; bottom: 14px; z-index: 2147483000; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px;
+  border: 1px solid rgba(245, 158, 11, 0.55); border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.94); color: #0f2454; font: 600 12px/1 system-ui, sans-serif; letter-spacing: 0;
+  box-shadow: 0 10px 24px -12px rgba(15, 36, 84, 0.45);
+}
+.adm-dev-session span { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25); }
+.adm-dev-session:hover { border-color: #f59e0b; }
