@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { useAdminMe } from "../../_lib/AdminMeProvider";
 import { useAdminApi } from "../../_lib/adminApi";
 import { Button, ConfirmDialog, MoneyField, Switch, TextField, useToast } from "../../_kit";
 import { itemApiPath, num, parseCount, stockErrorText } from "../_lib/stock";
@@ -27,6 +29,7 @@ function Row({ label, hint, error, saved, children, action }) {
 export default function PolicyPanel({ item, canWrite, onSaved }) {
   const api = useAdminApi();
   const toast = useToast();
+  const canBuy = useAdminMe().can("purchasing.write");
   const [unlimited, setUnlimited] = useState((item.defaultCapacity ?? item.inheritedCapacity) === null || (item.defaultCapacity ?? item.inheritedCapacity) === undefined);
   const [capacity, setCapacity] = useState((item.defaultCapacity ?? item.inheritedCapacity) === null || (item.defaultCapacity ?? item.inheritedCapacity) === undefined ? "" : String(item.defaultCapacity ?? item.inheritedCapacity));
   const [reason, setReason] = useState("");
@@ -118,7 +121,7 @@ export default function PolicyPanel({ item, canWrite, onSaved }) {
 
       <Row
         label="Unit cost (optional)"
-        hint="What one unit costs you. Not shown to customers; used for margin reports later."
+        hint={<>What one unit costs you. Not shown to customers; used for margin reports.{canBuy ? <> Receiving a purchase sets it for you: <Link href={`/admin/purchasing/new?item=${encodeURIComponent(item.id)}`} className="inv-link">Purchases</Link></> : null}</>}
         error={errors.cost}
         saved={saved.cost}
         action={canWrite ? <Button variant="primary" size="sm" loading={busy === "cost"} disabled={dis || !costDirty} onClick={saveCost}>Save</Button> : null}

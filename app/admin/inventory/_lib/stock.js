@@ -77,13 +77,14 @@ export const MOVEMENT_TYPES = {
   alert_low: "Low stock alert",
   alert_sold_out: "Sold out alert",
   create_item: "Item created",
+  set_cost: "Unit cost updated",
 };
 export const movementLabel = (type) => MOVEMENT_TYPES[type] || String(type || "").replace(/_/g, " ");
 export const MOVEMENT_TONE = {
   adjust_add: "success", restock_auto: "success", restock_manual: "success", resume_sale: "success", open: "success",
   adjust_remove: "warning", close: "warning", stop_sale: "warning", alert_low: "warning",
   booking_cancelled: "danger", alert_sold_out: "danger",
-  booking_confirmed: "info", set_default: "info", set_day: "info", create_item: "info",
+  booking_confirmed: "info", set_default: "info", set_day: "info", create_item: "info", set_cost: "info",
 };
 
 export const WEEKDAYS = [

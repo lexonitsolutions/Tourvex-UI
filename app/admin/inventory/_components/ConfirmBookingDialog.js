@@ -7,6 +7,7 @@ import { useAdminQuery } from "../../_lib/useAdminQuery";
 import { dayKey, formatDayKey } from "../../_lib/format";
 import { Button, DateField, ErrorState, Modal, MoneyField, SelectField, Skeleton, StatusBadge, TextArea, TextField, useToast } from "../../_kit";
 import { STATUS, STOCK_API, itemApiPath, num, parseCount, stockErrorText } from "../_lib/stock";
+import TaxBuyerSection, { EMPTY_TAX_BUYER, taxBuyerPayload } from "../../settings/_tax/TaxBuyerSection";
 
 // This dialog also renders on the leads pages, where inventory.css is not loaded: it only uses shared kit classes.
 
@@ -51,6 +52,7 @@ function Inner({ lead, onClose, onDone }) {
     paymentReference: "",
     note: "",
   });
+  const [taxBuyer, setTaxBuyer] = useState(EMPTY_TAX_BUYER);
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -102,6 +104,7 @@ function Inner({ lead, onClose, onDone }) {
         paymentMode: form.paymentMode,
         ...(form.paymentReference.trim() ? { paymentReference: form.paymentReference.trim() } : {}),
         ...(form.note.trim() ? { note: form.note.trim() } : {}),
+        ...taxBuyerPayload(taxBuyer),
       });
       toast.success("Booking confirmed");
       setDone(result || {});
@@ -123,6 +126,7 @@ function Inner({ lead, onClose, onDone }) {
             Booking {target ? <Link className="adm-link" href={`/admin/bookings/${encodeURIComponent(target)}`}>{booking.reference || "Open booking"}</Link> : "created"}. Stock was reduced and the enquiry is marked as booked.
           </p>
           <p>{done.invoiceNumber ? <>Invoice number: <b>{done.invoiceNumber}</b></> : "The invoice is issued right after confirmation. Refresh the booking page in a moment to see its number."}</p>
+          {done.tax && (done.tax.taxName || done.tax.country) ? <p className="adm-muted">Tax: {[done.tax.country, done.tax.taxName, done.tax.percent !== undefined ? `${done.tax.percent}%` : null].filter(Boolean).join(" ")}, included in the total.</p> : null}
           {target ? <div><Link className="adm-btn adm-btn--secondary" href={`/admin/bookings/${encodeURIComponent(target)}`}><span className="adm-btn__label">Open booking</span></Link></div> : null}
         </div>
       </Modal>
@@ -130,6 +134,7 @@ function Inner({ lead, onClose, onDone }) {
   }
 
   const noProduct = !slug;
+  const autoCountry = /^[A-Za-z]{2}$/.test(lead.serviceCountry || lead.catalog?.country || "") ? String(lead.serviceCountry || lead.catalog?.country).toUpperCase() : "";
   return (
     <Modal
       open
@@ -198,6 +203,7 @@ function Inner({ lead, onClose, onDone }) {
             <SelectField label="Payment mode" required value={form.paymentMode} onChange={(paymentMode) => set({ paymentMode })} options={PAYMENT_MODES} />
             <TextField label="Payment reference" value={form.paymentReference} onChange={(paymentReference) => set({ paymentReference })} hint="Bank transfer reference or receipt number." maxLength={120} />
           </div>
+          <TaxBuyerSection value={taxBuyer} onChange={setTaxBuyer} total={form.amount} currency={form.currency} autoCountry={autoCountry} />
           <TextArea label="Note" rows={2} maxLength={500} value={form.note} onChange={(note) => set({ note })} hint="Internal. Saved on the booking." />
           {serverError ? <p className="adm-inline-error" role="alert">{serverError}</p> : null}
         </form>

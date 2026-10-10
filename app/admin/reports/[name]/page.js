@@ -9,6 +9,7 @@ import { useAdminQuery } from "../../_lib/useAdminQuery";
 import { dayLabel, fmtAed2, fmtInt, fmtPct, periodText, rangeQuery, rangeSearch, serviceLabel } from "../../_lib/reports";
 import { AreaChart, EmptyState, ErrorState, ExportCsvButton, HBars, Icon, NoAccess, RangePicker, useUrlParams } from "../../_kit";
 import { reportByName } from "../reportDefs";
+import { MarginFilters, MarginView, marginQuery } from "../../purchasing/_components/MarginReport";
 
 const num = (v) => fmtInt(v);
 
@@ -51,6 +52,8 @@ function Panel({ title, sub, children }) {
 const dayCols = (extra) => [{ key: "date", label: "Date", render: (r) => dayLabel(r.date) }, ...extra];
 
 const VIEWS = {
+  margin: (d, ctx) => <MarginView data={d} groupBy={ctx.groupBy} />,
+
   sales(d) {
     const labels = d.byDay.map((x) => dayLabel(x.date));
     return (
@@ -196,7 +199,7 @@ function Report({ def }) {
   const { can } = useAdminMe();
   const api = useAdminApi();
   const [params, setParams] = useUrlParams();
-  const query = useMemo(() => rangeQuery(params), [params]);
+  const query = useMemo(() => ({ ...rangeQuery(params), ...(def.name === "margin" ? marginQuery(params) : {}) }), [params, def.name]);
   const allowed = def.view.every((p) => can(p));
   const { data, error, loading, reload } = useAdminQuery(allowed ? `/admin/reports/${def.name}` : null, query);
   if (!allowed) return <NoAccess permission={def.view.filter((p) => !can(p))} />;
@@ -214,10 +217,11 @@ function Report({ def }) {
           {can(def.csv) ? <ExportCsvButton filename={`${def.name}.csv`} getBlob={() => api.download(`/admin/reports/${def.name}/export.csv`, { query })} /> : null}
         </div>
       </div>
+      {def.name === "margin" ? <MarginFilters params={params} setParams={setParams} /> : null}
       {error && !data ? <ErrorState title="Could not load this report" description={error.message} onRetry={reload} /> : !data ? (
         <div className="adm-reportstack"><span className="adm-skel" style={{ height: 96, borderRadius: 18 }} /><span className="adm-skel" style={{ height: 280, borderRadius: 22 }} /></div>
       ) : (
-        <div className={`adm-reportstack ${loading ? "adm-refreshing" : ""}`}>{view(data)}</div>
+        <div className={`adm-reportstack ${loading ? "adm-refreshing" : ""}`}>{view(data, { groupBy: query.groupBy })}</div>
       )}
     </>
   );

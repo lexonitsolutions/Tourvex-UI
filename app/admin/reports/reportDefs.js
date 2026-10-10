@@ -4,6 +4,7 @@ export const REPORTS = [
   { name: "top-activities", title: "Top activities", description: "Which activities earn the most: bookings, travellers and revenue.", icon: "catalog", tone: "periwinkle", view: ["dashboard.read", "finance.read"], csv: "finance.export" },
   { name: "lead-funnel", title: "Lead funnel and sources", description: "Where leads come from, how far they get and how many are won.", icon: "enquiries", tone: "violet", view: ["dashboard.read", "enquiries.read"], csv: "enquiries.export" },
   { name: "support", title: "Support and SLA", description: "Tickets created and resolved, first-response SLA compliance.", icon: "tickets", tone: "butter", view: ["dashboard.read", "tickets.read"], csv: "tickets.export" },
+  { name: "margin", title: "Profit & margin", description: "Revenue without tax against supplier cost, by product, day, month or type.", icon: "trendUp", tone: "teal", view: ["finance.read"], csv: "finance.export" },
   { name: "cancellations", title: "Cancellations and refunds", description: "Cancellation rate, refund totals and pending requests.", icon: "receipt", tone: "rose", view: ["dashboard.read", "bookings.read", "finance.read"], csv: "finance.export" },
 ];
 

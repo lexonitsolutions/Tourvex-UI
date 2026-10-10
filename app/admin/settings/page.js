@@ -9,6 +9,7 @@ import {
   Button, Card, ErrorState, IconButton, PageHeader, RequirePermission, Skeleton, Switch, TabPanel, Tabs, TextArea, TextField,
   useToast, useUrlParams,
 } from "../_kit";
+import TaxSettingsTab from "./_tax/TaxSettingsTab";
 
 const GROUPS = [
   { id: "general", label: "General" },
@@ -17,6 +18,7 @@ const GROUPS = [
   { id: "homepage", label: "Homepage" },
   { id: "support", label: "Support" },
 ];
+const TAX_TAB = { id: "tax", label: "Tax & invoicing" };
 const META_KEYS = ["group", "updatedAt", "updatedBy", "_id", "id", "__v", "createdAt"];
 // Mirrors the API whitelist (settings.dto.ts); templates with any other {{placeholder}} are rejected there.
 const PLACEHOLDERS = ["bookingRef", "customerName", "serviceName", "travelDate", "totalAmount", "voucherUrl", "cancellationReason", "siteName", "supportEmail"];
@@ -288,14 +290,15 @@ export default function SettingsPage() {
 function SettingsTabs() {
   const { can } = useAdminMe();
   const [params, setParams] = useUrlParams();
-  const tab = GROUPS.some((g) => g.id === params.tab) ? params.tab : "general";
+  const tabs = can("tax.read") ? [...GROUPS, TAX_TAB] : GROUPS;
+  const tab = tabs.some((g) => g.id === params.tab) ? params.tab : "general";
   return (
     <>
-      <PageHeader title="Site settings" description="Business details, checkout rules, email templates and homepage layout." />
-      <Tabs idPrefix="adm-settings" label="Settings groups" value={tab} onChange={(t) => setParams({ tab: t })} tabs={GROUPS} />
-      {GROUPS.map((g) => (
+      <PageHeader title="Site settings" description="Business details, checkout rules, email templates, homepage layout and tax." />
+      <Tabs idPrefix="adm-settings" label="Settings groups" value={tab} onChange={(t) => setParams({ tab: t })} tabs={tabs} />
+      {tabs.map((g) => (
         <TabPanel key={g.id} idPrefix="adm-settings" id={g.id} value={tab}>
-          <GroupForm key={g.id} group={g.id} canWrite={can("settings.write")} />
+          {g.id === "tax" ? <TaxSettingsTab /> : <GroupForm key={g.id} group={g.id} canWrite={can("settings.write")} />}
         </TabPanel>
       ))}
     </>

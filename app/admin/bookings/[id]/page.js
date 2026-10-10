@@ -13,6 +13,8 @@ import {
 import { RadioGroup, RadioGroupItem } from "../../_ui/components/radio-group";
 import { BookingStatusBadge, InvoiceBadge, PaymentBadge, PdfButton, QrSvg, VoucherBadge, formatDay, money, paxText } from "../../_ops/Ops";
 import { bookingStock } from "../../inventory/_lib/stock";
+import FinancialsCard from "../../purchasing/_components/FinancialsCard";
+import BookingTaxCard from "../../settings/_tax/BookingTaxCard";
 
 export default function BookingDetailPage() {
   return (
@@ -195,6 +197,8 @@ function BookingView({ b, reload }) {
           <VoucherCard b={b} reload={reload} onVoid={() => setDialog("void")} />
           {stock ? <StockCard stock={stock} canReturn={canReturn} onReturn={() => setDialog("stock")} /> : null}
 
+          <BookingTaxCard b={b} />
+          <FinancialsCard booking={b} />
           <Card title="Invoice">
             {b.invoice ? (
               <div className="adm-stack">

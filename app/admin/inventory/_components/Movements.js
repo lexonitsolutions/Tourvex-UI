@@ -83,8 +83,8 @@ export default function Movements({ itemId }) {
   const effectiveItem = itemId || params.itemId || "";
   const type = TYPE_OPTIONS.some((t) => t.value === params.type) ? params.type : "";
   const query = useMemo(
-    () => ({ itemId: effectiveItem || undefined, type: type || undefined, actor: params.actor, from: params.from, to: params.to, page, limit }),
-    [effectiveItem, type, params.actor, params.from, params.to, page, limit]
+    () => ({ itemId: effectiveItem || undefined, type: type || undefined, actor: params.actor, purchaseNumber: params.purchaseNumber, from: params.from, to: params.to, page, limit }),
+    [effectiveItem, type, params.actor, params.purchaseNumber, params.from, params.to, page, limit]
   );
   const list = useAdminQuery(`${STOCK_API}/movements`, query);
   const tableState = useTableUrlState(params, setParams, limit, setLimit);
@@ -121,14 +121,15 @@ export default function Movements({ itemId }) {
   );
 
   const [itemLabel, setItemLabel] = useState("");
-  const filtered = !!(params.type || params.actor || params.from || params.to || (!embedded && params.itemId));
-  const clearAll = () => setParams({ itemId: "", type: "", actor: "", from: "", to: "" });
+  const filtered = !!(params.type || params.actor || params.purchaseNumber || params.from || params.to || (!embedded && params.itemId));
+  const clearAll = () => setParams({ itemId: "", type: "", actor: "", purchaseNumber: "", from: "", to: "" });
   const chips = buildChips(
     params,
     [
       ...(embedded ? [] : [{ keys: ["itemId"], label: "Item", text: () => itemLabel || params.itemId }]),
       { keys: ["type"], label: "Type", text: () => movementLabel(type || params.type) },
       { keys: ["actor"], label: "By" },
+      { keys: ["purchaseNumber"], label: "Purchase" },
       { keys: ["from", "to"], label: "Dates", text: (p) => dateChipText(p.from, p.to) },
     ],
     setParams

@@ -12,6 +12,7 @@ import {
 } from "../_kit";
 import { DataTable, DataTableColumnsMenu } from "../_ui/data-table";
 import { INVOICE_STATUS, InvoiceBadge, dayEndIso, dayStartIso, statusOptions, useFileDownload } from "../_ops/Ops";
+import { EmailStatusBadge } from "./_components/InvoiceTax";
 
 const LIMIT = 20;
 const EMPTY = [];
@@ -50,6 +51,8 @@ function Invoices() {
       { key: "customer", label: "Customer", render: (i) => <UserCell name={i.customerName} email={i.customerEmail} size={32} /> },
       { key: "bookingReference", label: "Booking", render: (i) => (i.bookingReference ? <Link className="adm-ops-link" href={`/admin/bookings/${i.bookingId}`}>{i.bookingReference}</Link> : "-") },
       { key: "status", label: "Status", sortable: true, render: (i) => <InvoiceBadge status={i.status} /> },
+      { key: "tax", label: "Tax", render: (i) => (i.taxCountry || i.taxName ? <span className="adm-ops-num" style={{ textAlign: "left" }}>{[i.taxCountry, i.taxName].filter(Boolean).join(" · ")}</span> : <span className="adm-muted">-</span>) },
+      { key: "emailStatus", label: "Email", render: (i) => <EmailStatusBadge status={i.emailStatus} /> },
       { key: "total", label: "Total", sortable: true, align: "right", render: (i) => <Money value={i.total} currency={i.currency} negative={i.kind === "credit_note"} /> },
       { key: "createdAt", label: "Issued", sortable: true, render: (i) => <DateTime value={i.issuedAt} /> },
     ]),

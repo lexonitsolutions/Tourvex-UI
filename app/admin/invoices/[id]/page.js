@@ -6,6 +6,7 @@ import { useAdminQuery } from "../../_lib/useAdminQuery";
 import { formatDateTime } from "../../_lib/format";
 import { Card, ErrorState, KeyValue, PageHeader, RequirePermission, Skeleton, StatusBadge } from "../../_kit";
 import { InvoiceBadge, PdfButton, money } from "../../_ops/Ops";
+import { EmailCard, TaxBreakdownCard, TaxDetailsCard, buyerItems, sellerHasNumber, sellerItems } from "../_components/InvoiceTax";
 
 export default function InvoicePage() {
   return (
@@ -27,7 +28,7 @@ function InvoiceDetail() {
       <PageHeader
         title={inv.invoiceNumber}
         meta={<div className="adm-row">{credit ? <StatusBadge tone="warning">Credit note</StatusBadge> : <StatusBadge tone="neutral">Invoice</StatusBadge>}<InvoiceBadge status={inv.status} /></div>}
-        description={`Issued ${formatDateTime(inv.issuedAt)}`}
+        description={`${inv.title ? `${inv.title} · ` : ""}Issued ${formatDateTime(inv.issuedAt)}`}
         actions={<PdfButton path={`/admin/invoices/${inv.id}/pdf`} filename={`${inv.invoiceNumber}.pdf`} />}
       />
       <div className="adm-ops-detail">
@@ -49,6 +50,7 @@ function InvoiceDetail() {
               </tfoot>
             </table>
           </Card>
+          <TaxBreakdownCard inv={inv} credit={credit} />
           {inv.reason ? <Card title="Reason"><p>{inv.reason}</p></Card> : null}
         </div>
         <div className="adm-ops-col">
@@ -62,14 +64,16 @@ function InvoiceDetail() {
               ]}
             />
           </Card>
+          <TaxDetailsCard inv={inv} />
           <Card title="Billed to">
-            <KeyValue items={[{ label: "Name", value: inv.customerName }, { label: "Email", value: inv.customerEmail }]} />
+            <KeyValue items={buyerItems(inv)} />
           </Card>
+          <EmailCard inv={inv} onDone={reload} />
           <Card title="Issued by">
             {inv.seller ? (
-              <KeyValue items={[{ label: "Company", value: inv.seller.legalName }, { label: "Address", value: inv.seller.address }, { label: "TRN / VAT no.", value: inv.seller.taxNumber || "Not set" }, { label: "Email", value: inv.seller.email }, { label: "Phone", value: inv.seller.phone }]} />
+              <KeyValue items={sellerItems(inv)} />
             ) : <p className="adm-muted">This invoice predates company details; the PDF uses the current settings.</p>}
-            {!inv.seller?.taxNumber ? <p className="adm-muted" style={{ marginTop: 8 }}>Add the legal name and TRN in Settings &gt; General so new invoices carry them.</p> : null}
+            {!sellerHasNumber(inv) ? <p className="adm-muted" style={{ marginTop: 8 }}>Add the legal name and TRN in Settings &gt; General so new invoices carry them.</p> : null}
           </Card>
         </div>
       </div>
