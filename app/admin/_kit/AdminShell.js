@@ -172,7 +172,10 @@ function Breadcrumbs({ pathname, menu }) {
     return parts.map((part, i) => {
       const href = `/admin/${parts.slice(0, i + 1).join("/")}`;
       const hit = flat.find((m) => m.href === href);
-      return { href, label: hit?.label || humanize(decodeURIComponent(part)) };
+      const text = decodeURIComponent(part);
+      // Record ids (24-char hex) and stock item ids (type:ref:variant) are not readable; show a generic label instead.
+      const label = hit?.label || (/^[0-9a-f]{24}$/i.test(text) ? "Details" : text.includes(":") ? "Item" : humanize(text));
+      return { href, label };
     });
   }, [pathname, menu]);
   return (
@@ -339,7 +342,7 @@ export default function AdminShell({ children }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/karnish-logo.png" alt="" width="28" height="28" />
             <span className="adm-side__name">
-              <b>Tourvex</b>
+              <b>Karnish Tourism</b>
               <small>Admin</small>
             </span>
           </Link>

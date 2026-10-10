@@ -19,7 +19,7 @@ export const instant = false;
 // The admin lives outside the (market) group, so it never mounts the marketplace header/footer/tab bar/preloader/Lenis.
 // The root layout already provides ClerkProvider. Never indexed.
 export const metadata = {
-  title: { default: "Admin | Tourvex", template: "%s | Tourvex Admin" },
+  title: { default: "Admin | Karnish Tourism", template: "%s | Karnish Tourism Admin" },
   robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 };
 
