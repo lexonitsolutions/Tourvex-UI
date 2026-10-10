@@ -400,3 +400,7 @@
 .adm-root header.adm-cms-bar { padding-bottom: 14px !important; }
 .adm-root header.adm-cms-panel__head { padding-bottom: 16px !important; }
 .adm-root header.adm-cms-preview__bar { padding-bottom: 10px !important; }
+
+/* Wide screens: give the live preview more room instead of a fixed 400px strip. */
+.adm-cms-grid.has-rail.has-preview { grid-template-columns: 284px minmax(0, 1fr) clamp(340px, 24vw, 640px); }
+.adm-cms-grid:not(.has-rail).has-preview { grid-template-columns: minmax(0, 1fr) clamp(340px, 24vw, 640px); }

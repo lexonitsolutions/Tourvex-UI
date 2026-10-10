@@ -211,7 +211,8 @@
 .adm-profile__text b { font-size: 14px; color: var(--adm-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adm-profile__text small { font-size: 11.5px; color: var(--adm-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.adm-main { flex: 1; padding: var(--adm-s5); width: 100%; max-width: 1480px; margin: 0 auto; outline: none; }
+/* Fluid: the content uses the whole space next to the sidebar and its side padding grows with the screen, so wide monitors are not left with empty margins. The cap only matters on extreme ultrawide displays. */
+.adm-main { flex: 1; min-width: 0; padding: var(--adm-s5) clamp(16px, 2.2vw, 48px); width: 100%; max-width: 2560px; margin: 0 auto; outline: none; }
 
 .adm-scrim { display: none; }
 
