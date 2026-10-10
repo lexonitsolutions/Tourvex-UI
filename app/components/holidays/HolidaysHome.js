@@ -71,7 +71,7 @@ function useRecentlyViewed(currency) {
     const controller = new AbortController();
     Promise.allSettled(slugs.map((slug) => getHoliday(slug, { signal: controller.signal, currency }))).then((results) => {
       if (controller.signal.aborted) return;
-      setItems(results.filter((r) => r.status === "fulfilled").map((r) => r.value.package));
+      setItems(results.filter((r) => r.status === "fulfilled").map((r) => (r.value.package.stock || !r.value.stock ? r.value.package : { ...r.value.package, stock: r.value.stock })));
     });
     return () => controller.abort();
   }, [currency]);

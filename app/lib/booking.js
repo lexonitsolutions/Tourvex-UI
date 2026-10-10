@@ -10,14 +10,43 @@ export const MAX_CART_ITEMS = 5;
 
 /** ApiError plus the contract's machine-readable error code (DATE_UNAVAILABLE, PAX_LIMIT, ...). */
 export class BookingError extends ApiError {
-  constructor(message, status, code) {
+  constructor(message, status, code, data) {
     super(message, status);
     this.code = code || "";
+    this.data = data ?? null;
   }
 }
 
+/** Codes meaning "this date/option no longer has the capacity asked for" (409 from add-to-cart, update or pay). */
+export const UNAVAILABLE_CODES = ["DATE_UNAVAILABLE", "SOLD_OUT", "STOCK_UNAVAILABLE"];
+export const isUnavailableError = (error) => !!error && UNAVAILABLE_CODES.includes(error.code);
+
+/** Cart line ids named by an unavailability error, wherever the API puts them (all optional). */
+export function unavailableIds(error) {
+  const d = error?.data;
+  const nested = d && typeof d.message === "object" && !Array.isArray(d.message) ? d.message : null;
+  const out = new Set();
+  [d, d?.details, nested, nested?.details].forEach((src) => {
+    if (!src || typeof src !== "object") return;
+    [src.itemId, src.cartItemId, ...(Array.isArray(src.itemIds) ? src.itemIds : []), ...(Array.isArray(src.items) ? src.items.map((i) => i?.id ?? i?.itemId ?? i) : [])].forEach((v) => {
+      if (typeof v === "string" || typeof v === "number") out.add(String(v));
+    });
+  });
+  return [...out];
+}
+
+/** A cart line the API itself flags as no longer bookable (flag names are optional), else "". */
+export function itemProblem(item) {
+  if (!item) return "";
+  const status = String(item.status || item.availability?.status || "").toLowerCase();
+  const flagged = item.available === false || item.unavailable === true || item.soldOut === true || ["unavailable", "sold_out", "date_unavailable"].includes(status);
+  if (!flagged) return "";
+  return (typeof item.unavailableReason === "string" && item.unavailableReason) || (typeof item.message === "string" && item.message) || FRIENDLY.DATE_UNAVAILABLE;
+}
+
 const FRIENDLY = {
-  DATE_UNAVAILABLE: "That date is no longer available for this option. Please choose another date.",
+  DATE_UNAVAILABLE: "Sorry, that date has just sold out or does not have enough tickets left. Please choose another date or fewer travellers.",
+  STOCK_UNAVAILABLE: "Sorry, there are not enough tickets left for that date. Please choose another date or fewer travellers.",
   PAX_LIMIT: "That number of travellers is not allowed for this option. Please adjust adults and children.",
   CART_FULL: `Your cart is full (up to ${MAX_CART_ITEMS} activities). Remove one to add another.`,
   INVALID_PROMO: "That promo code is not valid for this order.",
@@ -75,7 +104,7 @@ export async function bookingRequest(path, { method = "GET", body, token, signal
   const data = await response.json().catch(() => null);
   if (!response.ok) {
     const code = codeOf(data);
-    throw new BookingError(messageOf(data, response.status, code), response.status, code);
+    throw new BookingError(messageOf(data, response.status, code), response.status, code, data);
   }
   return data;
 }

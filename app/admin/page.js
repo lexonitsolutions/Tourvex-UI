@@ -169,6 +169,8 @@ export default function AdminDashboardPage() {
   const [params, setParams] = useUrlParams();
   const query = useMemo(() => rangeQuery(params), [params]);
   const { data, error, loading, reload } = useAdminQuery(allowed ? "/admin/dashboard" : null, query);
+  // low stock / sold out badge; silent when the role has no stock.read or the call fails
+  const stock = useAdminQuery(can("stock.read") ? "/admin/stock/summary" : null, undefined, { prefetchNext: false });
   const spot = useSpotlight();
   const search = rangeSearch(params);
   const first = (user?.name || "").split(" ")[0];
@@ -189,6 +191,11 @@ export default function AdminDashboardPage() {
     if (k.cancellationRequests) cards.push({ key: "cancel", tone: "rose", icon: "alert", label: "Cancellation requests", value: k.cancellationRequests.pending, format: fmtInt, delta: k.cancellationRequests.requested, goodWhen: "down", series: k.cancellationRequests.requested.series, caption: `${fmtInt(k.cancellationRequests.requested.value)} requested in period`, href: "/admin/bookings/cancellations" });
     if (k.vouchers) cards.push({ key: "vouchers", tone: "teal", icon: "vouchers", label: "Vouchers redeemed", value: k.vouchers.value, format: fmtInt, delta: k.vouchers, series: k.vouchers.series, href: "/admin/vouchers" });
     if (k.refunds) cards.push({ key: "refunds", tone: "peach", icon: "receipt", label: "Refunded", value: k.refunds.value, format: fmtAed, delta: k.refunds, goodWhen: "down", series: k.refunds.series, caption: `${fmtInt(intel.refundTotal?.count ?? 0)} refunds`, href: can("finance.read") ? "/admin/finance" : undefined });
+    if (stock.data && !stock.error) {
+      const low = Number(stock.data.lowStock) || 0;
+      const out = Number(stock.data.soldOut) || 0;
+      cards.push({ key: "stock", tone: out > 0 ? "rose" : "butter", icon: "inventory", label: "Low stock and sold out", value: low + out, format: fmtInt, caption: `${fmtInt(low)} low · ${fmtInt(out)} sold out`, goodWhen: "down", href: "/admin/inventory/alerts" });
+    }
   }
 
   const row2 = [];

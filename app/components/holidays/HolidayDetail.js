@@ -7,6 +7,7 @@ import { ApiError, formatPrice } from "../../lib/api";
 import { useApp } from "../AppProvider";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
+import { EnquiryStockNote, StockHead } from "../StockBadge";
 import { useMotion } from "../MotionShell";
 import {
   FALLBACK_IMG,
@@ -553,6 +554,7 @@ function QuoteModal({ pkg, travelers, travelDate, travelDateIso, price, isOpen, 
                 <h2 id="booking-flow-title" className="hol-bf-card-title">
                   Customer Details
                 </h2>
+                <EnquiryStockNote stock={pkg.stock} noun="package" />
 
                 <form onSubmit={handleSubmit}>
                   {/* Full Name */}
@@ -1335,6 +1337,7 @@ export default function HolidayDetail({ pkg, related }) {
         <div className="hol-detail-header-block" data-reveal>
           <div className="hol-detail-title-col">
             <h1 className="hol-package-heading">{pkg.title}</h1>
+            <StockHead stock={pkg.stock} />
             <div className="hol-head-rating-line">
               <a href="#customer-reviews" className="hol-head-rating-badge" aria-label="Customer Reviews">
                 <IconStar className="hol-star-gold" width="17" height="17" />

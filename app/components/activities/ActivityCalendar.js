@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { getAvailability, errorMessage } from "../../lib/booking";
 import { addDays, addMonths, dubaiToday, formatDay, formatDayLong, formatMonthYear, monthOf, money, toIso, weekdayOf, daysInMonth } from "../../lib/actFormat";
+import "../../stock.css";
 import { IconChevron } from "./ActivityParts";
 
 const WEEKDAYS = [
@@ -20,13 +21,17 @@ function mergeMonth(responses) {
     (res?.days || []).forEach((d) => {
       const cur = days.get(d.date);
       const price = d.status === "available" ? d.adultPrice || null : null;
+      // Tickets left (only sent when low). An option with no number has plenty, so the day shows no count.
+      const left = d.status === "available" ? (typeof d.remaining === "number" ? d.remaining : Infinity) : null;
       if (!cur) {
-        days.set(d.date, { status: d.status, price });
+        days.set(d.date, { status: d.status, price, left });
       } else if ((RANK[d.status] ?? -1) > (RANK[cur.status] ?? -1)) {
         cur.status = d.status;
         cur.price = price;
-      } else if (d.status === "available" && cur.status === "available" && price && (!cur.price || price.amount < cur.price.amount)) {
-        cur.price = price;
+        cur.left = left;
+      } else if (d.status === "available" && cur.status === "available") {
+        cur.left = Math.max(cur.left ?? 0, left);
+        if (price && (!cur.price || price.amount < cur.price.amount)) cur.price = price;
       }
     });
     if (res?.nextAvailable && (!next || res.nextAvailable < next)) next = res.nextAvailable;
@@ -131,6 +136,7 @@ export default function ActivityCalendar({ slug, options, currency, value, onSel
     return currency;
   }, [merged, currency]);
 
+  const hasFew = !!merged && [...merged.days.values()].some((d) => d.status === "available" && Number.isFinite(d.left) && d.left > 0);
   const rows = [];
   const flat = [...Array(lead).fill(null), ...Array.from({ length: total }, (_, i) => i + 1)];
   while (flat.length % 7) flat.push(null);
@@ -164,7 +170,8 @@ export default function ActivityCalendar({ slug, options, currency, value, onSel
               const info = merged?.days.get(iso);
               const status = info?.status || (iso < today ? "past" : "");
               const available = status === "available";
-              const label = `${formatDayLong(iso)}${status ? `, ${STATUS_LABEL[status]?.toLowerCase() || status}` : ""}${available && info?.price ? `, from ${money(info.price)}` : ""}`;
+              const few = available && Number.isFinite(info?.left) ? info.left : 0;
+              const label = `${formatDayLong(iso)}${status ? `, ${STATUS_LABEL[status]?.toLowerCase() || status}` : ""}${few > 0 ? `, only ${few} left` : ""}${available && info?.price ? `, from ${money(info.price)}` : ""}`;
               return (
                 <span key={c} role="gridcell" aria-selected={value === iso}>
                   <button
@@ -174,11 +181,13 @@ export default function ActivityCalendar({ slug, options, currency, value, onSel
                     tabIndex={iso === tabDate ? 0 : -1}
                     aria-disabled={!available}
                     aria-label={label}
+                    title={status === "sold_out" ? "Sold out" : few > 0 ? `Only ${few} left` : undefined}
                     data-autofocus={iso === tabDate ? "" : undefined}
                     onClick={() => choose(iso)}
                     onFocus={() => setFocus(iso)}
                   >
                     <span className="act-day-num">{d}</span>
+                    {few > 0 && <span className="act-day-left" aria-hidden="true">{few}</span>}
                     <i className="act-dot" aria-hidden="true" />
                   </button>
                 </span>
@@ -200,6 +209,7 @@ export default function ActivityCalendar({ slug, options, currency, value, onSel
       <ul className="act-legend" aria-label="Calendar key">
         <li><i className="act-dot is-available" aria-hidden="true" />Available</li>
         <li><i className="act-dot is-sold_out" aria-hidden="true" />Sold out</li>
+        {hasFew && <li><span className="act-day-left-key" aria-hidden="true">3</span>Tickets left</li>}
         <li><i className="act-dot is-non_operational" aria-hidden="true" />Non operational</li>
       </ul>
 

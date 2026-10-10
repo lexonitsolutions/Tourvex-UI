@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { errorMessage } from "../../lib/booking";
+import { errorMessage, itemProblem } from "../../lib/booking";
 import { formatDay, paxLabel } from "../../lib/actFormat";
 import { IconCalendar, IconCart, IconEdit, IconTrash, IconUsers } from "../activities/ActivityParts";
+import "../../stock.css";
 import { useCheckout } from "./CheckoutProvider";
 import { STEPS, nextStepHref } from "./checkoutFlow";
 import { FormError, ItemBadges, ItemThumb, Money, StepFrame, TripSummary } from "./CheckoutShared";
 
 export default function CartStep() {
   const router = useRouter();
-  const { cart, api, apply, itemKey } = useCheckout();
+  const { cart, api, apply, itemKey, problems } = useCheckout();
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -39,13 +40,17 @@ export default function CartStep() {
     }
   };
 
+  const problemOf = (item) => problems[itemKey(item)] || itemProblem(item);
+  const blocked = cart.items.some((item) => problemOf(item));
+
   return (
     <StepFrame
       title="Your cart"
       summary={
         <TripSummary cart={cart} showHold>
           <div className="co-actions is-stack">
-            <button type="button" className="mk-btn mk-btn-block" onClick={() => router.push(nextStepHref(cart, 0))}>Proceed to pay</button>
+            {blocked && <p className="co-error" role="status">Remove or change the date of the unavailable item to continue.</p>}
+            <button type="button" className="mk-btn mk-btn-block" disabled={blocked} onClick={() => router.push(nextStepHref(cart, 0))}>Proceed to pay</button>
             <Link className="mk-btn mk-btn-ghost mk-btn-block" href="/activities">Continue Shopping</Link>
           </div>
         </TripSummary>
@@ -56,8 +61,9 @@ export default function CartStep() {
       <ul className="co-items">
         {cart.items.map((item) => {
           const id = itemKey(item);
+          const problem = problemOf(item);
           return (
-            <li key={id} className="co-item">
+            <li key={id} className={`co-item${problem ? " is-unavailable" : ""}`}>
               <ItemThumb item={item} />
               <div className="co-item-body">
                 <h3><Link href={`/activities/${item.activity?.slug}`}>{item.activity?.title}</Link></h3>
@@ -77,6 +83,15 @@ export default function CartStep() {
                   </button>
                 </div>
               </div>
+              {problem && (
+                <div className="stk-line" role="alert">
+                  <b>No longer available.</b> {problem}
+                  <div className="stk-actions">
+                    <Link className="stk-link" href={`/activities/${item.activity?.slug}?modify=${encodeURIComponent(id)}`}>Change date</Link>
+                    <button type="button" className="stk-link is-ghost" disabled={busy === id} onClick={() => remove(id)}>{busy === id ? "Removing..." : "Remove"}</button>
+                  </div>
+                </div>
+              )}
             </li>
           );
         })}

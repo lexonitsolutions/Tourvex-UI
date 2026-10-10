@@ -7,6 +7,7 @@ import { submitCruiseEnquiry } from "../../lib/cruises";
 import { holdAmbient } from "../../lib/motion";
 import { useApp } from "../AppProvider";
 import CurrencyNote from "../CurrencyNote";
+import { EnquiryStockNote } from "../StockBadge";
 import { useMotion } from "../MotionShell";
 import { IconCheck, IconX, formatDate } from "./CruiseParts";
 
@@ -219,6 +220,7 @@ export default function CruiseEnquiry({ cruise, open, onClose, departure, cabin 
               <h2 id="cq-title">Start your enquiry</h2>
               <p>{cruise.title}</p>
             </div>
+            <EnquiryStockNote stock={cruise.stock} noun="cruise" />
             {formError && <p className="cr-form-error" role="alert">{formError}</p>}
             <div className="cr-form-grid">
               <Field id="cq-fullName" label="Full name" error={errors.fullName}>

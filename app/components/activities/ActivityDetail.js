@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useId, useState } from "react";
 import { money, priceInfo, TRANSFER_LABEL } from "../../lib/actFormat";
 import ShowcaseCard from "../ShowcaseCard";
+import { StockHead } from "../StockBadge";
 import ActivityBooking from "./ActivityBooking";
 import ActivityGallery from "./ActivityGallery";
 import ActivityReviews from "./ActivityReviews";
@@ -170,6 +171,7 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
 
         <header className="act-head">
           <h1>{a.title}</h1>
+          <StockHead stock={a.stock} />
           <div className="act-head-row">
             <ul className="hol-meta act-meta">
               {rating && (
@@ -227,6 +229,7 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
                       title={r.title}
                       image={r.imageUrl}
                       tag={r.categories?.[0]}
+                      stock={r.stock}
                       location={(r.destinations || []).join(", ") || undefined}
                       price={p ? { amount: p.amount, currency: p.currency, was } : null}
                       priceFallback="Price on request"
@@ -245,7 +248,7 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
           <strong>{price ? money(price.current) : "On request"}</strong>
         </div>
         {bookable ? (
-          <button type="button" className="mk-btn" onClick={openSheet}>Check Availability</button>
+          <button type="button" className="mk-btn" onClick={openSheet}>{a.stock?.soldOut ? "Sold out" : "Check Availability"}</button>
         ) : (
           <Link className="mk-btn" href={`/contact?activity=${encodeURIComponent(a.slug)}`}>Ask about this activity</Link>
         )}

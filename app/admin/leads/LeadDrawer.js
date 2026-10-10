@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAdminApi } from "../_lib/adminApi";
 import { useAdminQuery } from "../_lib/useAdminQuery";
+import { useAdminMe } from "../_lib/AdminMeProvider";
 import { formatDate, formatDateTime, formatMoney } from "../_lib/format";
 import {
   CONTACT_CHANNELS, LEAD_PRIORITIES, LEAD_STATUS, LOST_REASON_LABEL, SOURCE_LABEL,
@@ -16,6 +17,7 @@ import {
 import { Input } from "../_ui/components/input";
 import { allowedTargets } from "./LeadBoard";
 import { FollowUp, LeadStatusBadge } from "./leadParts";
+import ConfirmBookingDialog, { CONFIRMABLE_SOURCES } from "../inventory/_components/ConfirmBookingDialog";
 
 const TIMELINE_TITLES = {
   created: () => "Lead created",
@@ -94,6 +96,9 @@ function LeadBody({ lead, owners, canWrite, busy, run, api, tab, setTab, onReque
   const [value, setValue] = useState(lead.valueAed ?? null);
   const [tags, setTags] = useState(lead.tags || []);
   const [tagText, setTagText] = useState("");
+  const { can } = useAdminMe();
+  const [confirming, setConfirming] = useState(false);
+  const canConfirm = canWrite && CONFIRMABLE_SOURCES.includes(lead.source) && lead.status !== "won" && lead.status !== "lost";
   const base = `/admin/leads/${lead.id}`;
   const logContact = (channel) => api.post(`${base}/contact`, { channel }).then(() => undefined).catch(() => undefined);
   const href = catalogHref(lead.catalog);
@@ -242,6 +247,8 @@ function LeadBody({ lead, owners, canWrite, busy, run, api, tab, setTab, onReque
             ]}
           />
         </div>
+        {canConfirm ? (<div className="adm-actions"><Button variant="primary" size="sm" icon="checkCircle" onClick={() => setConfirming(true)}>Confirm booking</Button></div>) : null}
+        <ConfirmBookingDialog lead={confirming ? lead : null} onClose={() => setConfirming(false)} onDone={() => run("booked", () => Promise.resolve(), null)} />
         {lead.subject && lead.catalog?.title ? <p className="adm-muted">{lead.subject}</p> : null}
         {lead.message ? <div className="adm-message">{lead.message}</div> : <p className="adm-muted">No message was left.</p>}
       </div>

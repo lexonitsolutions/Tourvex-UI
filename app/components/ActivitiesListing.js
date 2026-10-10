@@ -652,6 +652,7 @@ export default function ActivitiesListing({ initial }) {
                       image={r.it.imageUrl}
                       fallbackImage={FALLBACK_IMG}
                       tag={r.it.categories?.[0]}
+                      stock={r.it.stock}
                       location={r.loc}
                       meta={r.meta}
                       price={r.price}

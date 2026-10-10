@@ -65,6 +65,7 @@ export const CruiseCard = memo(function CruiseCard({ item, reveal = true }) {
       title={item.title}
       image={item.coverImage}
       tag={item.tags?.[0] || item.region || undefined}
+      stock={item.stock}
       location={item.departureCity ? `From ${item.departureCity}` : undefined}
       meta={[
         item.durationNights > 0 && { icon: <IconMoon width="14" height="14" />, text: nightsLabel(item.durationNights) },

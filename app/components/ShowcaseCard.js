@@ -4,6 +4,7 @@ import Link from "next/link";
 import { memo } from "react";
 import { formatPrice } from "../lib/api";
 import "../showcase-card.css";
+import { stockInfo, stockText } from "./StockBadge";
 
 export const SHOWCASE_FALLBACK_IMG = "/images/destination-a.jpg";
 
@@ -39,6 +40,7 @@ const money = (m) => (m ? formatPrice(m.amount, m.currency || "AED") : null);
  * @param {boolean} [props.reveal] - Adds `data-reveal` for the scroll-reveal hook.
  * @param {number} [props.tint] - Hue (0-360) for a gradient media background (used with `media`).
  * @param {string} [props.ariaLabel] - Accessible name of the link; defaults to title, location, meta and price.
+ * @param {{soldOut?: boolean, lowStock?: boolean, remaining?: number | null} | null} [props.stock] - Optional stock info: shows an "Only N left" or "Sold out" chip bottom-left of the photo.
  * @param {string} [props.className]
  * @param {import("react").CSSProperties} [props.style]
  */
@@ -58,14 +60,16 @@ export const ShowcaseCard = memo(function ShowcaseCard({
   reveal = false,
   tint,
   ariaLabel,
+  stock,
   className = "",
   style,
 }) {
   const facts = (meta || []).filter(Boolean).map((m) => (typeof m === "string" ? { text: m } : m));
   const saving = price?.saving ?? (price?.was && price.was.amount > price.amount ? Math.round((1 - price.amount / price.was.amount) * 100) : 0);
+  const stockNote = stockInfo(stock);
   const label =
     ariaLabel ||
-    [title, location, ...facts.map((f) => f.label || f.text), price ? `from ${money(price)}` : priceFallback].filter(Boolean).join(", ");
+    [title, stockNote && stockText(stockNote), location, ...facts.map((f) => f.label || f.text), price ? `from ${money(price)}` : priceFallback].filter(Boolean).join(", ");
   const useMedia = media != null && !image;
   const fallback = (e) => {
     if (!e.currentTarget.src.endsWith(fallbackImage)) e.currentTarget.src = fallbackImage;
@@ -73,7 +77,7 @@ export const ShowcaseCard = memo(function ShowcaseCard({
 
   return (
     <article
-      className={`sc${className ? ` ${className}` : ""}`}
+      className={`sc${stockNote?.kind === "sold" ? " is-soldout" : ""}${className ? ` ${className}` : ""}`}
       data-reveal={reveal ? true : undefined}
       style={tint != null ? { "--sc-h": tint, ...style } : style}
     >
@@ -87,6 +91,7 @@ export const ShowcaseCard = memo(function ShowcaseCard({
             )}
           </div>
           {tag && <span className="sc-tag">{tag}</span>}
+          {stockNote && <span className={`stk-chip sc-stock is-${stockNote.kind}`}>{stockText(stockNote)}</span>}
           {saving > 0 && <span className="sc-save">Save {saving}%</span>}
           {topRight ? <div className="sc-top">{topRight}</div> : <span className="sc-arrow" aria-hidden="true"><ArrowIcon /></span>}
         </div>

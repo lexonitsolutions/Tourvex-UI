@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
+import { withStock } from "../../../components/StockBadge";
 import EventDetail from "../../../components/events/EventDetail";
 import EventLoadError from "../../../components/events/EventLoadError";
 import { getEvent, isNotFound } from "../../../lib/events";
@@ -46,5 +47,5 @@ export default async function EventPage({ params }) {
   const result = await load(slug, await getServerCurrency());
   if (result.notFound) notFound();
   if (result.failed) return <EventLoadError title="We could not load this event" text="Something went wrong while fetching the event details. Please try again in a moment." />;
-  return <EventDetail event={result.data.event} related={result.data.related || []} />;
+  return <EventDetail event={withStock(result.data.event, result.data.stock)} related={result.data.related || []} />;
 }

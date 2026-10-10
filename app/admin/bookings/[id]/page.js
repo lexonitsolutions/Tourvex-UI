@@ -12,6 +12,7 @@ import {
 } from "../../_kit";
 import { RadioGroup, RadioGroupItem } from "../../_ui/components/radio-group";
 import { BookingStatusBadge, InvoiceBadge, PaymentBadge, PdfButton, QrSvg, VoucherBadge, formatDay, money, paxText } from "../../_ops/Ops";
+import { bookingStock } from "../../inventory/_lib/stock";
 
 export default function BookingDetailPage() {
   return (
@@ -45,6 +46,9 @@ function BookingView({ b, reload }) {
   const x = b.booking;
   const a = b.actions;
   const paidAmount = b.total;
+  const { can } = useAdminMe();
+  const stock = bookingStock(b); // see inventory/_lib/stock.js: the backend field names are mapped there
+  const canReturn = !!stock?.returnable && can("stock.write");
 
   async function resend() {
     try {
@@ -68,6 +72,7 @@ function BookingView({ b, reload }) {
           {a.editDate ? <Button icon="calendar" onClick={() => setDialog("date")}>Change date</Button> : null}
           {a.refund ? <Button icon="receipt" onClick={() => setDialog("refund")}>Refund</Button> : null}
           {a.cancel ? <Button variant="danger" icon="close" onClick={() => setDialog("cancel")}>Cancel booking</Button> : null}
+          {canReturn ? <Button icon="undo" onClick={() => setDialog("stock")}>Return to stock</Button> : null}
         </div>
       }
     />
@@ -188,6 +193,7 @@ function BookingView({ b, reload }) {
           </Card>
 
           <VoucherCard b={b} reload={reload} onVoid={() => setDialog("void")} />
+          {stock ? <StockCard stock={stock} canReturn={canReturn} onReturn={() => setDialog("stock")} /> : null}
 
           <Card title="Invoice">
             {b.invoice ? (
@@ -213,6 +219,7 @@ function BookingView({ b, reload }) {
       {dialog === "refund" ? <RefundDialog b={b} onClose={() => setDialog(null)} onDone={reload} /> : null}
       {dialog === "date" ? <DateDialog b={b} onClose={() => setDialog(null)} onDone={reload} /> : null}
       {dialog === "void" ? <VoidDialog b={b} onClose={() => setDialog(null)} onDone={reload} /> : null}
+      {dialog === "stock" ? <ReturnStockDialog b={b} stock={stock} onClose={() => setDialog(null)} onDone={reload} /> : null}
     </>
   );
 }
@@ -442,6 +449,41 @@ function VoidDialog({ b, onClose, onDone }) {
     <Modal open onClose={busy ? undefined : onClose} title="Void voucher" description="The QR code stops working immediately. This cannot be undone." footer={<Footer onClose={onClose} busy={busy} tone="danger" label="Void voucher" formId="ops-void" disabled={!reason.trim()} />}>
       <form id="ops-void" className="adm-stack" onSubmit={(e) => { e.preventDefault(); run(() => api.post(`/admin/vouchers/${b.voucher.id}/void`, { reason: reason.trim() })); }}>
         <TextArea label="Reason" required value={reason} onChange={setReason} rows={2} maxLength={300} data-autofocus />
+        {error ? <p className="adm-inline-error" role="alert">{error}</p> : null}
+      </form>
+    </Modal>
+  );
+}
+
+const STOCK_STATE = { held: "Held while the customer pays", used: "Units used", returned: "Returned to stock", kept: "Units kept (not returned)" };
+
+/** Stock state of the booking: units held / used / returned, and the manual return when the cut-off has passed. */
+function StockCard({ stock, canReturn, onReturn }) {
+  const items = [
+    { label: "State", value: stock.state ? (STOCK_STATE[stock.state] || stock.state) : stock.released === true ? "Released" : stock.released === false ? "Units in use" : null },
+    { label: "Held", value: stock.held },
+    { label: "Used", value: stock.used },
+    { label: "Returned to stock", value: stock.returned },
+  ];
+  return (
+    <Card title="Stock">
+      <div className="adm-stack">
+        <KeyValue items={items} />
+        {stock.returnable ? <p className="adm-muted">The cut-off has passed, so these units were kept. {canReturn ? "You can return them to stock manually." : "Someone with the stock write permission can return them."}</p> : null}
+        {canReturn ? <div><Button size="sm" icon="undo" onClick={onReturn}>Return to stock</Button></div> : null}
+      </div>
+    </Card>
+  );
+}
+
+function ReturnStockDialog({ b, stock, onClose, onDone }) {
+  const api = useAdminApi();
+  const [reason, setReason] = useState("");
+  const { busy, error, run } = useSubmit(onDone, onClose, "Units returned to stock");
+  return (
+    <Modal open onClose={busy ? undefined : onClose} title="Return to stock" description={`${b.reference} was cancelled after the free-cancellation cut-off, so its units were kept. This makes ${stock?.used ? `${stock.used} unit${stock.used === 1 ? "" : "s"}` : "them"} available for sale again on ${formatDay(b.serviceDay)}.`} footer={<Footer onClose={onClose} busy={busy} label="Return to stock" formId="ops-stock" disabled={reason.trim().length < 3} />}>
+      <form id="ops-stock" className="adm-stack" onSubmit={(e) => { e.preventDefault(); run(() => api.post(`/admin/stock/bookings/${b.id}/return-to-stock`, { reason: reason.trim() })); }}>
+        <TextArea label="Reason" required value={reason} onChange={setReason} rows={2} maxLength={300} hint="Saved in the stock ledger." data-autofocus />
         {error ? <p className="adm-inline-error" role="alert">{error}</p> : null}
       </form>
     </Modal>

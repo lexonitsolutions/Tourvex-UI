@@ -18,6 +18,8 @@ export default function CheckoutProvider({ children }) {
   const api = useMemo(() => createBookingApi(getAccessToken), [getAccessToken]);
   const [state, setState] = useState({ status: "loading", cart: null, error: "" });
   const [expired, setExpired] = useState([]);
+  // Cart lines the pay/update call reported as no longer available: { [itemId]: message }.
+  const [problems, setProblems] = useState({});
   const [attempt, setAttempt] = useState(0);
   // The payment step pauses the step guards while an order is being closed (the cart legitimately empties).
   const [paused, setPaused] = useState(false);
@@ -28,6 +30,10 @@ export default function CheckoutProvider({ children }) {
     if (cart.expired.length) setExpired((prev) => [...prev, ...cart.expired]);
     setState({ status: "ready", cart, error: "" });
     return cart;
+  }, []);
+
+  const flagItems = useCallback((ids, message) => {
+    if (ids.length) setProblems((prev) => ({ ...prev, ...Object.fromEntries(ids.map((id) => [id, message])) }));
   }, []);
 
   const refresh = useCallback(async () => {
@@ -51,8 +57,8 @@ export default function CheckoutProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ ...state, api, apply, refresh, retry, expired, dismissExpired: () => setExpired([]), itemKey, paused, setPaused }),
-    [state, api, apply, refresh, retry, expired, paused]
+    () => ({ ...state, api, apply, refresh, retry, expired, dismissExpired: () => setExpired([]), itemKey, paused, setPaused, problems, flagItems }),
+    [state, api, apply, refresh, retry, expired, paused, problems, flagItems]
   );
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }

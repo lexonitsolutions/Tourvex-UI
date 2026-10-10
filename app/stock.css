@@ -1,0 +1,70 @@
+/* Stock chips and notices ("Only 3 left", "Sold out"). Optional: nothing renders unless the API sends `stock`.
+   Colours keep AA contrast: dark amber/red text on a light wash, or white on a solid fill over photos. */
+
+.mk .stk-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 1.3; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.mk .stk-chip::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.mk .stk-chip.is-low { background: #fff1d6; color: #7a4300; border: 1px solid #f1cf8f; }
+.mk .stk-chip.is-sold { background: #fdecea; color: #8c1d18; border: 1px solid #f3c5c1; }
+
+/* On card photos: solid fill, bottom-left, out of the flow (no layout shift). */
+.mk .sc-stock { position: absolute; z-index: 3; bottom: 10px; inset-inline-start: 10px; max-width: calc(100% - 20px); overflow: hidden; text-overflow: ellipsis; pointer-events: none; box-shadow: 0 4px 12px rgba(15, 36, 84, 0.18); }
+.mk .sc-stock.is-low { background: #b45309; border-color: #b45309; color: #fff; }
+.mk .sc-stock.is-sold { background: #b42318; border-color: #b42318; color: #fff; }
+.mk .sc.is-soldout .sc-visual img { filter: grayscale(0.7); }
+
+/* Best seller cards: a chip row above the tag. */
+.mk .bs-stock { margin: 0 6px 8px 0; vertical-align: top; }
+
+/* Holiday package cards (own markup): bottom-left of the photo. */
+.mk .hol-pkg-media .stk-chip { position: absolute; z-index: 3; bottom: 10px; inset-inline-start: 10px; box-shadow: 0 4px 12px rgba(15, 36, 84, 0.18); }
+.mk .hol-pkg-media .stk-chip.is-low { background: #b45309; border-color: #b45309; color: #fff; }
+.mk .hol-pkg-media .stk-chip.is-sold { background: #b42318; border-color: #b42318; color: #fff; }
+
+/* Detail header badge sits beside the title meta. */
+.mk .stk-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.mk .stk-head:empty { display: none; }
+.mk .stk-head .stk-chip { font-size: 12.5px; padding: 5px 12px; }
+
+/* Notice panel (sold out / few left) used on detail pages, booking panel and enquiry forms. */
+.mk .stk-note { display: block; margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; font-size: 15px; line-height: 1.45; }
+.mk .stk-note.is-sold { background: #fdecea; border: 1px solid #f3c5c1; color: #8c1d18; }
+.mk .stk-note.is-low { background: #fff1d6; border: 1px solid #f1cf8f; color: #6b3a00; }
+.mk .stk-note.is-info { background: #e8f5f8; color: var(--mk-navy); }
+.mk .stk-note strong { display: block; margin-bottom: 2px; font-size: 16px; }
+.mk .stk-note p { margin: 4px 0 0 !important; font-size: 15px; color: inherit; }
+.mk .stk-note .stk-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.mk .stk-note a.stk-link, .mk .stk-note button.stk-link { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--mk-navy); color: #fff; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.mk .stk-note a.stk-link:hover, .mk .stk-note button.stk-link:hover { display: inline-flex; color: #fff; opacity: 0.9; }
+.mk .stk-note a.stk-link.is-ghost, .mk .stk-note button.stk-link.is-ghost { background: transparent; color: inherit; box-shadow: inset 0 0 0 1.5px currentColor; }
+.mk .stk-note a.stk-link.is-ghost:hover { color: inherit; }
+.mk .stk-note .stk-link:focus-visible { outline: 2px solid var(--mk-primary); outline-offset: 2px; }
+
+/* Reserved live-region slot so the message appearing does not push the form around. */
+.mk .stk-live { margin: 8px 0 8px; font-size: 14.5px; line-height: 1.4; color: #6b3a00; font-weight: 600; }
+.mk .stk-live.is-sold { color: #8c1d18; }
+
+/* Booking panel lock */
+.mk .act-lock { min-width: 0; margin: 0; padding: 0; border: 0; }
+.mk .act-lock:disabled { opacity: 0.5; pointer-events: none; }
+.mk .act-lock:disabled .act-check { cursor: not-allowed; }
+
+/* Calendar: remaining count badge and sold-out strike */
+.mk .act-day-left { position: absolute; top: 1px; inset-inline-end: 1px; min-width: 15px; padding: 0 3px; border-radius: 8px; background: #b45309; color: #fff; font-size: 9.5px; font-weight: 700; line-height: 15px; text-align: center; pointer-events: none; }
+.mk .act-day.is-sold_out .act-day-num { color: #b42318; text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.mk .act-dot.is-low { background: #b45309; }
+.mk .act-day-left-key { display: inline-block; min-width: 15px; margin-inline-end: 6px; padding: 0 3px; border-radius: 8px; background: #b45309; color: #fff; font-size: 9.5px; font-weight: 700; line-height: 15px; text-align: center; }
+
+/* Cart line problems */
+.mk .stk-line { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: #fdecea; border: 1px solid #f3c5c1; color: #8c1d18; font-size: 14.5px; line-height: 1.4; }
+.mk .stk-line .stk-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.mk .stk-line .stk-link { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #8c1d18; color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.mk .stk-line a.stk-link:hover { display: inline-flex; color: #fff; }
+.mk .stk-line .stk-link.is-ghost { background: transparent; color: #8c1d18; box-shadow: inset 0 0 0 1.5px #8c1d18; }
+.mk .stk-line a.stk-link.is-ghost:hover { color: #8c1d18; }
+
+@media (max-width: 960px) {
+  .mk .stk-note .stk-link { min-height: 44px; }
+}
+.mk .stk-next { color: var(--mk-navy); font-size: 14.5px; font-weight: 600; }
+.mk .co-item.is-unavailable { border-color: #f3c5c1; }
+.mk .co-item .stk-line { grid-column: 1 / -1; margin-top: 0; }

@@ -80,6 +80,9 @@ const PATHS = {
   cruises: "M3 15h18l-2.500 5h-13L3 15zM6 15v-5h12v5M10 10V6h4v4",
   events: "M12 3l1.800 5.200L19 10l-5.200 1.800L12 17l-1.800-5.200L5 10l5.200-1.800L12 3zM19 16l.7 2.300L22 19l-2.300.7L19 22l-.7-2.300L16 19l2.300-.7L19 16z",
   visas: "M6 3h12v18H6V3zm6 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM9 18h6",
+  inventory: "M21 8 12 3 3 8v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8",
+  stock: "M21 8 12 3 3 8v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8",
+  movements: "M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7",
 };
 
 export default function Icon({ name, size = 18, className = "", strokeWidth = 1.75, ...rest }) {

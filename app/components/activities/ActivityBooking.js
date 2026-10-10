@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createBookingApi, errorMessage, getQuote, itemKey } from "../../lib/booking";
+import { createBookingApi, errorMessage, getAvailability, getQuote, isUnavailableError, itemKey } from "../../lib/booking";
 import { aboutText, formatDay, formatStamp, money, paxLabel, plural, priceInfo, TRANSFER_LABEL } from "../../lib/actFormat";
 import { loginUrlFor } from "../../lib/wishlistAuth";
 import { useApp } from "../AppProvider";
 import { useMotion } from "../MotionShell";
+import { formatStockDate } from "../StockBadge";
 import ActivityCalendar from "./ActivityCalendar";
 import { IconCalendar, IconCart, IconChevron, IconUsers, IconX, useMedia, usePopover } from "./ActivityParts";
 
 const NARROW = "(max-width: 960px)";
 
-function Counter({ label, hint, value, min, max, onChange }) {
+function Counter({ label, hint, value, min, max, onChange, capped }) {
   return (
     <div className="act-counter">
       <div>
@@ -23,7 +24,7 @@ function Counter({ label, hint, value, min, max, onChange }) {
       <div className="act-counter-ctl">
         <button type="button" aria-label={`Fewer ${label.toLowerCase()}`} disabled={value <= min} onClick={() => onChange(value - 1)}>-</button>
         <output aria-live="polite" aria-label={`${label}: ${value}`}>{value}</output>
-        <button type="button" aria-label={`More ${label.toLowerCase()}`} disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
+        <button type="button" aria-label={`More ${label.toLowerCase()}`} title={capped && value >= max ? "No more tickets left for this date" : undefined} disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
       </div>
     </div>
   );
@@ -120,10 +121,56 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
   const [added, setAdded] = useState("");
   const [error, setError] = useState(null);
   const [modify, setModify] = useState(initial.modify ? { status: "loading" } : null);
+  // Optional stock info (docs/STOCK_API.md): sold out locks the panel until the visitor jumps to the next available date.
+  const stock = activity.stock || null;
+  const [unlocked, setUnlocked] = useState(false);
+  const locked = !!stock?.soldOut && !unlocked;
+  const nextDate = stock?.soldOut ? formatStockDate(stock.nextAvailableDate) : "";
+  // Tickets left on the chosen date (lowest-capacity view across options): null = no limit known.
+  const [left, setLeft] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const cacheRef = useRef(new Map());
   const travRef = useRef(null);
   const dateRef = useRef(null);
   const api = useMemo(() => createBookingApi(getAccessToken), [getAccessToken]);
+
+  // Remaining tickets for the chosen date. Reads the same availability the calendar uses (shared cache).
+  useEffect(() => {
+    if (!date) return undefined;
+    let live = true;
+    const month = date.slice(0, 7);
+    Promise.all(
+      options.map((o) => {
+        const ck = `${o.id}|${month}|${currency}`;
+        const hit = cacheRef.current.get(ck);
+        if (hit) return hit;
+        return getAvailability(slug, o.id, month, { currency }).then((res) => {
+          cacheRef.current.set(ck, res);
+          return res;
+        });
+      })
+    )
+      .then((list) => {
+        if (!live) return;
+        let found = false;
+        let best = 0;
+        let unlimited = false;
+        list.forEach((res) => {
+          const d = (res?.days || []).find((x) => x.date === date);
+          if (!d) return;
+          found = true;
+          if (d.status === "available") {
+            if (typeof d.remaining === "number") best = Math.max(best, d.remaining);
+            else unlimited = true;
+          }
+        });
+        setLeft({ date, value: found && !unlimited ? best : null });
+      })
+      .catch(() => live && setLeft(null));
+    return () => {
+      live = false;
+    };
+  }, [date, currency, options, slug, refreshKey]);
 
   const closePop = useCallback(() => setPop(null), [setPop]);
   const travPanel = usePopover(pop === "travellers", closePop, travRef);
@@ -223,6 +270,12 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
     return false;
   };
 
+  const cap = left && left.date === date ? left.value : null;
+  const totalPax = adults + children;
+  const overCap = cap != null && totalPax > cap;
+  const stockMessage = cap == null ? "" : cap <= 0 ? "This date is sold out. Please choose another date." : overCap ? `Only ${cap} ticket${cap === 1 ? "" : "s"} left for this date. Please reduce your travellers.` : `Only ${cap} ticket${cap === 1 ? "" : "s"} left for this date.`;
+  const paxMax = Math.min(maxTotal, cap != null && cap > 0 ? cap : maxTotal);
+
   const act = async (optionId, kind, fn) => {
     if (guard(optionId)) return;
     setBusy(`${optionId}:${kind}`);
@@ -231,6 +284,14 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
       await fn();
     } catch (e) {
       setError({ message: errorMessage(e), code: e.code });
+      if (isUnavailableError(e)) {
+        // Someone else took the last tickets: drop the stale answers, refetch availability and let the visitor pick again.
+        cacheRef.current.clear();
+        setResults(null);
+        setLeft(null);
+        setRefreshKey((k) => k + 1);
+        setPop("date");
+      }
     } finally {
       setBusy("");
     }
@@ -245,7 +306,16 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
       setPop("date");
       return;
     }
+    if (overCap || (cap != null && cap <= 0)) return;
     run(date, adults, children);
+  };
+
+  const jumpToNext = () => {
+    const iso = stock.nextAvailableDate;
+    setUnlocked(true);
+    setDate(iso);
+    reset();
+    run(iso, adults, children);
   };
 
   const hidden = narrow && !sheetOpen;
@@ -277,6 +347,25 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
             </p>
           )}
 
+          {stock?.soldOut && (
+            <div className="stk-note is-sold" role="status" aria-live="polite">
+              <strong>Sold out</strong>
+              {unlocked ? (
+                <p>These tickets are sold out right now, but you can try the next available date.</p>
+              ) : nextDate ? (
+                <p>All tickets are taken for now. Next available: {nextDate}.</p>
+              ) : (
+                <p>All tickets are taken for now. Please check back soon, or see similar experiences you may like.</p>
+              )}
+              {!unlocked && (
+                <div className="stk-actions">
+                  {stock.nextAvailableDate && nextDate && <button type="button" className="stk-link" onClick={jumpToNext}>Go to {nextDate}</button>}
+                  <Link className="stk-link is-ghost" href={activity.destinations?.[0] ? `/activities?destination=${encodeURIComponent(activity.destinations[0])}` : "/activities"}>See similar experiences</Link>
+                </div>
+              )}
+            </div>
+          )}
+
           {price && (
             <div className="act-price">
               <small>From</small>
@@ -287,6 +376,7 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
             </div>
           )}
 
+          <fieldset className="act-lock" disabled={locked}>
           <div className="act-field">
             <label id="act-trav-l">Travellers</label>
             <button ref={travRef} type="button" className="act-trigger" aria-labelledby="act-trav-l" aria-haspopup="dialog" aria-expanded={pop === "travellers"} onClick={() => setPop(pop === "travellers" ? null : "travellers")}>
@@ -298,9 +388,10 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
               <>
                 {narrow && <span className="act-pop-scrim" aria-hidden="true" />}
                 <div className="act-pop" role="dialog" aria-label="Choose travellers" ref={travPanel}>
-                  <Counter label="Adults" value={adults} min={1} max={maxTotal - children} onChange={(v) => { setAdults(v); reset(); }} />
-                  {allowChildren && <Counter label="Children" hint={childHint} value={children} min={0} max={maxTotal - adults} onChange={(v) => { setChildren(v); reset(); }} />}
+                  <Counter label="Adults" value={adults} min={1} max={paxMax - children} capped={cap != null} onChange={(v) => { setAdults(v); reset(); }} />
+                  {allowChildren && <Counter label="Children" hint={childHint} value={children} min={0} max={paxMax - adults} capped={cap != null} onChange={(v) => { setChildren(v); reset(); }} />}
                   <p className="act-pop-note">Up to {plural(maxTotal, "traveller")} per booking.</p>
+                  {cap != null && <p className="act-pop-note stk-live" aria-live="polite">{stockMessage}</p>}
                   <button type="button" className="mk-btn mk-btn-block" onClick={() => { closePop(); travRef.current?.focus(); }}>Done</button>
                 </div>
               </>
@@ -331,9 +422,14 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
             )}
           </div>
 
-          <button type="button" className="mk-btn mk-btn-block act-check" onClick={check} disabled={results?.status === "loading"}>
+          <div aria-live="polite">
+            {stockMessage && <p className={`stk-live${cap <= 0 || overCap ? " is-sold" : ""}`}>{stockMessage}</p>}
+          </div>
+
+          <button type="button" className="mk-btn mk-btn-block act-check" onClick={check} disabled={results?.status === "loading" || overCap || (cap != null && cap <= 0)}>
             {results?.status === "loading" ? "Checking..." : "Check Availability"}
           </button>
+          </fieldset>
 
           <div aria-live="polite">
             {error && (

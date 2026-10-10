@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import HolidayDetail from "../../../components/holidays/HolidayDetail";
+import { withStock } from "../../../components/StockBadge";
 import HolidayLoadError from "../../../components/holidays/HolidayLoadError";
 import { getHoliday, isNotFound } from "../../../lib/holidays";
 import { getServerCurrency } from "../../../lib/currencyServer";
@@ -52,5 +53,5 @@ export default async function HolidayPage({ params }) {
   const result = await load(slug, await getServerCurrency());
   if (result.notFound) notFound();
   if (result.failed) return <HolidayLoadError />;
-  return <HolidayDetail pkg={result.data.package} related={result.data.related || []} />;
+  return <HolidayDetail pkg={withStock(result.data.package, result.data.stock)} related={result.data.related || []} />;
 }

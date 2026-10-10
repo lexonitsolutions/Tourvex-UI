@@ -8,6 +8,7 @@ import { isWishlisted, subscribeWishlist, toggleWishlist } from "../../lib/holid
 import { currentPath, loginUrlFor, rememberPendingWish } from "../../lib/wishlistAuth";
 import { useApp } from "../AppProvider";
 import ShowcaseCard from "../ShowcaseCard";
+import { StockChip } from "../StockBadge";
 import "../../holidays.css";
 
 export const FALLBACK_IMG = "/images/destination-a.jpg";
@@ -270,6 +271,7 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
           />
         </Link>
 
+        <StockChip stock={item?.stock} />
         <span className="hol-pkg-dur-badge" aria-label={`Duration: ${durationText}`}>
           {durationText}
         </span>

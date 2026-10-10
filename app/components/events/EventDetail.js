@@ -4,6 +4,7 @@ import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
+import { StockHead } from "../StockBadge";
 import EventEnquiry from "./EventEnquiry";
 import {
   EventCard,
@@ -149,7 +150,7 @@ function PriceCard({ event, session, onStart }) {
         ) : null}
         {event.ageGuidance && <li><IconUsers width="18" height="18" />{event.ageGuidance}</li>}
       </ul>
-      <button type="button" className="mk-btn mk-btn-block ev-start" onClick={onStart}>Request tickets</button>
+      <button type="button" className="mk-btn mk-btn-block ev-start" onClick={onStart}>{event.stock?.soldOut ? "Enquire about other dates" : "Request tickets"}</button>
       <p className="ev-pc-note ev-pc-strong">This is an enquiry, not a purchase. Nothing is charged now; our team confirms availability and the final price with you.</p>
       <p className="ev-pc-note"><CurrencyNote /></p>
     </div>
@@ -201,6 +202,7 @@ export default function EventDetail({ event, related }) {
             </p>
           )}
           <h1>{event.title}</h1>
+          <StockHead stock={event.stock} />
           <ul className="hol-meta">
             {event.venue && <li><IconPin width="18" height="18" />{[event.venue, event.city, event.country].filter(Boolean).join(", ")}</li>}
             {event.nextDate && <li><IconCalendar width="18" height="18" />{formatDateTime(event.nextDate)}</li>}

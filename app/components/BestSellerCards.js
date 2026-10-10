@@ -5,6 +5,7 @@ import { fmt } from "../lib/format";
 import { memo } from "react";
 import { formatPrice } from "../lib/api";
 import "../best-seller-cards.css";
+import { StockChip } from "./StockBadge";
 
 const FALLBACK_IMG = "/images/destination-a.jpg";
 
@@ -33,6 +34,7 @@ const Card = memo(function Card({ item, index, copy }) {
             <img src={item.imageUrl || FALLBACK_IMG} alt="" loading="lazy" decoding="async" onError={showFallback} />
           </span>
           <span className="bs-panel">
+            <StockChip stock={item.stock} className="bs-stock" />
             <span className="bs-tag">{tag}</span>
             <span className="bs-title">{item.title}</span>
             <span className="bs-meta">

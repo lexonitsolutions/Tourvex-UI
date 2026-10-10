@@ -97,6 +97,7 @@ export const EventCard = memo(function EventCard({ item, reveal = true }) {
       title={item.title}
       image={item.coverImage}
       tag={item.category || undefined}
+      stock={item.stock}
       location={[item.venue, item.city].filter(Boolean).join(", ") || undefined}
       meta={[
         when && { icon: <IconCalendar width="14" height="14" />, text: when, label: `next date ${when}` },

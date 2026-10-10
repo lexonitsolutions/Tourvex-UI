@@ -85,7 +85,7 @@ export default function WishlistView() {
       setResults((prev) => (value.state === "error" && prev[slug]?.state === "ok" ? prev : { ...prev, [slug]: value }));
     };
     getHoliday(slug, { currency: cur })
-      .then((data) => done({ state: "ok", pkg: data.package }))
+      .then((data) => done({ state: "ok", pkg: data.package.stock || !data.stock ? data.package : { ...data.package, stock: data.stock } }))
       .catch((error) => done({ state: isNotFound(error) ? "missing" : "error" }));
   }, []);
 

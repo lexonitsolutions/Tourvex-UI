@@ -4,6 +4,7 @@ import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
+import { StockHead } from "../StockBadge";
 import CruiseEnquiry from "./CruiseEnquiry";
 import {
   CruiseCard,
@@ -147,7 +148,7 @@ function PriceCard({ cruise, departure, onStart }) {
         {cruise.departureCity && <li><IconPin width="18" height="18" />Departs {cruise.departureCity}</li>}
         {departure && <li><IconCalendar width="18" height="18" />Selected: {formatDate(departure)}</li>}
       </ul>
-      <button type="button" className="mk-btn mk-btn-block cr-start" onClick={onStart}>Start enquiry</button>
+      <button type="button" className="mk-btn mk-btn-block cr-start" onClick={onStart}>{cruise.stock?.soldOut ? "Enquire about other dates" : "Start enquiry"}</button>
       <p className="cr-pc-note">Fares are indicative per person. Availability and the final fare are confirmed when you enquire.</p>
       <p className="cr-pc-note"><CurrencyNote /></p>
     </div>
@@ -193,6 +194,7 @@ export default function CruiseDetail({ cruise, related }) {
         <header className="hol-detail-head">
           {cruise.cruiseLine && <p className="cr-eyebrow is-dark">{cruise.cruiseLine}</p>}
           <h1>{cruise.title}</h1>
+          <StockHead stock={cruise.stock} />
           <ul className="hol-meta">
             {cruise.shipName && <li><IconShip width="18" height="18" />{cruise.shipName}</li>}
             {cruise.departureCity && <li><IconPin width="18" height="18" />From {[cruise.departureCity, cruise.departureCountry].filter(Boolean).join(", ")}</li>}

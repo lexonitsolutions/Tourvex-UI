@@ -7,6 +7,7 @@ import { submitEventEnquiry } from "../../lib/events";
 import { holdAmbient } from "../../lib/motion";
 import { useApp } from "../AppProvider";
 import CurrencyNote from "../CurrencyNote";
+import { EnquiryStockNote } from "../StockBadge";
 import { useMotion } from "../MotionShell";
 import { IconCheck, IconX, formatDateTime } from "./EventParts";
 
@@ -215,6 +216,7 @@ export default function EventEnquiry({ event, open, onClose, session, ticketType
               <p>{event.title}</p>
               <p className="ev-sheet-note">This is an enquiry, not a purchase. Nothing is charged and tickets are not reserved until our team confirms with you.</p>
             </div>
+            <EnquiryStockNote stock={event.stock} noun="event" />
             {formError && <p className="ev-form-error" role="alert">{formError}</p>}
             <div className="ev-form-grid">
               <Field id="eq-fullName" label="Full name" error={errors.fullName}>

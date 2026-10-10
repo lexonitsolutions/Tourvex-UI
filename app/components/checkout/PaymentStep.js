@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { errorMessage } from "../../lib/booking";
+import { errorMessage, isUnavailableError, unavailableIds } from "../../lib/booking";
 import { money } from "../../lib/actFormat";
 import { requestCartRefresh, setCartCount } from "../../lib/cartStore";
 import { STRIPE_APPEARANCE, getStripe, stripeKeyPresent } from "../../lib/stripeClient";
@@ -95,7 +95,7 @@ function StripeForm({ cart, refs, onError }) {
 
 export default function PaymentStep() {
   const router = useRouter();
-  const { cart, api, apply, setPaused } = useCheckout();
+  const { cart, api, apply, setPaused, flagItems } = useCheckout();
   const [phase, setPhase] = useState({ name: "idle" });
   const [error, setError] = useState("");
   const total = money(cart.pricing?.total);
@@ -124,6 +124,16 @@ export default function PaymentStep() {
     } catch (e) {
       setPhase({ name: "idle" });
       setError(errorMessage(e));
+      if (isUnavailableError(e)) {
+        // A date sold out while paying: mark the line(s) and send the customer to the cart to change the date or remove it.
+        const ids = unavailableIds(e);
+        flagItems(ids, errorMessage(e));
+        if (ids.length) {
+          api.getCart().then(apply).catch(() => {});
+          router.push("/checkout");
+          return;
+        }
+      }
       // The hold may have ended or a step is incomplete: re-read the cart so the guards can react.
       if (e.code === "SESSION_EXPIRED" || e.code === "CART_EXPIRED" || e.status === 409) api.getCart().then(apply).catch(() => {});
     }

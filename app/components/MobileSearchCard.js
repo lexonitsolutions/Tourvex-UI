@@ -9,6 +9,7 @@ import { holdAmbient } from "../lib/motion";
 import { buildCities, priceInfo, searchCatalog, trendingActivities } from "../lib/search";
 import { useApp } from "./AppProvider";
 import { useMotion } from "./MotionShell";
+import { stockInfo, stockText } from "./StockBadge";
 
 const FALLBACK_IMG = "/images/destination-a.jpg";
 const IDEAS = ["Things to do in Dubai", "Desert safari in Dubai", "Theme parks in Abu Dhabi", "Dhow cruise dinner"];
@@ -32,7 +33,7 @@ const Row = memo(function Row({ item, onNavigate }) {
       <img src={item.imageUrl} alt="" width="56" height="56" loading="lazy" decoding="async" onError={showFallback} />
       <span className="mk-sq-row-text">
         <strong>{item.title}</strong>
-        <span>{[item.destinations?.join(", "), price && `from ${formatPrice(price.amount, price.currency)}`].filter(Boolean).join(" · ")}</span>
+        <span>{[item.destinations?.join(", "), price && `from ${formatPrice(price.amount, price.currency)}`, stockInfo(item.stock) && stockText(stockInfo(item.stock))].filter(Boolean).join(" · ")}</span>
       </span>
     </Link>
   );

@@ -68,6 +68,7 @@ function ActivityCard({ item }) {
       image={item.imageUrl}
       fallbackImage={FALLBACK_IMG}
       tag={item.categories?.[0]}
+      stock={item.stock}
       location={(item.destinations || []).join(", ") || undefined}
       price={price}
       priceFallback="Price on request"

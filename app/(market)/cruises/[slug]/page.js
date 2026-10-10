@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
+import { withStock } from "../../../components/StockBadge";
 import CruiseDetail from "../../../components/cruises/CruiseDetail";
 import CruiseLoadError from "../../../components/cruises/CruiseLoadError";
 import { getCruise, isNotFound } from "../../../lib/cruises";
@@ -46,5 +47,5 @@ export default async function CruisePage({ params }) {
   const result = await load(slug, await getServerCurrency());
   if (result.notFound) notFound();
   if (result.failed) return <CruiseLoadError title="We could not load this cruise" text="Something went wrong while fetching the cruise details. Please try again in a moment." />;
-  return <CruiseDetail cruise={result.data.cruise} related={result.data.related || []} />;
+  return <CruiseDetail cruise={withStock(result.data.cruise, result.data.stock)} related={result.data.related || []} />;
 }
