@@ -99,17 +99,23 @@ function toHolidayCardItem(pkg, liveItems) {
 }
 
 function toCruiseCardItem(c, liveItems) {
-  const live = (liveItems || []).find((it) => (it.slug && it.slug === c.slug) || (it.id && it.id === c.cruiseId));
+  const live = (liveItems || []).find(
+    (it) =>
+      (it.slug && it.slug === c.slug) ||
+      (it.id && it.id === c.cruiseId) ||
+      (it.title && it.title.toLowerCase() === (c.title || "").toLowerCase())
+  );
   if (live) return live;
 
   const nights = parseInt(c.duration) || 7;
   const numPrice = c.price ? parseFloat(String(c.price).replace(/[^0-9.]/g, "")) : null;
+  const cover = (typeof c.image === "object" ? c.image?.url : c.image) || c.coverImage;
 
   return {
     id: c.cruiseId || c.id || c.slug,
     slug: c.slug,
     title: c.title,
-    coverImage: (typeof c.image === "object" ? c.image?.url : c.image) || c.coverImage || FALLBACK_IMG,
+    coverImage: cover || "/images/destination-c.jpg",
     departureCity: c.departureCity || "",
     durationNights: nights,
     price: numPrice ? { amount: numPrice, currency: "AED" } : null,
@@ -117,16 +123,22 @@ function toCruiseCardItem(c, liveItems) {
 }
 
 function toEventCardItem(e, liveItems) {
-  const live = (liveItems || []).find((it) => (it.slug && it.slug === e.slug) || (it.id && it.id === e.eventId));
+  const live = (liveItems || []).find(
+    (it) =>
+      (it.slug && it.slug === e.slug) ||
+      (it.id && it.id === e.eventId) ||
+      (it.title && it.title.toLowerCase() === (e.title || "").toLowerCase())
+  );
   if (live) return live;
 
   const numPrice = e.price ? parseFloat(String(e.price).replace(/[^0-9.]/g, "")) : null;
+  const cover = (typeof e.image === "object" ? e.image?.url : e.image) || e.coverImage;
 
   return {
     id: e.eventId || e.id || e.slug,
     slug: e.slug,
     title: e.title,
-    coverImage: (typeof e.image === "object" ? e.image?.url : e.image) || e.coverImage || FALLBACK_IMG,
+    coverImage: cover || "/images/01.jpg",
     venue: e.location || "",
     city: e.city || "",
     nextDate: e.duration || "",
@@ -353,11 +365,27 @@ export default function HomeSections({ sections = [], partners = null }) {
   // Featured holidays: pick up to 4 featured/recent packages
   const featuredHolidays = useMemo(() => (holidayData?.featured || holidayData?.recent || []).slice(0, 4), [holidayData]);
 
+  // All cruises loaded from home sections
+  const allCruiseItems = useMemo(() => {
+    if (!cruiseData) return [];
+    if (Array.isArray(cruiseData.featured) && cruiseData.featured.length) return cruiseData.featured;
+    if (Array.isArray(cruiseData.items) && cruiseData.items.length) return cruiseData.items;
+    return (cruiseData.sections || []).flatMap((s) => s.items || []);
+  }, [cruiseData]);
+
   // Featured cruises: pick up to 4
-  const featuredCruises = useMemo(() => (cruiseData?.featured || cruiseData?.recent || []).slice(0, 4), [cruiseData]);
+  const featuredCruises = useMemo(() => allCruiseItems.slice(0, 4), [allCruiseItems]);
+
+  // All events loaded from home sections
+  const allEventItems = useMemo(() => {
+    if (!eventData) return [];
+    if (Array.isArray(eventData.featured) && eventData.featured.length) return eventData.featured;
+    if (Array.isArray(eventData.items) && eventData.items.length) return eventData.items;
+    return (eventData.sections || []).flatMap((s) => s.items || []);
+  }, [eventData]);
 
   // Featured events: pick up to 4
-  const featuredEvents = useMemo(() => (eventData?.featured || eventData?.upcoming || []).slice(0, 4), [eventData]);
+  const featuredEvents = useMemo(() => allEventItems.slice(0, 4), [allEventItems]);
 
   // ── Scroll reveals ─────────────────────────────────────────────────────────
   const reveal = { enabled: !isMobile };
@@ -496,9 +524,8 @@ export default function HomeSections({ sections = [], partners = null }) {
 
     cruises: (c) => {
       const hasChosen = Array.isArray(c.cruises) && c.cruises.length > 0;
-      const liveItems = cruiseData?.featured || cruiseData?.items || [];
       const itemsToShow = hasChosen
-        ? c.cruises.map((p) => toCruiseCardItem(p, liveItems))
+        ? c.cruises.map((p) => toCruiseCardItem(p, allCruiseItems))
         : (cruiseData ? featuredCruises : null);
 
       return (cruiseData === null || hasChosen || featuredCruises.length > 0) && (
@@ -521,9 +548,8 @@ export default function HomeSections({ sections = [], partners = null }) {
 
     events: (c) => {
       const hasChosen = Array.isArray(c.events) && c.events.length > 0;
-      const liveItems = eventData?.featured || eventData?.items || [];
       const itemsToShow = hasChosen
-        ? c.events.map((p) => toEventCardItem(p, liveItems))
+        ? c.events.map((p) => toEventCardItem(p, allEventItems))
         : (eventData ? featuredEvents : null);
 
       return (eventData === null || hasChosen || featuredEvents.length > 0) && (
