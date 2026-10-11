@@ -1,16 +1,26 @@
 /* "Explore by Experience Type" Cards
-   Premium, smooth, responsive expanding-card accordion with admin video previews.
-   - Initial state: all 6 cards appear normally at equal widths with cover images.
-   - On hover: hovered card gradually widens while neighboring cards shrink proportionally.
-   - Video cross-fade: cover image fades out, video clip fades in and plays.
-   - On mouse leave: video fades out, cover image returns, and all cards smoothly return to original sizes.
+   Clean, modern, minimal, and elegant travel experience cards.
+   - 3-column, 2-row grid layout (6 cards total).
+   - Default: three equally sized cards per row (33% | 33% | 33%).
+   - On hover: hovered card expands to 50% width, other 2 cards in that row shrink to 25%.
+   - Other row is completely unaffected.
+   - Smooth 550ms ease-in-out transition.
+   - Preserved card height, 16px softly rounded corners, and 24px spacing.
+   - Full video hover cross-fade with dark gradient for readable text.
 */
 
-.xc-grid {
+.xc-rows {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 24px;
   width: 100%;
-  height: clamp(430px, 32vw, 500px);
+}
+
+.xc-row {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  height: 320px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -19,39 +29,39 @@
 
 .xc {
   position: relative;
+  /* Default width: 33.33% (1 share out of 3 total flex shares) */
   flex: 1 1 0%;
   min-width: 0;
   height: 100%;
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  background: #0b172d;
+  background: #0f1d38;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  /* Smooth accordion expansion transition */
-  transition: flex 0.65s cubic-bezier(0.25, 1, 0.3, 1),
-              transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.45s ease;
+  /* Smooth 550ms ease-in-out transition for horizontal expansion/shrinking */
+  transition: flex 580ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 450ms ease,
+              box-shadow 450ms ease;
   will-change: flex;
 }
 
-/* Hover / Focus state:
-   When ANY card is hovered in the grid, sibling cards shrink proportionally */
-.xc-grid.has-active .xc,
-.xc-grid:hover .xc {
-  flex: 0.65 1 0%;
-}
-
-/* The actively hovered card expands gracefully */
-.xc-grid .xc.is-expanded,
-.xc-grid .xc:hover,
-.xc-grid .xc:focus-within {
-  flex: 3.2 1 0%;
+/* Hover width distribution:
+   The hovered card gets 2 flex shares (2 / 4 = 50%).
+   The other two cards in the row remain at 1 flex share (1 / 4 = 25% each).
+   Hover 1st: 50% | 25% | 25%
+   Hover 2nd: 25% | 50% | 25%
+   Hover 3rd: 25% | 25% | 50%
+*/
+.xc-row .xc:hover,
+.xc-row .xc.is-expanded,
+.xc-row .xc:focus-within {
+  flex: 2 1 0%;
   transform: translateY(-4px);
-  box-shadow: 0 20px 45px rgba(8, 20, 48, 0.32), 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 36px rgba(15, 36, 84, 0.22), 0 6px 14px rgba(0, 0, 0, 0.12);
   z-index: 5;
 }
 
-/* Link wrapper */
+/* Card Link container */
 .mk .xc-link,
 .xc-link {
   position: relative;
@@ -60,13 +70,13 @@
   justify-content: flex-end;
   width: 100%;
   height: 100%;
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
   color: #ffffff;
 }
 
-/* ── Image & Video Cross-Fade ── */
+/* ── Cover Image & Admin Video Cross-Fade ── */
 
 .xc-img {
   position: absolute;
@@ -77,8 +87,8 @@
   display: block;
   opacity: 1;
   transform: scale(1);
-  transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.75s cubic-bezier(0.25, 1, 0.3, 1);
+  transition: opacity 580ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 1;
 }
 
@@ -88,7 +98,7 @@
   transform: scale(1.06);
 }
 
-/* Smooth fade out of image when video is present and card is expanded */
+/* Smooth fade-out of cover image on video card */
 .xc.has-video:hover .xc-img,
 .xc.has-video.is-expanded .xc-img,
 .xc.has-video:focus-within .xc-img {
@@ -106,12 +116,12 @@
   opacity: 0;
   transform: scale(1.04);
   pointer-events: none;
-  transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.75s cubic-bezier(0.25, 1, 0.3, 1);
+  transition: opacity 580ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 1;
 }
 
-/* Smooth fade in of video when card is expanded */
+/* Smooth fade-in of video clip on hover */
 .xc.has-video:hover .xc-video,
 .xc.has-video.is-expanded .xc-video,
 .xc.has-video:focus-within .xc-video {
@@ -119,15 +129,15 @@
   transform: scale(1);
 }
 
-/* Dark gradient overlay for crystal-clear readability at all times */
+/* Subtle dark gradient overlay for text readability */
 .xc-shade {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(8, 16, 32, 0.94) 0%,
-    rgba(8, 16, 32, 0.62) 40%,
-    rgba(8, 16, 32, 0.16) 68%,
+    rgba(10, 20, 40, 0.92) 0%,
+    rgba(10, 20, 40, 0.55) 44%,
+    rgba(10, 20, 40, 0.12) 74%,
     transparent 100%
   );
   pointer-events: none;
@@ -140,7 +150,7 @@
   opacity: 0.95;
 }
 
-/* ── Content Body ── */
+/* ── Content Layout ── */
 
 .xc-body {
   position: relative;
@@ -148,7 +158,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 24px 20px;
+  padding: 22px 20px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -157,22 +167,22 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: #ffffff;
-  margin-bottom: 12px;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+  margin-bottom: 10px;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
               background-color 0.3s ease;
 }
 
 .xc:hover .xc-icon,
 .xc.is-expanded .xc-icon {
-  transform: scale(1.08) translateY(-2px);
-  background: rgba(32, 149, 174, 0.92);
+  transform: translateY(-2px);
+  background: rgba(32, 149, 174, 0.9);
 }
 
 .xc-body h3,
@@ -180,34 +190,33 @@
   margin: 0;
   color: #ffffff !important;
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 22px;
+  font-size: 23px;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: 0.01em;
   text-transform: none;
   white-space: normal;
   overflow-wrap: break-word;
-  transition: font-size 0.4s ease, transform 0.4s ease;
+  transition: font-size 0.4s ease;
 }
 
 .xc:hover .xc-title,
 .xc.is-expanded .xc-title {
-  font-size: 27px;
+  font-size: 26px;
 }
 
 .xc-stats {
   display: block;
-  margin-top: 6px;
+  margin-top: 5px;
   color: rgba(255, 255, 255, 0.88);
   font-family: "Barlow Semi Condensed", sans-serif;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
-  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .xc-btn {
@@ -226,14 +235,12 @@
   line-height: 1.2;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
-  transition: box-shadow 0.3s ease,
-              transform 0.3s ease,
-              opacity 0.4s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .xc:hover .xc-btn,
 .xc.is-expanded .xc-btn {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 
 .xc-btn-arrow {
@@ -248,92 +255,52 @@
   transform: translateX(4px);
 }
 
-/* When the grid is hovered, neighbor cards gracefully tuck away stats & button
-   so the narrowed cards remain elegant, minimal portrait slices */
-.xc-grid.has-active .xc:not(.is-expanded) .xc-stats,
-.xc-grid.has-active .xc:not(.is-expanded) .xc-btn,
-.xc-grid:hover .xc:not(:hover) .xc-stats,
-.xc-grid:hover .xc:not(:hover) .xc-btn {
-  opacity: 0;
-  transform: translateY(10px);
-  pointer-events: none;
-}
-
-/* Sibling cards in hovered grid get a subtle luxury dim to emphasize the expanded card */
-.xc-grid.has-active .xc:not(.is-expanded) .xc-shade,
-.xc-grid:hover .xc:not(:hover) .xc-shade {
-  opacity: 0.98;
-}
-
 .xc-link:focus-visible {
   outline: 3px solid #ffffff;
   outline-offset: -3px;
 }
 
-/* ── Responsive Adaptations ── */
+/* ── Responsive Behavior ── */
 
-@media (max-width: 959px) and (min-width: 641px) {
-  .xc-grid {
-    height: 430px;
-    gap: 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 6px;
+@media (max-width: 900px) and (min-width: 641px) {
+  .xc-row {
+    height: 290px;
+    gap: 16px;
   }
-  .xc {
-    min-width: 140px;
-  }
-  .xc-grid .xc.is-expanded,
-  .xc-grid .xc:hover {
-    flex: 2.8 1 0%;
-    min-width: 300px;
+  .xc-rows {
+    gap: 16px;
   }
   .xc-body {
     padding: 18px 14px;
   }
+  .xc-body h3,
+  .xc-title {
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 640px) {
-  .xc-grid {
-    display: flex;
-    flex-direction: row;
-    height: 380px;
-    gap: 14px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
+  .xc-row {
+    flex-direction: column;
+    height: auto;
+    gap: 16px;
   }
-  .xc-grid::-webkit-scrollbar {
-    display: none;
+  .xc-rows {
+    gap: 16px;
   }
   .xc {
-    flex: 0 0 78vw;
-    max-width: 300px;
-    scroll-snap-align: center;
+    flex: none;
+    width: 100%;
+    height: 250px;
+    aspect-ratio: auto;
   }
-  .xc-grid:hover .xc,
-  .xc-grid.has-active .xc {
-    flex: 0 0 78vw;
-  }
-  .xc-grid .xc:hover,
-  .xc-grid .xc.is-expanded {
-    flex: 0 0 78vw;
+  .xc-row .xc:hover,
+  .xc-row .xc.is-expanded {
+    flex: none;
     transform: none;
-  }
-  .xc-grid:hover .xc:not(:hover) .xc-stats,
-  .xc-grid:hover .xc:not(:hover) .xc-btn {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
   }
   .xc-body {
-    padding: 18px 16px;
-  }
-  .xc-title {
-    font-size: 21px;
+    padding: 18px;
   }
 }
 

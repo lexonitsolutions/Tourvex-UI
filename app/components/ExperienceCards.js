@@ -136,11 +136,12 @@ function findCategoryItems(stats, categoryName) {
 }
 
 /**
- * Home page "Explore by Experience" cards: premium accordion expanding card interaction.
- * - Initial state: all six cards appear normally at equal widths with high-res cover photos.
- * - On hover: the hovered card expands wider, neighbors shrink proportionally, and the image
- *   smoothly cross-fades into the admin-uploaded video.
- * - On mouse leave: the video fades out, image returns, and all cards smoothly return to equal sizes.
+ * Home page "Explore by Experience" cards: 3-column, 2-row layout with dynamic card expansion on hover.
+ * - Default state: 3 equally sized cards per row (33% | 33% | 33%).
+ * - On hover: hovered card expands horizontally to 50%, while the other 2 cards in the same row shrink to 25%.
+ * - Other row is completely unaffected.
+ * - On mouse leave: all cards smoothly return to equal 33% widths.
+ * - Smooth video cross-fade on the hovered card.
  */
 function ExperienceCards({ items, content }) {
   const [hoveredId, setHoveredId] = useState(null);
@@ -158,28 +159,40 @@ function ExperienceCards({ items, content }) {
     return map;
   }, [items]);
 
+  const rows = useMemo(() => {
+    const cards = content?.cards || [];
+    const r1 = cards.slice(0, 3);
+    const r2 = cards.slice(3, 6);
+    return [r1, r2];
+  }, [content?.cards]);
+
   return (
-    <ul
-      className={`xc-grid${hoveredId ? " has-active" : ""}`}
-      role="list"
-      onMouseLeave={() => setHoveredId(null)}
-    >
-      {content.cards.map((card) => {
-        const list = findCategoryItems(stats, card.category);
-        return (
-          <Card
-            key={card.id}
-            card={card}
-            count={items ? list.length : null}
-            from={items ? cheapest(list) : null}
-            copy={content}
-            isHovered={hoveredId === card.id}
-            onHover={setHoveredId}
-            onLeave={() => {}}
-          />
-        );
-      })}
-    </ul>
+    <div className="xc-rows">
+      {rows.map((rowCards, rowIndex) => (
+        <ul
+          key={rowIndex}
+          className="xc-row"
+          role="list"
+          onMouseLeave={() => setHoveredId(null)}
+        >
+          {rowCards.map((card) => {
+            const list = findCategoryItems(stats, card.category);
+            return (
+              <Card
+                key={card.id}
+                card={card}
+                count={items ? list.length : null}
+                from={items ? cheapest(list) : null}
+                copy={content}
+                isHovered={hoveredId === card.id}
+                onHover={setHoveredId}
+                onLeave={() => {}}
+              />
+            );
+          })}
+        </ul>
+      ))}
+    </div>
   );
 }
 
