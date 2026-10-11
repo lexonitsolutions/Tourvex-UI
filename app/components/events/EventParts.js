@@ -1,9 +1,10 @@
 "use client";
 
 import { memo } from "react";
+import Link from "next/link";
 import { formatPrice } from "../../lib/api";
-import ShowcaseCard from "../ShowcaseCard";
-import { StateMessage, CardSkeletons, plural, showFallback } from "../holidays/HolidayParts";
+import { StateMessage, CardSkeletons, plural, showFallback, IconChevron, IconPin } from "../holidays/HolidayParts";
+import { StockChip } from "../StockBadge";
 import "../../holidays.css";
 import "../../events.css";
 
@@ -67,6 +68,21 @@ export function durationLabel(minutes) {
   return [h ? `${h} h` : "", m ? `${m} min` : ""].filter(Boolean).join(" ");
 }
 
+export function getDateStub(iso) {
+  if (!iso) return null;
+  const d = parse(iso);
+  if (d) {
+    const monthCaps = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    return {
+      day: d.getUTCDate(),
+      month: monthCaps[d.getUTCMonth()],
+    };
+  }
+  const m = String(iso).match(/(\d{1,2})\s+([A-Za-z]{3})/);
+  if (m) return { day: m[1], month: m[2].toUpperCase() };
+  return null;
+}
+
 export const cityHref = (name) => `/events/in/${encodeURIComponent(name)}`;
 export const categoryHref = (slug) => `/events/category/${encodeURIComponent(slug)}`;
 
@@ -89,26 +105,107 @@ export const IconStage = (p) => icon(<><path d="M3 20h18M5 20V9l7-5 7 5v11" /><p
 
 /* Card ------------------------------------------------------------- */
 
-export const EventCard = memo(function EventCard({ item, reveal = true }) {
-  const when = item.nextDate ? formatDateTime(item.nextDate) : "";
-  const duration = durationLabel(item.durationMinutes);
+export const EventCard = memo(function EventCard({ item, reveal = true, className = "", style }) {
+  const detailHref = `/events/${item?.slug || ""}`;
+  const when = item?.nextDate ? (formatDateTime(item.nextDate) || item.nextDate) : "";
+  const duration = durationLabel(item?.durationMinutes);
+  const locationText = [item?.venue, item?.city].filter(Boolean).join(", ") || item?.location || "";
+  const onImgError = (e) => {
+    if (e?.currentTarget && !e.currentTarget.src.endsWith(FALLBACK_IMG)) {
+      e.currentTarget.src = FALLBACK_IMG;
+    }
+  };
+
+  const dateStub = getDateStub(item?.nextDate);
+  const catSlug = (item?.category || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
   return (
-    <ShowcaseCard
-      href={`/events/${item.slug}`}
-      title={item.title}
-      image={item.coverImage}
-      fallbackImage="/images/event-01.jpg"
-      tag={item.category || undefined}
-      stock={item.stock}
-      location={[item.venue, item.city].filter(Boolean).join(", ") || undefined}
-      meta={[
-        when && { icon: <IconCalendar width="14" height="14" />, text: when, label: `next date ${when}` },
-        item.sessionCount > 1 && { icon: <IconTicket width="14" height="14" />, text: `${item.sessionCount} dates` },
-        duration && { icon: <IconClock width="14" height="14" />, text: duration },
-      ]}
-      price={item.price}
-      priceFallback="Price on request"
-      reveal={reveal}
-    />
+    <article
+      className={`ev-card${className ? ` ${className}` : ""}`}
+      data-reveal={reveal ? true : undefined}
+      style={style}
+    >
+      <div className="ev-card-media">
+        <Link href={detailHref} className="ev-card-img-link" tabIndex={-1} aria-hidden="true">
+          <img
+            src={item?.coverImage || FALLBACK_IMG}
+            alt={item?.title || "Event"}
+            loading="lazy"
+            decoding="async"
+            onError={onImgError}
+          />
+        </Link>
+        <div className="ev-card-overlay" />
+
+        {item?.category && (
+          <span className={`ev-card-cat is-${catSlug}`}>
+            {item.category}
+          </span>
+        )}
+
+        {dateStub ? (
+          <div className="ev-card-date-stub" title={`Date: ${dateStub.month} ${dateStub.day}`}>
+            <span className="ev-card-stub-month">{dateStub.month}</span>
+            <span className="ev-card-stub-day">{dateStub.day}</span>
+          </div>
+        ) : (
+          item?.sessionCount > 1 && (
+            <span className="ev-card-badge-sessions">
+              <IconTicket width="12" height="12" />
+              <span>{item.sessionCount} Dates</span>
+            </span>
+          )
+        )}
+
+        <StockChip stock={item?.stock} />
+      </div>
+
+      <div className="ev-card-body">
+        {locationText && (
+          <div className="ev-card-location" title={locationText}>
+            <IconPin width="12" height="12" />
+            <span>{locationText}</span>
+          </div>
+        )}
+
+        <h3 className="ev-card-title">
+          <Link href={detailHref}>{item?.title}</Link>
+        </h3>
+
+        <div className="ev-card-meta-row">
+          {when && (
+            <span className="ev-card-meta-item" title="Event date & time">
+              <IconCalendar width="13" height="13" />
+              <span>{when}</span>
+            </span>
+          )}
+          {duration && (
+            <span className="ev-card-meta-item" title="Duration">
+              <IconClock width="13" height="13" />
+              <span>{duration}</span>
+            </span>
+          )}
+          {item?.sessionCount > 1 && dateStub && (
+            <span className="ev-card-meta-item" title="Available dates">
+              <IconTicket width="13" height="13" />
+              <span>{item.sessionCount} dates</span>
+            </span>
+          )}
+        </div>
+
+        <div className="ev-card-footer">
+          <div className="ev-card-price-col">
+            <span className="ev-card-price-label">Tickets from</span>
+            <strong className="ev-card-price-value">
+              {item?.price ? money(item.price) : (item?.priceFallback || "Price on request")}
+            </strong>
+          </div>
+          <Link href={detailHref} className="ev-card-cta" aria-label={`View event ${item?.title || ""}`}>
+            <span>Get Tickets</span>
+            <IconChevron width="14" height="14" />
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 });

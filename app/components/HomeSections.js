@@ -118,6 +118,10 @@ function toCruiseCardItem(c, liveItems) {
     coverImage: cover || "/images/cruise-01.jpg",
     departureCity: c.departureCity || "",
     durationNights: nights,
+    region: c.region || "",
+    cruiseLine: c.cruiseLine || "",
+    shipName: c.shipName || "",
+    tags: c.tags || [],
     price: numPrice ? { amount: numPrice, currency: "AED" } : null,
   };
 }
@@ -139,9 +143,12 @@ function toEventCardItem(e, liveItems) {
     slug: e.slug,
     title: e.title,
     coverImage: cover || "/images/event-01.jpg",
-    venue: e.location || "",
+    venue: e.location || e.venue || "",
     city: e.city || "",
-    nextDate: e.duration || "",
+    nextDate: e.duration || e.nextDate || "",
+    category: e.category || "",
+    sessionCount: e.sessionCount || 1,
+    durationMinutes: e.durationMinutes || null,
     price: numPrice ? { amount: numPrice, currency: "AED" } : null,
   };
 }

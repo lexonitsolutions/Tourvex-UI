@@ -1,9 +1,10 @@
 "use client";
 
 import { memo } from "react";
+import Link from "next/link";
 import { formatPrice } from "../../lib/api";
-import ShowcaseCard from "../ShowcaseCard";
-import { IconMoon, StateMessage, CardSkeletons, plural, showFallback } from "../holidays/HolidayParts";
+import { IconMoon, StateMessage, CardSkeletons, plural, showFallback, IconChevron } from "../holidays/HolidayParts";
+import { StockChip } from "../StockBadge";
 import "../../holidays.css";
 import "../../cruises.css";
 
@@ -58,25 +59,103 @@ export const IconFilter = (p) => icon(<path d="M4 6h16M7 12h10M10 18h4" />, p);
 
 /* Card ------------------------------------------------------------- */
 
-export const CruiseCard = memo(function CruiseCard({ item, reveal = true }) {
-  const next = item.nextDepartures?.[0];
+export const CruiseCard = memo(function CruiseCard({ item, reveal = true, className = "", style }) {
+  const next = item?.nextDepartures?.[0];
+  const detailHref = `/cruises/${item?.slug || ""}`;
+  const nights = item?.durationNights || parseInt(item?.duration) || 0;
+  const onImgError = (e) => {
+    if (e?.currentTarget && !e.currentTarget.src.endsWith(FALLBACK_IMG)) {
+      e.currentTarget.src = FALLBACK_IMG;
+    }
+  };
+
   return (
-    <ShowcaseCard
-      href={`/cruises/${item.slug}`}
-      title={item.title}
-      image={item.coverImage}
-      fallbackImage="/images/cruise-01.jpg"
-      tag={item.tags?.[0] || item.region || undefined}
-      stock={item.stock}
-      location={item.departureCity ? `From ${item.departureCity}` : undefined}
-      meta={[
-        item.durationNights > 0 && { icon: <IconMoon width="14" height="14" />, text: nightsLabel(item.durationNights) },
-        next && { icon: <IconCalendar width="14" height="14" />, text: `Next ${formatDate(next)}`, label: `next departure ${formatDate(next)}` },
-        item.cruiseLine && { icon: <IconShip width="14" height="14" />, text: item.cruiseLine },
-      ]}
-      price={item.price}
-      priceFallback="Fare on request"
-      reveal={reveal}
-    />
+    <article
+      className={`cr-card${className ? ` ${className}` : ""}`}
+      data-reveal={reveal ? true : undefined}
+      style={style}
+    >
+      <div className="cr-card-media">
+        <Link href={detailHref} className="cr-card-img-link" tabIndex={-1} aria-hidden="true">
+          <img
+            src={item?.coverImage || FALLBACK_IMG}
+            alt={item?.title || "Cruise"}
+            loading="lazy"
+            decoding="async"
+            onError={onImgError}
+          />
+        </Link>
+        <div className="cr-card-overlay" />
+
+        {item?.departureCity && (
+          <span className="cr-card-badge-port" title={`Departure: ${item.departureCity}`}>
+            <IconAnchor width="12" height="12" />
+            <span>From {item.departureCity}</span>
+          </span>
+        )}
+
+        {nights > 0 && (
+          <span className="cr-card-badge-duration">
+            <IconMoon width="12" height="12" />
+            <span>{nightsLabel(nights)}</span>
+          </span>
+        )}
+
+        <StockChip stock={item?.stock} />
+
+        {(item?.shipName || item?.cruiseLine) && (
+          <span className="cr-card-badge-ship" title={item.shipName || item.cruiseLine}>
+            <IconShip width="12" height="12" />
+            <span>{item.shipName || item.cruiseLine}</span>
+          </span>
+        )}
+      </div>
+
+      <div className="cr-card-body">
+        {(item?.region || item?.tags?.[0]) && (
+          <span className="cr-card-eyebrow">
+            {item.region || item.tags[0]}
+          </span>
+        )}
+
+        <h3 className="cr-card-title">
+          <Link href={detailHref}>{item?.title}</Link>
+        </h3>
+
+        <div className="cr-card-meta-row">
+          {next && (
+            <span className="cr-card-meta-item" title="Next departure date">
+              <IconCalendar width="13" height="13" />
+              <span>Next {formatDate(next)}</span>
+            </span>
+          )}
+          {(item?.portCount > 0 || (item?.ports && item.ports.length > 0)) && (
+            <span className="cr-card-meta-item" title="Ports of call">
+              <IconWave width="13" height="13" />
+              <span>{item.portCount || item.ports.length} Ports</span>
+            </span>
+          )}
+          {!next && item?.cruiseLine && (
+            <span className="cr-card-meta-item" title="Cruise line">
+              <IconShip width="13" height="13" />
+              <span>{item.cruiseLine}</span>
+            </span>
+          )}
+        </div>
+
+        <div className="cr-card-footer">
+          <div className="cr-card-price-col">
+            <span className="cr-card-price-label">From / person</span>
+            <strong className="cr-card-price-value">
+              {item?.price ? money(item.price) : (item?.priceFallback || "Fare on request")}
+            </strong>
+          </div>
+          <Link href={detailHref} className="cr-card-cta" aria-label={`View cruise ${item?.title || ""}`}>
+            <span>Details</span>
+            <IconChevron width="14" height="14" />
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 });
