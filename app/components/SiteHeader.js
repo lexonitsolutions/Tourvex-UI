@@ -126,13 +126,12 @@ function Dock({ openMega, closeMega }) {
 
 export default function SiteHeader() {
   const header = useHeaderContent();
-  const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [engaged, setEngaged] = useState(false);
   const [localeOpen, setLocaleOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [megaMenu, setMegaMenu] = useState("default");
   const closeTimer = useRef(null);
+  const headerRef = useRef(null);
 
   const openLocale = useCallback(() => setLocaleOpen(true), []);
   const closeLocale = useCallback(() => setLocaleOpen(false), []);
@@ -166,22 +165,69 @@ export default function SiteHeader() {
   }, [openLocale]);
 
   useEffect(() => {
-    let last = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 24);
-      if (Math.abs(y - last) > 6) {
-        setHidden(y > last && y > 260);
-        last = y;
-      }
+    let frame = 0;
+    let scrollStopTimer = 0;
+    let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const updateHeader = () => {
+      frame = 0;
+      const currentScrollY = window.scrollY;
+      const rawProgress = reduceMotion ? 0 : Math.min(Math.max(currentScrollY / 96, 0), 1);
+      // Smoothstep keeps both ends of the morph soft without adding delayed, springy motion.
+      const progress = rawProgress * rawProgress * (3 - 2 * rawProgress);
+      headerRef.current?.style.setProperty("--mk-header-progress", progress.toFixed(4));
     };
+
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingUp = currentScrollY < lastScrollY;
+      const isAtTop = currentScrollY <= 10;
+
+      if (!frame) frame = window.requestAnimationFrame(updateHeader);
+
+      if (isAtTop) {
+        // At the top of the page: navbar must be fixed immediately without any 100ms delay
+        window.clearTimeout(scrollStopTimer);
+        headerRef.current?.classList.remove("is-scrolling");
+        headerRef.current?.classList.add("is-at-top");
+        updateHeader();
+      } else {
+        headerRef.current?.classList.remove("is-at-top");
+
+        if (scrollingUp) {
+          // Scrolling up: reveal navbar immediately instead of hiding
+          window.clearTimeout(scrollStopTimer);
+          headerRef.current?.classList.remove("is-scrolling");
+        } else {
+          // Scrolling down: hide navbar while actively scrolling
+          headerRef.current?.classList.add("is-scrolling");
+          window.clearTimeout(scrollStopTimer);
+          scrollStopTimer = window.setTimeout(() => {
+            headerRef.current?.classList.remove("is-scrolling");
+          }, 100);
+        }
+      }
+
+      lastScrollY = Math.max(0, currentScrollY);
+    };
+
+    updateHeader();
+    if (window.scrollY <= 10) {
+      headerRef.current?.classList.add("is-at-top");
+    }
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+      window.clearTimeout(scrollStopTimer);
+    };
   }, []);
 
   return (
     <header
-      className={`mk-header${scrolled ? " is-scrolled" : ""}${hidden ? " is-hidden" : ""}`}
+      ref={headerRef}
+      className="mk-header"
       onMouseEnter={() => setEngaged(true)}
       onMouseLeave={() => {
         setEngaged(false);

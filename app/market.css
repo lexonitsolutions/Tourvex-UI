@@ -48,8 +48,9 @@
   will-change: transform;
 }
 .mk-header > .mk-container { width: calc(100% - (var(--mk-header-progress) * 10%)); }
-.mk-preloading .mk-header { transform: translateY(-120%); }
+.mk-preloading .mk-header { transform: translateY(-120%) !important; }
 .mk-header.is-scrolling { transform: translate3d(0, -120%, 0); }
+.mk-header.is-at-top { transform: translate3d(0, 0, 0); }
 .mk-header-row {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   height: calc(var(--mk-row) - (var(--mk-header-progress) * 8px));
