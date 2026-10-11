@@ -17,6 +17,12 @@ const showFallback = (e) => {
 const VARIANTS = ["orange", "purple", "blue"];
 
 function priceOf(item) {
+  if (typeof item.price === "string" && item.price) {
+    return {
+      formatted: item.price,
+      wasFormatted: typeof item.oldPrice === "string" && item.oldPrice ? item.oldPrice : null,
+    };
+  }
   if (item.cmsPrice || item.priceText) {
     return {
       formatted: item.cmsPrice || item.priceText,
@@ -24,10 +30,10 @@ function priceOf(item) {
     };
   }
   const p = item.salePrice || item.price;
-  if (!p) return null;
+  if (!p || typeof p !== "object" || typeof p.amount === "undefined") return null;
   return {
     formatted: formatPrice(p.amount, p.currency),
-    wasFormatted: item.salePrice ? formatPrice(item.price.amount, item.price.currency) : null,
+    wasFormatted: item.salePrice && typeof item.price === "object" ? formatPrice(item.price.amount, item.price.currency) : null,
   };
 }
 
