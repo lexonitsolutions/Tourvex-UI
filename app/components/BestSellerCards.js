@@ -85,7 +85,7 @@ export function BestSellerSkeletons({ count = 6 }) {
 function BestSellerCards({ items, content }) {
   return (
     <ul className="bs-grid" role="list" aria-busy={!items}>
-      {items ? items.map((item, i) => <Card key={item._id || item.slug} item={item} index={i} copy={content} />) : <BestSellerSkeletons />}
+      {items ? items.map((item, i) => <Card key={item.id || item._id || item.slug || `bs-${i}`} item={item} index={i} copy={content} />) : <BestSellerSkeletons />}
     </ul>
   );
 }
