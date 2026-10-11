@@ -44,12 +44,16 @@
   --mk-ctl: 40px; --mk-row: 72px; --mk-header-progress: 0;
   position: sticky; top: 0; z-index: 50; height: var(--mk-row); display: flex; align-items: center;
   pointer-events: none;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 .mk-header > .mk-container { width: calc(100% - (var(--mk-header-progress) * 10%)); }
 .mk-preloading .mk-header { transform: translateY(-120%) !important; }
-.mk-header.is-scrolling { transform: translate3d(0, -120%, 0); }
+.mk-header.is-scrolling {
+  transform: translate3d(0, -120%, 0);
+  transition-duration: 0.28s;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
 .mk-header.is-at-top { transform: translate3d(0, 0, 0); }
 .mk-header-row {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;

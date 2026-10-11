@@ -168,7 +168,15 @@ export default function SiteHeader() {
     let frame = 0;
     let scrollStopTimer = 0;
     let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
+    const supportsScrollEnd = "onscrollend" in window;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const revealHeader = () => {
+      window.clearTimeout(scrollStopTimer);
+      scrollStopTimer = window.setTimeout(() => {
+        headerRef.current?.classList.remove("is-scrolling");
+      }, 100);
+    };
 
     const updateHeader = () => {
       frame = 0;
@@ -181,44 +189,36 @@ export default function SiteHeader() {
 
     const onScroll = () => {
       const currentScrollY = window.scrollY;
-      const scrollingUp = currentScrollY < lastScrollY;
-      const isAtTop = currentScrollY <= 10;
+      const scrollDelta = Math.abs(currentScrollY - lastScrollY);
+      const isAtTop = currentScrollY <= 4;
 
       if (!frame) frame = window.requestAnimationFrame(updateHeader);
 
       if (isAtTop) {
-        // At the top of the page: navbar must be fixed immediately without any 100ms delay
+        // Boundary scroll events must never hide or delay the navbar at the page top.
         window.clearTimeout(scrollStopTimer);
         headerRef.current?.classList.remove("is-scrolling");
         headerRef.current?.classList.add("is-at-top");
-        updateHeader();
-      } else {
+      } else if (scrollDelta >= 1) {
+        window.clearTimeout(scrollStopTimer);
         headerRef.current?.classList.remove("is-at-top");
-
-        if (scrollingUp) {
-          // Scrolling up: reveal navbar immediately instead of hiding
-          window.clearTimeout(scrollStopTimer);
-          headerRef.current?.classList.remove("is-scrolling");
-        } else {
-          // Scrolling down: hide navbar while actively scrolling
-          headerRef.current?.classList.add("is-scrolling");
-          window.clearTimeout(scrollStopTimer);
-          scrollStopTimer = window.setTimeout(() => {
-            headerRef.current?.classList.remove("is-scrolling");
-          }, 100);
-        }
+        headerRef.current?.classList.add("is-scrolling");
+        // Native scrollend avoids false "stops" between trackpad/wheel momentum events.
+        if (!supportsScrollEnd) revealHeader();
       }
 
       lastScrollY = Math.max(0, currentScrollY);
     };
 
     updateHeader();
-    if (window.scrollY <= 10) {
+    if (window.scrollY <= 4) {
       headerRef.current?.classList.add("is-at-top");
     }
     window.addEventListener("scroll", onScroll, { passive: true });
+    if (supportsScrollEnd) window.addEventListener("scrollend", revealHeader, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
+      if (supportsScrollEnd) window.removeEventListener("scrollend", revealHeader);
       if (frame) window.cancelAnimationFrame(frame);
       window.clearTimeout(scrollStopTimer);
     };

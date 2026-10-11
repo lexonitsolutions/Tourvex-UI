@@ -1,64 +1,167 @@
-/* Home "Explore by Experience" cards.
-   Look: full-bleed photo, themed gradient, glowing edge, glass "Explore Now" bar (the supplied card-21 design, rebuilt in plain CSS).
-   Motion: transform/opacity only. The glow lives on a pseudo-element that only fades; the card scales on an inner wrapper
-   so it never fights the scroll-reveal transform on the list item. */
-.xc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0; padding: 0; list-style: none; }
+/* "Explore by Experience Type" cards
+   Clean, modern, minimal, and elegant travel experience cards.
+   - Rectangular shape with 16px softly rounded corners.
+   - Consistent widths and heights across all cards.
+   - object-fit: cover for high-quality destination images.
+   - Subtle dark gradient at the bottom for text readability.
+   - Bottom-left aligned icon, title, stats, and white "Explore Now →" button.
+   - Strictly NO hover effects, NO animations, NO zoom/scale, NO 3D effects.
+*/
 
-.xc { position: relative; z-index: 0; isolation: isolate; min-width: 0; }
-/* Static glow on the wrapper that never scales: scaling a layer that carries a blurred shadow forces it to be
-   re-rasterised every hover and froze the page. Only the opaque card content scales (on .xc-lift). */
-.xc::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 24px; pointer-events: none; box-shadow: 0 0 44px -14px hsl(var(--xc) / 0.62); }
-.xc:hover, .xc:focus-within { z-index: 2; }
-
-.xc-lift {
-  --xc-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  position: relative; isolation: isolate; aspect-ratio: 4 / 5; min-height: 340px; border-radius: 24px;
-  transform: translate3d(0, 0, 0) scale(1); transition: transform 0.5s var(--xc-ease);
+.xc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.xc-lift:hover, .xc-lift:focus-within { transform: translate3d(0, 0, 0) scale(1.04); }
 
-.mk .xc-link { position: relative; display: block; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; color: #fff; background: hsl(var(--xc)); }
-.xc-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1) translateZ(0); backface-visibility: hidden; transition: transform 0.7s var(--xc-ease); }
-.xc-lift:hover .xc-img, .xc-lift:focus-within .xc-img { transform: scale(1.1) translateZ(0); }
-.xc-shade { position: absolute; inset: 0; background: linear-gradient(to top, hsl(var(--xc) / 0.92), hsl(var(--xc) / 0.62) 32%, transparent 62%); }
+.xc {
+  position: relative;
+  min-width: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  min-height: 290px;
+  background: #0f1d38;
+}
 
-.xc-body { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; padding: 24px; }
-.xc-icon { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 12px; border-radius: 14px; background: hsl(var(--xc) / 0.35); border: 1px solid hsl(0 0% 100% / 0.22); color: #fff; transition: transform 0.5s var(--xc-ease), background-color 0.4s ease; }
-.xc-lift:hover .xc-icon, .xc-lift:focus-within .xc-icon { transform: translate3d(0, -3px, 0); background: hsl(var(--xc) / 0.55); }
-.xc-body h3 { margin: 0; color: #fff; font-family: "Barlow Condensed", system-ui, sans-serif; font-size: clamp(30px, 2.6vw, 38px); font-weight: 700; line-height: 1.05; letter-spacing: 0.01em; text-transform: none; }
-.xc-stats { display: block; margin-top: 6px; color: hsl(0 0% 100% / 0.84); font-size: 15px; font-weight: 500; line-height: 1.35; }
+.mk .xc-link,
+.xc-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.xc-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.xc-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(10, 20, 40, 0.88) 0%,
+    rgba(10, 20, 40, 0.55) 42%,
+    rgba(10, 20, 40, 0.15) 72%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.xc-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px;
+}
+
+.xc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.xc-body h3,
+.xc-title {
+  margin: 0;
+  color: #ffffff !important;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.xc-stats {
+  display: block;
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: "Barlow Semi Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
 .xc-btn {
-  display: flex; align-items: center; justify-content: space-between; margin-top: 22px; padding: 13px 16px; border-radius: 12px;
-  background: hsl(var(--xc) / 0.3); border: 1px solid hsl(0 0% 100% / 0.28); color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.02em;
-  transition: background-color 0.35s ease, border-color 0.35s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--mk-navy, #0f2454) !important;
+  font-family: "Barlow Semi Condensed", sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
-.xc-lift:hover .xc-btn, .xc-lift:focus-within .xc-btn { background: hsl(var(--xc) / 0.55); border-color: hsl(0 0% 100% / 0.45); }
-.xc-arrow { flex: none; transition: transform 0.35s var(--xc-ease); }
-.xc-lift:hover .xc-arrow, .xc-lift:focus-within .xc-arrow { transform: translate3d(5px, 0, 0); }
 
-.xc-link:focus-visible { outline: 3px solid #fff; outline-offset: -5px; }
+.xc-link:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: -3px;
+}
 
-@media (max-width: 1100px) {
-  .xc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+/* ── Responsive Layout ──
+   Desktop: 3 cards per row
+   Tablet:  2 cards per row
+   Mobile:  1 card per row
+*/
+
+@media (max-width: 1024px) {
+  .xc-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .xc {
+    aspect-ratio: 4 / 3;
+    min-height: 280px;
+  }
+  .xc-body {
+    padding: 20px;
+  }
 }
-@media (max-width: 760px) {
-  /* App-style horizontal snap row */
-  .xc-grid { display: flex; gap: 12px; margin: 0 -16px; padding: 6px 16px 14px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-  .xc-grid::-webkit-scrollbar { display: none; }
-  .xc { flex: 0 0 min(74vw, 300px); scroll-snap-align: start; }
-  .xc-lift { aspect-ratio: 3 / 4; min-height: 300px; border-radius: 20px; }
-  .xc-body { padding: 18px; }
-  .xc-icon { width: 40px; height: 40px; margin-bottom: 10px; border-radius: 12px; }
-  .xc-body h3 { font-size: 28px; }
-  .xc-stats { font-size: 13.5px; }
-  .xc-btn { margin-top: 16px; padding: 11px 14px; font-size: 14px; }
-}
-@media (hover: none) {
-  /* Touch: no sticky hover, a quick press instead */
-  .xc-lift:hover { transform: none; }
-  .xc-lift:hover .xc-img { transform: none; }
-  .xc-lift:hover .xc-icon { transform: none; background: hsl(var(--xc) / 0.35); }
-  .xc-lift:hover .xc-btn { background: hsl(var(--xc) / 0.3); border-color: hsl(0 0% 100% / 0.28); }
-  .xc-lift:hover .xc-arrow { transform: none; }
-  .xc-lift:active { transform: scale(0.98); transition-duration: 0.12s; }
+
+@media (max-width: 640px) {
+  .xc-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .xc {
+    aspect-ratio: 16 / 10;
+    min-height: 240px;
+  }
+  .xc-body {
+    padding: 18px;
+  }
+  .xc-body h3,
+  .xc-title {
+    font-size: 22px;
+  }
 }
