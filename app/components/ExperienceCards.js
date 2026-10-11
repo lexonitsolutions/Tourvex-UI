@@ -65,7 +65,7 @@ const Card = memo(function Card({ card, count, from, copy }) {
           <span className="xc-stats">{stats}</span>
           <span className="xc-btn">
             <span>{copy.ctaLabel || "Explore Now"}</span>
-            <span aria-hidden="true" style={{ fontSize: "15px", lineHeight: 1 }}>→</span>
+            <span className="xc-btn-arrow" aria-hidden="true">→</span>
           </span>
         </span>
       </CmsLink>
