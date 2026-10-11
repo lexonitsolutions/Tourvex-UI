@@ -326,6 +326,9 @@ const pageHome = {
               "url": "/images/destination-b.jpg",
               "alt": ""
             },
+            "video": {
+              "url": ""
+            },
             "theme": "28 72% 26%"
           },
           {
@@ -335,6 +338,9 @@ const pageHome = {
             "image": {
               "url": "/images/04.jpg",
               "alt": ""
+            },
+            "video": {
+              "url": ""
             },
             "theme": "262 52% 30%"
           },
@@ -346,6 +352,9 @@ const pageHome = {
               "url": "/images/destination-a.jpg",
               "alt": ""
             },
+            "video": {
+              "url": ""
+            },
             "theme": "208 68% 24%"
           },
           {
@@ -355,6 +364,9 @@ const pageHome = {
             "image": {
               "url": "/images/destination-c.jpg",
               "alt": ""
+            },
+            "video": {
+              "url": ""
             },
             "theme": "188 74% 22%"
           },
@@ -366,6 +378,9 @@ const pageHome = {
               "url": "/images/destination-f.jpg",
               "alt": ""
             },
+            "video": {
+              "url": ""
+            },
             "theme": "150 48% 24%"
           },
           {
@@ -375,6 +390,9 @@ const pageHome = {
             "image": {
               "url": "/images/destination-d.jpg",
               "alt": ""
+            },
+            "video": {
+              "url": ""
             },
             "theme": "345 52% 28%"
           }

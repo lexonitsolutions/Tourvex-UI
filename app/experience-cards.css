@@ -56,11 +56,39 @@
   object-fit: cover;
   display: block;
   transform: scale(1);
-  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 1;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
 }
 
 .xc:hover .xc-img {
   transform: scale(1.08);
+}
+
+.xc.has-video:hover .xc-img,
+.xc.is-video-playing .xc-img {
+  opacity: 0;
+}
+
+.xc-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+  transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+
+.xc.has-video:hover .xc-video,
+.xc.is-video-playing .xc-video {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 1;
 }
 
 .xc-shade {

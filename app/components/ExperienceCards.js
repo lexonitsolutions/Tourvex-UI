@@ -2,7 +2,7 @@
 
 import { CmsLink } from "./CmsLink";
 import { fmt } from "../lib/format";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { formatPrice } from "../lib/api";
 import "../experience-cards.css";
 
@@ -43,8 +43,37 @@ const Card = memo(function Card({ card, count, from, copy }) {
       ? copy.statsFallback
       : `${fmt(count === 1 ? copy.countOne : copy.countMany, { count })}${from ? ` ${fmt(copy.fromSuffix, { price: formatPrice(from.amount, from.currency) })}` : ""}`;
 
+  const videoUrl = typeof card.video === "string" ? card.video : card.video?.url;
+  const videoRef = useRef(null);
+  const [videoActive, setVideoActive] = useState(false);
+
+  const handleMouseEnter = () => {
+    if (videoUrl && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setVideoActive(true))
+          .catch(() => setVideoActive(true));
+      } else {
+        setVideoActive(true);
+      }
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (videoUrl && videoRef.current) {
+      videoRef.current.pause();
+      setVideoActive(false);
+    }
+  };
+
   return (
-    <li className="xc">
+    <li
+      className={`xc${videoUrl ? " has-video" : ""}${videoActive ? " is-video-playing" : ""}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <CmsLink
         className="xc-link"
         href={`/activities?activity=${encodeURIComponent(card.category)}`}
@@ -58,6 +87,18 @@ const Card = memo(function Card({ card, count, from, copy }) {
           decoding="async"
           onError={showFallback}
         />
+        {videoUrl ? (
+          <video
+            ref={videoRef}
+            className="xc-video"
+            src={videoUrl}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden="true"
+          />
+        ) : null}
         <span className="xc-shade" aria-hidden="true" />
         <span className="xc-body">
           <span className="xc-icon">{ICONS[card.icon]}</span>

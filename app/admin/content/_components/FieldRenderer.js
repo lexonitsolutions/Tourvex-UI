@@ -10,12 +10,13 @@ import SchemaForm from "./SchemaForm";
 import ListField from "./ListField";
 import LinkField from "./LinkField";
 import ImageField from "./ImagePicker";
+import VideoField from "./VideoPicker";
 import RichTextField from "./RichTextField";
 import HolidayPackagePicker from "./HolidayPackagePicker";
 import CruiseCardPicker from "./CruiseCardPicker";
 import EventCardPicker from "./EventCardPicker";
 
-const WIDE = new Set(["text", "textarea", "richtext", "image", "link", "list", "group"]);
+const WIDE = new Set(["text", "textarea", "richtext", "image", "video", "link", "list", "group"]);
 const HEX = /^#[0-9a-f]{6}$/i;
 
 function TextControl({ field, value, path, multiline }) {
@@ -107,6 +108,9 @@ function FieldRenderer({ field, value, path }) {
       break;
     case "image":
       body = <ImageField field={field} value={value} path={path} />;
+      break;
+    case "video":
+      body = <VideoField field={field} value={value} path={path} />;
       break;
     case "link":
       body = <LinkField field={field} value={value} path={path} />;

@@ -69,6 +69,8 @@ export function defaultValue(field) {
   switch (field.type) {
     case "image":
       return { url: "", alt: "" };
+    case "video":
+      return { url: "" };
     case "link":
       return { label: "", href: "" };
     case "toggle":
@@ -247,6 +249,20 @@ export function checkUpload(file) {
   if (!file) return "Choose an image file.";
   if (!UPLOAD_TYPES.includes(file.type)) return "Only PNG, JPEG, WebP or AVIF images can be uploaded (SVG is not allowed).";
   if (file.size > UPLOAD_MAX_BYTES) return `This file is ${(file.size / 1048576).toFixed(1)} MB. The limit is 5 MB.`;
+  return "";
+}
+
+export const UPLOAD_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
+export const UPLOAD_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
+
+export function checkVideoUpload(file) {
+  if (!file) return "Choose a video file.";
+  if (!UPLOAD_VIDEO_TYPES.includes(file.type) && !/\.(mp4|webm|mov|ogg)$/i.test(file.name)) {
+    return "Only MP4, WebM, MOV or OGG video clips can be uploaded.";
+  }
+  if (file.size > UPLOAD_VIDEO_MAX_BYTES) {
+    return `This file is ${(file.size / 1048576).toFixed(1)} MB. The limit is 50 MB.`;
+  }
   return "";
 }
 
@@ -659,13 +675,13 @@ const enc = encodeURIComponent;
 export const listOf = (res) => (Array.isArray(res) ? res : res?.items || res?.revisions || res?.documents || []);
 
 /** XHR upload so the dialog can show real progress (fetch has no upload progress events). */
-function uploadMedia(getAccessToken, file, { onProgress, signal } = {}) {
+function uploadMedia(getAccessToken, file, { onProgress, signal, endpoint = "/admin/media" } = {}) {
   return new Promise((resolve, reject) => {
     getAccessToken().then((token) => {
       const xhr = new XMLHttpRequest();
       const form = new FormData();
       form.append("file", file);
-      xhr.open("POST", `${API_BASE_URL}/admin/media`);
+      xhr.open("POST", `${API_BASE_URL}${endpoint}`);
       xhr.setRequestHeader("Accept", "application/json");
       if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.upload.onprogress = (e) => {
@@ -716,6 +732,7 @@ export function useCmsApi() {
       previewToken: (key) => api.post(`/admin/content/${enc(key)}/preview-token`),
       mediaList: (query, options) => api.get("/admin/media", { ...options, query }),
       upload: (file, options) => uploadMedia(getAccessToken, file, options),
+      uploadVideo: (file, options) => uploadMedia(getAccessToken, file, { ...options, endpoint: "/admin/media/video" }),
     }),
     [api, getAccessToken]
   );
