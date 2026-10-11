@@ -2,11 +2,10 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, ExternalLink, Package, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ExternalLink, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { API_BASE_URL } from "../../../lib/api";
 import { useFormContext } from "./formContext";
 import { resolveMediaUrl } from "../../_lib/cms";
-import { cx } from "../../_kit";
 
 const FALLBACK_IMG = "/images/destination-03.jpg";
 
