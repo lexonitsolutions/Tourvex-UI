@@ -631,7 +631,10 @@
   aspect-ratio: 16 / 10;
   overflow: hidden;
   background: #eef2f5;
+  touch-action: pan-y;
+  cursor: grab;
 }
+.hol-pkg-media:active { cursor: grabbing; }
 
 .hol-pkg-img-link {
   display: block;
@@ -644,6 +647,12 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: hol-pkg-image-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  user-select: none;
+}
+@keyframes hol-pkg-image-in {
+  from { opacity: 0.72; transform: translate3d(14px, 0, 0) scale(1.015); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .hol-pkg-card:hover .hol-pkg-media img {

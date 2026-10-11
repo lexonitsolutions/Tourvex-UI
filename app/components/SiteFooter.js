@@ -121,17 +121,13 @@ const EXPERIENCES_LINKS = [
   { label: "Holiday Packages", href: "/holidays" },
   { label: "Destinations", href: "/destination" },
   { label: "Cruises & Sailings", href: "/cruises" },
-  { label: "Upcoming Events", href: "/events" },
   { label: "Visa Services", href: "/visas" },
-  { label: "Explore Tours", href: "/tours" },
 ];
 
 const COMPANY_LINKS = [
   { label: "About Karnish", href: "/about" },
   { label: "Our Services", href: "/services" },
   { label: "Our Team", href: "/team" },
-  { label: "Travel Blog", href: "/blog" },
-  { label: "Contact Us", href: "/contact" },
   { label: "Partner with Us", href: "/partners" },
 ];
 
@@ -139,15 +135,11 @@ const SUPPORT_LINKS = [
   { label: "Help & Support", href: "/support" },
   { label: "My Bookings", href: "/bookings" },
   { label: "Saved Wishlist", href: "/wishlist" },
-  { label: "Search All", href: "/search" },
-  { label: "Sign In", href: "/login" },
-  { label: "Create Account", href: "/register" },
 ];
 
 const DESTINATIONS_LINKS = [
   { label: "Dubai Experiences", href: "/activities?destination=Dubai" },
   { label: "Abu Dhabi Packages", href: "/activities?destination=Abu%20Dhabi" },
-  { label: "Sharjah Sightseeing", href: "/activities?destination=Sharjah" },
   { label: "Ras Al Khaimah Tours", href: "/activities?destination=Ras%20Al%20Khaimah" },
   { label: "Featured Holidays", href: "/holidays" },
   { label: "Concerts & Shows", href: "/events" },
@@ -156,8 +148,6 @@ const DESTINATIONS_LINKS = [
 const LEGAL_LINKS = [
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms & Conditions", href: "/terms" },
-  { label: "Contact Us", href: "/contact" },
-  { label: "Partner with Us", href: "/partners" },
 ];
 
 export default async function SiteFooter({ content }) {
@@ -181,16 +171,18 @@ export default async function SiteFooter({ content }) {
 
   return (
     <footer className="mk-footer">
+      <img
+        src="/footer-assets/footer-travel-bg.png"
+        alt=""
+        className="mk-footer-bg"
+        aria-hidden="true"
+      />
       {/* ── Top CTA bar ── */}
       <div className="mk-footer-cta-bar">
         <div className="mk-container mk-footer-cta-inner">
           <div className="mk-footer-cta-text">
             <span className="mk-footer-cta-label">✦ Your next adventure awaits</span>
             <p>Holidays, cruises, events &amp; more — all in one place.</p>
-          </div>
-          <div className="mk-footer-cta-actions">
-            <Link href="/holidays" className="mk-footer-cta-btn is-primary">Explore Packages</Link>
-            <Link href="/contact" className="mk-footer-cta-btn is-outline">Talk to an Expert</Link>
           </div>
         </div>
       </div>
@@ -219,7 +211,7 @@ export default async function SiteFooter({ content }) {
             <a href={`mailto:${email}`} className="mk-footer-contact-row">
               <IconMail /><span>{email}</span>
             </a>
-            <span className="mk-footer-contact-row" style={{ alignItems: "flex-start" }}>
+            <span className="mk-footer-contact-row">
               <IconPin /><span>{address}</span>
             </span>
           </address>
@@ -291,8 +283,6 @@ export default async function SiteFooter({ content }) {
       </div>
 
       {/* ── Divider ── */}
-      <div className="mk-footer-divider" />
-
       {/* ── Bottom bar ── */}
       <div className="mk-container mk-footer-bottom">
         <span className="mk-footer-copy">

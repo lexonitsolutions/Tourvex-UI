@@ -4,7 +4,7 @@ import Link from "next/link";
 import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { formatPrice } from "../../lib/api";
 import { useRouter } from "next/navigation";
-import { isWishlisted, subscribeWishlist, toggleWishlist } from "../../lib/holidays";
+import { getHoliday, isWishlisted, subscribeWishlist, toggleWishlist } from "../../lib/holidays";
 import { currentPath, loginUrlFor, rememberPendingWish } from "../../lib/wishlistAuth";
 import { useApp } from "../AppProvider";
 import ShowcaseCard from "../ShowcaseCard";
@@ -230,6 +230,12 @@ export const HolidayWhatsAppButton = memo(function HolidayWhatsAppButton({
 
 export const HolidayPackageCard = memo(function HolidayPackageCard({ item, reveal = true, style }) {
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [loadedImages, setLoadedImages] = useState(null);
+  const swipeStartX = useRef(null);
+  const suppressClick = useRef(false);
+  const manualUntil = useRef(0);
+  const galleryRequested = useRef(false);
 
   const nights = item?.durationNights || 1;
   const days = item?.durationDays || nights + 1;
@@ -238,20 +244,36 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
   const priceObj = item?.salePrice || item?.price;
   const displayPrice = priceObj ? formatPrice(priceObj.amount, priceObj.currency || "AED") : "Price on request";
 
-  const allImages = item?.images?.length
+  const initialImages = item?.images?.length
     ? item.images.map((img) => (typeof img === "string" ? img : img.url))
     : [item?.coverImage || FALLBACK_IMG];
+  const allImages = loadedImages?.length ? loadedImages : initialImages;
+
+  const startHover = () => {
+    setIsHovered(true);
+    if (allImages.length > 1 || galleryRequested.current || !item?.slug) return;
+    galleryRequested.current = true;
+    getHoliday(item.slug)
+      .then((result) => {
+        const gallery = result?.package?.images
+          ?.map((image) => (typeof image === "string" ? image : image?.url))
+          .filter(Boolean);
+        if (gallery?.length) setLoadedImages(gallery);
+      })
+      .catch(() => undefined);
+  };
 
   useEffect(() => {
-    if (allImages.length <= 1) return undefined;
+    if (!isHovered || allImages.length <= 1) return undefined;
 
     const intervalId = window.setInterval(() => {
       if (document.hidden) return;
+      if (Date.now() < manualUntil.current) return;
       setActiveImgIndex((current) => (current + 1) % allImages.length);
-    }, 3000);
+    }, 1300);
 
     return () => window.clearInterval(intervalId);
-  }, [allImages.length]);
+  }, [allImages.length, isHovered]);
 
   const currentImage = allImages[activeImgIndex] || item?.coverImage || FALLBACK_IMG;
   const detailHref = `/holidays/${item?.slug || ""}`;
@@ -264,20 +286,59 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
   const mailUrl = `/contact?subject=${encodeURIComponent(`Enquiry: ${item?.title || "Holiday"}`)}`;
 
   const stopProp = (e) => e.stopPropagation();
+  const moveImage = useCallback((direction) => {
+    if (allImages.length <= 1) return;
+    manualUntil.current = Date.now() + 8000;
+    setActiveImgIndex((current) => (current + direction + allImages.length) % allImages.length);
+  }, [allImages.length]);
+
+  const beginSwipe = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    swipeStartX.current = e.clientX;
+    suppressClick.current = false;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+
+  const endSwipe = (e) => {
+    if (swipeStartX.current === null) return;
+    const distance = swipeStartX.current - e.clientX;
+    swipeStartX.current = null;
+    if (Math.abs(distance) < 32) return;
+    suppressClick.current = true;
+    moveImage(distance > 0 ? 1 : -1);
+  };
 
   return (
     <article
       className="hol-pkg-card"
       data-reveal={reveal ? "up" : undefined}
       style={style}
+      onMouseEnter={startHover}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="hol-pkg-media">
-        <Link href={detailHref} className="hol-pkg-img-link" tabIndex={-1}>
+      <div
+        className="hol-pkg-media"
+        onPointerDown={beginSwipe}
+        onPointerUp={endSwipe}
+        onPointerCancel={() => { swipeStartX.current = null; }}
+      >
+        <Link
+          href={detailHref}
+          className="hol-pkg-img-link"
+          tabIndex={-1}
+          onClick={(e) => {
+            if (!suppressClick.current) return;
+            e.preventDefault();
+            suppressClick.current = false;
+          }}
+        >
           <img
+            key={activeImgIndex}
             src={currentImage}
             alt={item?.title || "Holiday package"}
             loading="lazy"
             decoding="async"
+            draggable="false"
             onError={showFallback}
           />
         </Link>
@@ -293,17 +354,20 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
           </div>
         )}
 
-        <div className="hol-pkg-dots" role="tablist" aria-label="Photos" onClick={stopProp}>
-          {(allImages.length > 1 ? allImages.slice(0, 4) : [0, 1, 2]).map((_, idx) => (
+        {allImages.length > 1 && <div className="hol-pkg-dots" role="tablist" aria-label="Photos" onClick={stopProp}>
+          {allImages.slice(0, 4).map((_, idx) => (
             <button
               key={idx}
               type="button"
               className={`hol-pkg-dot${idx === activeImgIndex ? " is-active" : ""}`}
               aria-label={`View photo ${idx + 1}`}
-              onClick={() => setActiveImgIndex(idx % allImages.length)}
+              onClick={() => {
+                manualUntil.current = Date.now() + 8000;
+                setActiveImgIndex(idx % allImages.length);
+              }}
             />
           ))}
-        </div>
+        </div>}
       </div>
 
       <div className="hol-pkg-body">

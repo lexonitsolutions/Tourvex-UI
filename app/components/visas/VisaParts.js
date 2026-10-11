@@ -47,15 +47,29 @@ export const IconGlobe = (p) => icon(<><circle cx="12" cy="12" r="9" /><path d="
 
 /* Flag --------------------------------------------------------------- */
 
-const hideBroken = (e) => {
-  e.currentTarget.style.visibility = "hidden";
+const onFlagError = (e, code) => {
+  const c = String(code || "").toLowerCase();
+  if (c && !e.currentTarget.src.includes("flagcdn.com")) {
+    e.currentTarget.src = `https://flagcdn.com/${c}.svg`;
+  } else {
+    e.currentTarget.style.visibility = "hidden";
+  }
 };
 
 /** Decorative 4:3 flag (the country name is always shown as text next to it). */
 export const Flag = memo(function Flag({ code, className = "" }) {
   return (
     <span className={`vis-flag ${className}`} aria-hidden="true">
-      {code && <img src={`/flags/${String(code).toLowerCase()}.svg`} alt="" width="160" height="120" decoding="async" onError={hideBroken} />}
+      {code && (
+        <img
+          src={`/flags/${String(code).toLowerCase()}.svg`}
+          alt=""
+          width="160"
+          height="120"
+          decoding="async"
+          onError={(e) => onFlagError(e, code)}
+        />
+      )}
     </span>
   );
 });

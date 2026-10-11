@@ -7,7 +7,7 @@ import { AppContext, useApp } from "../components/AppProvider";
  * LOCAL DEVELOPMENT ONLY. Lets the admin be used and tested on a developer machine without a Clerk login.
  *
  * It applies only when ALL of these hold: this is a development build (NODE_ENV=development), the page is served from localhost,
- * there is no real Clerk session, and the visitor has not switched it off. It then presents a local administrator and sends a fixed
+ * and the visitor has not switched it off. It then presents a local administrator and sends a fixed
  * development token, which the API accepts only in development with DEV_AUTH_ENABLED=true, from this machine (see Tourvex-API
  * src/auth/dev-auth.ts). In a production build this component renders its children untouched.
  *
@@ -42,7 +42,10 @@ export default function DevAdminSession({ children }) {
     setEnabled(readEnabled());
   }, []);
 
-  const active = IS_DEV_BUILD && enabled && app.ready && !app.user;
+  // Prefer the explicit local developer session even if a marketplace Clerk user is already signed in.
+  // Otherwise visiting /admin while signed in as a customer incorrectly produces "No admin access".
+  // The badge below still lets a developer opt into the real Clerk session when required.
+  const active = IS_DEV_BUILD && enabled && app.ready;
   const value = useMemo(
     () => (active ? { ...app, user: DEV_USER, getAccessToken: () => Promise.resolve(DEV_TOKEN), logout: () => undefined } : app),
     [active, app]

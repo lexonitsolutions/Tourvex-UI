@@ -261,6 +261,21 @@ export default function CatalogEditor({ config, record }) {
         <div className="adm-cms-bar__title">
           <Link href={`/admin/catalog/${type}`} className="adm-backlink adm-cat-back"><Icon name="chevronLeft" size={15} />{config.plural}</Link>
           <div className="adm-cms-bar__row">
+            {type === "visas" && state.value?.countryCode ? (
+              <span className="adm-cat-header-flag" title={state.value.country || state.value.countryCode}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/flags/${state.value.countryCode.toLowerCase()}.svg`}
+                  alt=""
+                  onError={(e) => {
+                    const c = state.value.countryCode.toLowerCase();
+                    if (!e.currentTarget.src.includes("flagcdn.com")) {
+                      e.currentTarget.src = `https://flagcdn.com/${c}.svg`;
+                    }
+                  }}
+                />
+              </span>
+            ) : null}
             <h1>{title}</h1>
             {isNew ? <StatusBadge tone="neutral">New</StatusBadge> : <StatusBadge tone={meta.published ? "success" : "neutral"}>{meta.published ? "Published" : "Unpublished"}</StatusBadge>}
             {meta.isSample ? <span className="adm-chip" title="Sample / demo content">Sample</span> : null}

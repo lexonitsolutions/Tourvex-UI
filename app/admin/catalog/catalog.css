@@ -155,3 +155,66 @@
    (its inner wrapper may shrink to nothing) to a sliver. Keep the title column readable; the table scrolls sideways instead. */
 .adm-root .adm-dt2__table td:has(.adm-cat-titlecell) { min-width: 300px; }
 .adm-root .adm-dt2__table td:has(.adm-cat-titlecell) .adm-dt2__cell { justify-items: start; text-align: left; }
+
+/* ------------------------------------------------------------------ country code & live flag preview */
+.adm-cat-countrycode-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.adm-cat-countrycode-row input {
+  max-width: 140px;
+}
+.adm-cat-flag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
+  border-radius: 12px;
+  background: var(--adm-surface-3);
+  border: 1px solid color-mix(in srgb, var(--adm-line) 75%, transparent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  flex: none;
+}
+.adm-cat-flag-img {
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.adm-cat-flag-fallback {
+  width: 28px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--adm-teal) 20%, var(--adm-surface));
+  color: var(--adm-brand-ink);
+}
+.adm-cat-flag-code {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--adm-ink);
+  letter-spacing: 0.04em;
+}
+.adm-cat-header-flag {
+  display: inline-flex;
+  align-items: center;
+  width: 32px;
+  height: 24px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--adm-line) 70%, transparent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex: none;
+}
+.adm-cat-header-flag img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

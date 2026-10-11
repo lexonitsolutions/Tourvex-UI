@@ -308,6 +308,7 @@
 
   /* Room for the bar, and a custom property other fixed elements can use ------------------------------- */
   .mk .mk-footer { padding-bottom: var(--mk-tabbar-h); }
+  .mk .mk-footer-bg { object-fit: cover; }
   .mk-acc-scroll { padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
   .mk-loc-currencies { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
 
@@ -388,8 +389,6 @@
   .mk .mk-footer-cta-bar { padding: 22px 0; }
   .mk .mk-footer-cta-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
   .mk .mk-footer-cta-text p { font-size: 17px; }
-  .mk .mk-footer-cta-actions { width: 100%; }
-  .mk .mk-footer-cta-btn { flex: 1; justify-content: center; }
   .mk .mk-footer-grid { grid-template-columns: 1fr 1fr; gap: 28px 20px; padding-top: 32px; padding-bottom: 32px; }
   .mk .mk-footer-brand { grid-column: 1 / -1; }
   .mk .mk-footer-logo { height: 42px; }

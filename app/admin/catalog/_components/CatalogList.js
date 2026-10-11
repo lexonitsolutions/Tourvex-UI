@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAdminApi } from "../../_lib/adminApi";
 import { useAdminMe } from "../../_lib/AdminMeProvider";
 import { useAdminQuery } from "../../_lib/useAdminQuery";
@@ -30,18 +30,51 @@ function Cell({ kind, value }) {
   return value;
 }
 
+function MiniThumbnail({ image, fallbackCode, alt = "" }) {
+  const [src, setSrc] = useState(() => (image ? resolveMediaUrl(image) : null));
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setSrc(image ? resolveMediaUrl(image) : null);
+    setFailed(false);
+  }, [image]);
+
+  if (!src || failed) {
+    return (
+      <span className="adm-cat-mini is-text" aria-hidden="true">
+        {String(fallbackCode || "?").slice(0, 2).toUpperCase()}
+      </span>
+    );
+  }
+
+  return (
+    <span className="adm-cat-mini" aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onError={() => {
+          if (fallbackCode && !src.includes("flagcdn.com")) {
+            setSrc(`https://flagcdn.com/${String(fallbackCode).toLowerCase()}.svg`);
+          } else {
+            setFailed(true);
+          }
+        }}
+      />
+    </span>
+  );
+}
+
 function TitleCell({ config, item, href }) {
-  const image = item.coverImage || item.image;
+  const isVisa = config.type === "visas" || Boolean(item.countryCode);
+  const flagUrl = item.flagUrl || (item.countryCode ? `/flags/${String(item.countryCode).toLowerCase()}.svg` : null);
+  const image = item.coverImage || item.image || (isVisa ? flagUrl : null);
+  const fallbackCode = item.countryCode || item.title || "?";
+
   return (
     <div className="adm-cat-titlecell">
-      <span className={image ? "adm-cat-mini" : "adm-cat-mini is-text"} aria-hidden="true">
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={resolveMediaUrl(image)} alt="" loading="lazy" />
-        ) : (
-          (item.countryCode || item.title || "?").slice(0, 2).toUpperCase()
-        )}
-      </span>
+      <MiniThumbnail image={image} fallbackCode={fallbackCode} alt={item.country || item.title || ""} />
       <span className="adm-cat-titlecell__text">
         <Link href={href} className="adm-cat-titlelink">{item.title || "Untitled"}</Link>
         <small>{item.slug ? `${config.publicPath}/${item.slug}` : "No slug"}</small>

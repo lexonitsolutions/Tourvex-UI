@@ -6,7 +6,7 @@
  * sessions ...) render them too. Importing this module once (see CatalogEditor) is enough.
  */
 
-import { memo, useId, useRef, useState } from "react";
+import { memo, useEffect, useId, useRef, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ImageOff, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { Button, Field, MoneyField, cx } from "../../_kit";
 import { Input } from "../../_ui/components/input";
@@ -388,3 +388,71 @@ registerFieldType("dates", Dates);
 registerFieldType("datetime", Datetime, { wide: false });
 registerFieldType("gallery", Gallery);
 registerFieldType("imageUrl", ImageUrl);
+
+/* ------------------------------------------------------------------ country code with live flag preview */
+
+const CountryCode = memo(function CountryCode({ field, value, path }) {
+  const { errors, readOnly, onChange } = useFormContext();
+  const code = String(value || "").toLowerCase().trim();
+  const [flagSrc, setFlagSrc] = useState(code && code.length === 2 ? `/flags/${code}.svg` : null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (code && code.length === 2) {
+      setFlagSrc(`/flags/${code}.svg`);
+      setHasError(false);
+    } else {
+      setFlagSrc(null);
+      setHasError(false);
+    }
+  }, [code]);
+
+  return (
+    <Field label={field.label} hint={hintOf(field)} error={errors[path]} required={field.required}>
+      {(a11y) => (
+        <div className="adm-cat-countrycode-wrap">
+          <div className="adm-cat-countrycode-row">
+            <Input
+              className={`${CONTROL} tw:uppercase`}
+              value={value || ""}
+              maxLength={2}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="e.g. ae, sa, tr"
+              disabled={readOnly}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^a-zA-Z]/g, "").toLowerCase();
+                onChange(path, val);
+              }}
+              {...a11y}
+            />
+            {code && code.length === 2 ? (
+              <div className="adm-cat-flag-badge" title={`Flag for ${code.toUpperCase()}`}>
+                {!hasError && flagSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={flagSrc}
+                    alt={code}
+                    className="adm-cat-flag-img"
+                    onError={() => {
+                      if (!flagSrc.includes("flagcdn.com")) {
+                        setFlagSrc(`https://flagcdn.com/${code}.svg`);
+                      } else {
+                        setHasError(true);
+                      }
+                    }}
+                  />
+                ) : (
+                  <span className="adm-cat-flag-fallback">{code.toUpperCase()}</span>
+                )}
+                <span className="adm-cat-flag-code">{code.toUpperCase()}</span>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
+    </Field>
+  );
+});
+
+registerFieldType("countryCode", CountryCode, { wide: false });
