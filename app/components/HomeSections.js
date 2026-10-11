@@ -400,10 +400,12 @@ export default function HomeSections({ sections = [], partners = null }) {
       <section className="mk-container mk-section" ref={bestRef}>
         <div className="mk-section-head" data-reveal>
           <h2>{c.heading}</h2>
-          <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
+          <CmsLink className="mk-link" href={c.viewAll?.href || "/activities"}>{c.viewAll?.label || "View all activities"}</CmsLink>
         </div>
-        {actError && <p className="mk-error">{c.errorMessage}</p>}
-        {!actError && <BestSellerCards items={items ? bestSelling : null} content={c} />}
+        {actError && !c.cards?.length && <p className="mk-error">{c.errorMessage}</p>}
+        {(!actError || c.cards?.length) && (
+          <BestSellerCards items={c.cards && c.cards.length > 0 ? c.cards : (items ? bestSelling : null)} content={c} />
+        )}
       </section>
     ),
 

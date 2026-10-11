@@ -17,35 +17,49 @@ const showFallback = (e) => {
 const VARIANTS = ["orange", "purple", "blue"];
 
 function priceOf(item) {
+  if (item.cmsPrice || item.priceText) {
+    return {
+      formatted: item.cmsPrice || item.priceText,
+      wasFormatted: item.cmsOldPrice || item.oldPriceText || null,
+    };
+  }
   const p = item.salePrice || item.price;
-  return p ? { amount: p.amount, currency: p.currency, was: item.salePrice ? item.price : null } : null;
+  if (!p) return null;
+  return {
+    formatted: formatPrice(p.amount, p.currency),
+    wasFormatted: item.salePrice ? formatPrice(item.price.amount, item.price.currency) : null,
+  };
 }
 
 const Card = memo(function Card({ item, index, copy }) {
   const price = priceOf(item);
-  const tag = item.categories?.[0] || (item.destinations || [])[0] || copy.fallbackTag;
+  const tag = item.tag || item.categories?.[0] || (item.destinations || [])[0] || copy?.fallbackTag || "Experience";
+  const href = item.href || item.link?.href || (item.slug ? `/activities/${item.slug}` : "/activities");
+  const imgSrc = item.imageUrl || item.image?.url || FALLBACK_IMG;
+  const ariaText = price ? fmt(copy?.cardAriaLabel || "{title}, from {price}", { title: item.title, price: price.formatted }) : item.title;
+
   return (
     <li className="bs" data-reveal>
       <div className={`bs-lift is-${VARIANTS[index % VARIANTS.length]}`}>
-        <CmsLink className="bs-link" href={`/activities/${item.slug}`} aria-label={price ? fmt(copy.cardAriaLabel, { title: item.title, price: formatPrice(price.amount, price.currency) }) : item.title}>
+        <CmsLink className="bs-link" href={href} aria-label={ariaText}>
           <span className="bs-wash" aria-hidden="true" />
           <span className="bs-index" aria-hidden="true">{String(index + 1).padStart(3, "0")}</span>
           <span className="bs-photo" aria-hidden="true">
-            <img src={item.imageUrl || FALLBACK_IMG} alt="" loading="lazy" decoding="async" onError={showFallback} />
+            <img src={imgSrc} alt="" loading="lazy" decoding="async" onError={showFallback} />
           </span>
           <span className="bs-panel">
-            <StockChip stock={item.stock} className="bs-stock" />
+            {item.stock && <StockChip stock={item.stock} className="bs-stock" />}
             <span className="bs-tag">{tag}</span>
             <span className="bs-title">{item.title}</span>
             <span className="bs-meta">
               {price ? (
                 <span className="bs-price">
-                  <small>{copy.fromLabel}</small>
-                  <strong>{formatPrice(price.amount, price.currency)}</strong>
-                  {price.was && <s>{formatPrice(price.was.amount, price.was.currency)}</s>}
+                  <small>{copy?.fromLabel || "From"}</small>
+                  <strong>{price.formatted}</strong>
+                  {price.wasFormatted && <s>{price.wasFormatted}</s>}
                 </span>
               ) : (
-                <span className="bs-price"><small>{copy.priceOnRequest}</small></span>
+                <span className="bs-price"><small>{copy?.priceOnRequest || "Price on request"}</small></span>
               )}
               <span className="bs-go" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
