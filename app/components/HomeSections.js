@@ -76,6 +76,28 @@ function ActivityCard({ item }) {
   );
 }
 
+function toHolidayCardItem(pkg, liveItems) {
+  const live = (liveItems || []).find((it) => (it.slug && it.slug === pkg.slug) || (it.id && it.id === pkg.packageId));
+  if (live) return live;
+
+  const nights = pkg.durationNights || parseInt(pkg.duration) || 2;
+  const days = pkg.durationDays || nights + 1;
+  const numPrice = pkg.price ? parseFloat(String(pkg.price).replace(/[^0-9.]/g, "")) : null;
+
+  return {
+    id: pkg.packageId || pkg.id || pkg.slug,
+    slug: pkg.slug,
+    title: pkg.title,
+    coverImage: (typeof pkg.image === "object" ? pkg.image?.url : pkg.image) || pkg.coverImage || FALLBACK_IMG,
+    country: pkg.country,
+    destinations: pkg.destinations || (pkg.country ? [pkg.country] : []),
+    durationNights: nights,
+    durationDays: days,
+    price: numPrice ? { amount: numPrice, currency: "AED" } : null,
+    salePrice: null,
+  };
+}
+
 function Skeletons({ count }) {
   return <ShowcaseSkeleton count={count} />;
 }
@@ -409,24 +431,32 @@ export default function HomeSections({ sections = [], partners = null }) {
       </section>
     ),
 
-    holidays: (c) => (
-      <section className="mk-container mk-section" ref={holidaysRef}>
-        <div className="mk-section-head" data-reveal>
-          <div>
-            <h2>{c.heading}</h2>
-            <p className="mk-sub">{c.subheading}</p>
+    holidays: (c) => {
+      const liveItems = holidayData?.featured || holidayData?.recent || [];
+      const hasChosen = Array.isArray(c.packages) && c.packages.length > 0;
+      const itemsToShow = hasChosen
+        ? c.packages.map((p) => toHolidayCardItem(p, liveItems))
+        : (holidayData ? featuredHolidays : null);
+
+      return (
+        <section className="mk-container mk-section" ref={holidaysRef}>
+          <div className="mk-section-head" data-reveal>
+            <div>
+              <h2>{c.heading}</h2>
+              <p className="mk-sub">{c.subheading}</p>
+            </div>
+            <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
           </div>
-          <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
-        </div>
-        <div className="mk-grid mk-grid-4">
-          {holidayData
-            ? featuredHolidays.length > 0
-              ? featuredHolidays.map((it) => <HolidayCard key={it.id || it.slug} item={it} reveal />)
-              : <p className="mk-empty">{c.emptyMessage}</p>
-            : <HolidaySkeletons count={4} />}
-        </div>
-      </section>
-    ),
+          <div className="mk-grid mk-grid-4">
+            {itemsToShow
+              ? itemsToShow.length > 0
+                ? itemsToShow.map((it) => <HolidayCard key={it.id || it.slug} item={it} reveal />)
+                : <p className="mk-empty">{c.emptyMessage}</p>
+              : <HolidaySkeletons count={4} />}
+          </div>
+        </section>
+      );
+    },
 
     cruises: (c) =>
       (cruiseData === null || featuredCruises.length > 0) && (

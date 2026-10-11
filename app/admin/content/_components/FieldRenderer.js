@@ -11,6 +11,7 @@ import ListField from "./ListField";
 import LinkField from "./LinkField";
 import ImageField from "./ImagePicker";
 import RichTextField from "./RichTextField";
+import HolidayPackagePicker from "./HolidayPackagePicker";
 
 const WIDE = new Set(["text", "textarea", "richtext", "image", "link", "list", "group"]);
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -126,7 +127,11 @@ function FieldRenderer({ field, value, path }) {
       body = <ColorControl field={field} value={value} path={path} />;
       break;
     case "list":
-      body = <ListField field={field} value={value} path={path} />;
+      if (field.name === "packages") {
+        body = <HolidayPackagePicker field={field} value={value} path={path} />;
+      } else {
+        body = <ListField field={field} value={value} path={path} />;
+      }
       break;
     case "group":
       body = <GroupControl field={field} value={value} path={path} />;

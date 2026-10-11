@@ -268,7 +268,8 @@ const pageHome = {
           "label": "View all holidays",
           "href": "/holidays"
         },
-        "emptyMessage": "No holiday packages available right now."
+        "emptyMessage": "No holiday packages available right now.",
+        "packages": []
       }
     },
     {
