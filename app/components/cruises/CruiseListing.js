@@ -12,7 +12,7 @@ function Select({ id, label, value, onChange, children }) {
     <div className="cr-filter">
       <label htmlFor={id}>{label}</label>
       <span className="hol-select">
-        <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>{children}</select>
+        <select id={id} value={value} onChange={(e) => onChange(e.target.value)} suppressHydrationWarning>{children}</select>
         <IconChevron dir="down" width="16" height="16" />
       </span>
     </div>

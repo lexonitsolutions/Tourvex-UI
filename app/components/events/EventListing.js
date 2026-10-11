@@ -12,7 +12,7 @@ function Select({ id, label, value, onChange, children }) {
     <div className="ev-filter">
       <label htmlFor={id}>{label}</label>
       <span className="hol-select">
-        <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>{children}</select>
+        <select id={id} value={value} onChange={(e) => onChange(e.target.value)} suppressHydrationWarning>{children}</select>
         <IconChevron dir="down" width="16" height="16" />
       </span>
     </div>
@@ -159,11 +159,11 @@ export default function EventListing({ scope, initial }) {
           )}
           <div className="ev-filter">
             <label htmlFor="ev-from">From date</label>
-            <input id="ev-from" className="ev-date-input" type="date" value={params.from} max={params.to || undefined} onChange={(e) => update({ from: e.target.value })} />
+            <input id="ev-from" className="ev-date-input" type="date" value={params.from} max={params.to || undefined} onChange={(e) => update({ from: e.target.value })} suppressHydrationWarning />
           </div>
           <div className="ev-filter">
             <label htmlFor="ev-to">To date</label>
-            <input id="ev-to" className="ev-date-input" type="date" value={params.to} min={params.from || undefined} onChange={(e) => update({ to: e.target.value })} />
+            <input id="ev-to" className="ev-date-input" type="date" value={params.to} min={params.from || undefined} onChange={(e) => update({ to: e.target.value })} suppressHydrationWarning />
           </div>
           <Select id="ev-sort" label="Sort by" value={params.sort} onChange={(v) => update({ sort: v })}>
             {EVENT_SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
