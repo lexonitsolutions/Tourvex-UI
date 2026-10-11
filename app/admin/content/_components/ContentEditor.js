@@ -296,6 +296,15 @@ export default function ContentEditor({ doc, initialSelected, onSelectedChange, 
     try {
       const res = await cms.publish(doc.key, note, metaRef.current.draftRevision);
       clearLocal(doc.key);
+      try {
+        await fetch("/api/revalidate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tag: "cms", path: "/" }),
+        });
+      } catch {
+        /* non-fatal revalidation attempt */
+      }
       toast.success(`Published version ${res?.version ?? meta.version + 1}`);
       setDialog(null);
       baseSig.current = sig(valueRef.current);

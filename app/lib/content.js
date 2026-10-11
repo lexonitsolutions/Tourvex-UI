@@ -67,10 +67,11 @@ async function readPreviewToken() {
 
 async function request(keys, token) {
   const query = `keys=${keys.map(encodeURIComponent).join(",")}${token ? `&preview=${encodeURIComponent(token)}` : ""}`;
+  const isDev = process.env.NODE_ENV === "development";
   const response = await fetch(`${BASE}/content?${query}`, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(TIMEOUT_MS),
-    ...(token ? { cache: "no-store" } : { next: { revalidate: REVALIDATE_SECONDS } }),
+    ...(token || isDev ? { cache: "no-store" } : { next: { revalidate: REVALIDATE_SECONDS } }),
   });
   if (!response.ok) throw new Error(`content request failed (${response.status})`);
   const body = await response.json();
@@ -90,7 +91,8 @@ function build(keys, result) {
  */
 async function loadPublished() {
   "use cache";
-  cacheLife({ stale: 300, revalidate: 60, expire: 86400 });
+  const isDev = process.env.NODE_ENV === "development";
+  cacheLife(isDev ? { stale: 1, revalidate: 1, expire: 5 } : { stale: 300, revalidate: 60, expire: 86400 });
   cacheTag("cms");
   let result = null;
   try {

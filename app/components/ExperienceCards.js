@@ -69,6 +69,19 @@ const Card = memo(function Card({ card, count, from, copy }) {
   );
 });
 
+function findCategoryItems(stats, categoryName) {
+  if (!categoryName) return [];
+  if (stats.has(categoryName)) return stats.get(categoryName);
+  const clean = categoryName.trim().toLowerCase();
+  for (const [cat, list] of stats.entries()) {
+    const cClean = cat.toLowerCase();
+    if (cClean === clean || cClean.includes(clean) || clean.includes(cClean)) {
+      return list;
+    }
+  }
+  return [];
+}
+
 /**
  * Home page "Explore by Experience" cards: full-bleed photo, themed gradient, glowing edge and a glass "Explore Now"
  * bar. Counts and "from" prices come from the real catalog (`items`); nothing is invented while it loads.
@@ -78,6 +91,7 @@ function ExperienceCards({ items, content }) {
     const map = new Map();
     (items || []).forEach((it) =>
       (it.categories || []).forEach((c) => {
+        if (!c) return;
         const entry = map.get(c) || [];
         entry.push(it);
         map.set(c, entry);
@@ -89,7 +103,7 @@ function ExperienceCards({ items, content }) {
   return (
     <ul className="xc-grid" role="list">
       {content.cards.map((card) => {
-        const list = stats.get(card.category) || [];
+        const list = findCategoryItems(stats, card.category);
         return <Card key={card.id} card={card} count={items ? list.length : null} from={items ? cheapest(list) : null} copy={content} />;
       })}
     </ul>
