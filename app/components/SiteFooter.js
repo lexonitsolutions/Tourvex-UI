@@ -2,52 +2,79 @@ import Link from "next/link";
 import { cacheLife } from "next/cache";
 import { fmt } from "../lib/format";
 
-/* Inline SVG social icons — clean, accessible, zero extra dependency */
+/* Official brand SVG social icons — pixel-perfect authentic logos */
 function IconFacebook() {
   return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    <svg viewBox="0 0 34 34" width="34" height="34" fill="none" aria-hidden="true">
+      <rect width="34" height="34" rx="8" fill="#1877F2" />
+      <path
+        d="M23 17.5h-3.8v10h-4.2v-10h-2v-3.6h2v-2.3c0-2.8 1.7-4.4 4.3-4.4 1.2 0 2.3.1 2.6.1v3h-1.8c-1.3 0-1.6.6-1.6 1.6v2h3.4l-.5 3.6z"
+        fill="#ffffff"
+      />
     </svg>
   );
 }
 
 function IconInstagram() {
   return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" r="0.75" fill="currentColor" stroke="none" />
+    <svg viewBox="0 0 34 34" width="34" height="34" fill="none" aria-hidden="true">
+      <defs>
+        <radialGradient id="mk-ig-grad" cx="20%" cy="115%" r="130%" fx="20%" fy="115%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="5%" stopColor="#fdf497" />
+          <stop offset="45%" stopColor="#fd5949" />
+          <stop offset="60%" stopColor="#d6249f" />
+          <stop offset="90%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect width="34" height="34" rx="8" fill="url(#mk-ig-grad)" />
+      <rect x="7.5" y="7.5" width="19" height="19" rx="5.5" stroke="#ffffff" strokeWidth="2" fill="none" />
+      <circle cx="17" cy="17" r="4.5" stroke="#ffffff" strokeWidth="2" fill="none" />
+      <circle cx="22.5" cy="11.5" r="1.3" fill="#ffffff" />
     </svg>
   );
 }
 
 function IconX() {
   return (
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    <svg viewBox="0 0 34 34" width="34" height="34" fill="none" aria-hidden="true">
+      <rect width="34" height="34" rx="8" fill="#000000" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
+      <path
+        d="M23.1 7.5h2.9l-6.3 7.2 7.4 9.8h-5.8l-4.6-6-5.2 6H8.6l6.8-7.7L8.2 7.5h6l4.1 5.5 4.8-5.5zm-1 15.3h1.6L13.5 9h-1.7l10.3 13.8z"
+        fill="#ffffff"
+      />
     </svg>
   );
 }
 
 function IconYouTube() {
   return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true">
-      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    <svg viewBox="0 0 34 34" width="34" height="34" fill="none" aria-hidden="true">
+      <rect width="34" height="34" rx="8" fill="#FF0000" />
+      <path
+        d="M26.2 12.3a2.5 2.5 0 0 0-1.8-1.8C22.8 10 17 10 17 10s-5.8 0-7.4.5a2.5 2.5 0 0 0-1.8 1.8A26.5 26.5 0 0 0 7.3 17c0 1.6.2 3.1.5 4.7a2.5 2.5 0 0 0 1.8 1.8c1.6.5 7.4.5 7.4.5s5.8 0 7.4-.5a2.5 2.5 0 0 0 1.8-1.8c.3-1.6.5-3.1.5-4.7 0-1.6-.2-3.1-.5-4.7z"
+        fill="#FF0000"
+      />
+      <path d="M15 20.5V13.5l6 3.5-6 3.5z" fill="#ffffff" />
     </svg>
   );
 }
 
 function IconLinkedIn() {
   return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+    <svg viewBox="0 0 34 34" width="34" height="34" fill="none" aria-hidden="true">
+      <rect width="34" height="34" rx="8" fill="#0A66C2" />
+      <path
+        d="M11.5 13.8H8.5v9.8h3v-9.8zM10 8.8c-1 0-1.7.7-1.7 1.7 0 .9.7 1.7 1.7 1.7s1.7-.8 1.7-1.7c0-1-.7-1.7-1.7-1.7zm14.5 7.7c0-2.7-1.4-4-3.4-4-1.6 0-2.3.9-2.7 1.5V13.8h-3v9.8h3v-5.5c0-1.5.3-2.9 2.1-2.9 1.8 0 1.8 1.7 1.8 3v5.4h3.1v-6.1z"
+        fill="#ffffff"
+      />
     </svg>
   );
 }
 
 function IconPhone() {
   return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.6a16 16 0 006.29 6.29l1.23-1.23a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" />
     </svg>
   );
@@ -55,7 +82,7 @@ function IconPhone() {
 
 function IconMail() {
   return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
       <polyline points="22,6 12,13 2,6" />
     </svg>
@@ -64,7 +91,7 @@ function IconMail() {
 
 function IconPin() {
   return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
