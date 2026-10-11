@@ -142,156 +142,204 @@ function VideoUploader({ onUploaded, picked }) {
   const cms = useCmsApi();
   const toast = useToast();
   const [state, setState] = useState({ status: "idle", progress: 0, error: "", name: "" });
-  const [dragging, setDragging] = useState(false);
-  const inputRef = useRef(null);
+  const [over, setOver] = useState(false);
+  const controller = useRef(null);
+  const inputId = useId();
 
-  async function handleFile(file) {
+  useEffect(() => () => controller.current?.abort(), []);
+
+  async function start(file) {
     if (!file) return;
     const problem = checkVideoUpload(file);
     if (problem) {
-      setState({ status: "error", progress: 0, error: problem, name: file.name });
+      setState({ status: "error", progress: 0, error: problem, name: file?.name || "" });
       toast.error(problem);
       return;
     }
+    controller.current = new AbortController();
     setState({ status: "uploading", progress: 0, error: "", name: file.name });
     try {
       const saved = await cms.uploadVideo(file, {
+        signal: controller.current.signal,
         onProgress: (p) => setState((s) => ({ ...s, progress: Math.round(p * 100) })),
       });
       setState({ status: "done", progress: 100, error: "", name: file.name });
       toast.success(`Uploaded ${file.name}`);
       onUploaded(saved);
-    } catch (e) {
-      const msg = e.message || "Video upload failed";
-      setState({ status: "error", progress: 0, error: msg, name: file.name });
-      toast.error(msg);
+    } catch (error) {
+      if (isAbortError(error)) {
+        setState({ status: "idle", progress: 0, error: "", name: "" });
+      } else {
+        const msg = error.message || "Video upload failed";
+        setState({ status: "error", progress: 0, error: msg, name: file.name });
+        toast.error(msg);
+      }
     }
   }
 
+  const pct = state.progress;
+
   return (
-    <div className="adm-cms-upload">
-      <div
-        className={cx("adm-cms-drop", dragging && "is-dragging", state.status === "uploading" && "is-busy")}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
+    <div className="adm-cms-up">
+      <label
+        htmlFor={inputId}
+        className={cx("adm-cms-drop", over && "is-over", state.status === "uploading" && "is-busy")}
+        onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+        onDragLeave={() => setOver(false)}
         onDrop={(e) => {
           e.preventDefault();
-          setDragging(false);
-          handleFile(e.dataTransfer.files?.[0]);
+          setOver(false);
+          if (state.status !== "uploading") start(e.dataTransfer.files?.[0]);
         }}
       >
-        <UploadCloud size={36} className="adm-cms-drop__icon" />
-        <p className="adm-cms-drop__title">Drag and drop a video clip here, or browse</p>
-        <p className="adm-cms-drop__sub">MP4, WebM, MOV or OGG · Up to 50 MB · 1:1, 4:5 or 16:9 ratio recommended</p>
+        <UploadCloud size={30} />
+        <b>Drop a video clip here, or click to browse</b>
+        <small>MP4, WebM, MOV or OGG · Up to 50 MB · 1:1, 4:5 or 16:9 ratio recommended</small>
         <input
-          ref={inputRef}
+          id={inputId}
           type="file"
+          className="adm-sr"
           accept="video/mp4,video/webm,video/quicktime,video/ogg"
-          className="tw:sr-only"
+          disabled={state.status === "uploading"}
           onChange={(e) => {
-            const f = e.target.files?.[0];
+            const file = e.target.files?.[0];
             e.target.value = "";
-            handleFile(f);
+            if (file) start(file);
           }}
         />
-        <Button size="sm" onClick={() => inputRef.current?.click()} disabled={state.status === "uploading"}>
-          Browse video file
-        </Button>
-      </div>
+      </label>
 
       {state.status === "uploading" ? (
-        <div className="adm-cms-upload__prog">
-          <p>Uploading {state.name}… {state.progress}%</p>
-          <Progress value={state.progress} />
+        <div className="adm-cms-up__progress" role="status">
+          <div className="adm-cms-up__row">
+            <span>Uploading {state.name}</span>
+            <span>{pct}%</span>
+          </div>
+          <Progress value={pct} aria-label="Upload progress" />
+          <Button size="sm" variant="ghost" onClick={() => controller.current?.abort()}>
+            Cancel
+          </Button>
         </div>
       ) : null}
 
       {state.error ? <p className="adm-field__error" role="alert">{state.error}</p> : null}
-      {picked?.url ? <p className="adm-field__hint">Current video: <code>{picked.url}</code></p> : null}
+
+      {picked?.url ? (
+        <div className="adm-cms-up__done">
+          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+          <video
+            src={resolveMediaUrl(picked.url)}
+            muted
+            playsInline
+            controls
+            style={{ width: 120, height: 80, objectFit: "cover", borderRadius: 10, background: "#000" }}
+          />
+          <div>
+            <b>{picked.filename || state.name || "Video selected"}</b>
+            <small>Press &quot;Use video&quot; below to apply to the card.</small>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function VideoByUrl({ currentUrl, onPick }) {
-  const [draft, setDraft] = useState(currentUrl || "");
-  const [tested, setTested] = useState(Boolean(currentUrl));
+function VideoByUrl({ picked, onPick }) {
+  const [text, setText] = useState(picked?.url || "");
+
+  function handleChange(val) {
+    setText(val);
+    const clean = val.trim();
+    if (clean) {
+      onPick({ url: clean });
+    } else {
+      onPick(null);
+    }
+  }
 
   return (
-    <div className="adm-cms-byurl">
-      <Field label="Video URL" hint="A site-relative path (e.g. /videos/desert-dunes.mp4) or an https:// link.">
+    <div className="adm-cms-urltab">
+      <Field
+        label="Video address"
+        hint="An uploaded video, a /videos/... path of the site, or an https:// URL."
+      >
         {(a11y) => (
           <Input
             className={CONTROL}
             type="text"
-            value={draft}
+            value={text}
             placeholder="/videos/experience-clip.mp4 or https://..."
-            onChange={(e) => {
-              setDraft(e.target.value.trim());
-              setTested(false);
-            }}
+            onChange={(e) => handleChange(e.target.value)}
             {...a11y}
           />
         )}
       </Field>
 
-      {draft ? (
-        <div className="adm-cms-video-url-preview">
-          <p className="adm-field__hint">Live preview:</p>
+      {text.trim() ? (
+        <div className="adm-cms-up__done">
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
-            src={resolveMediaUrl(draft)}
-            controls
+            src={resolveMediaUrl(text.trim())}
             playsInline
             muted
-            className="adm-cms-video-frame"
-            onLoadedData={() => setTested(true)}
-            onError={() => setTested(false)}
+            controls
+            style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 10, background: "#000" }}
           />
+          <div>
+            <b>Preview</b>
+            <small>If this stays blank or doesn&apos;t play, check the address or file format (MP4/WebM).</small>
+          </div>
         </div>
       ) : null}
-
-      <div className="tw:flex tw:justify-end tw:gap-2 tw:pt-3">
-        <Button size="sm" disabled={!draft.trim()} onClick={() => onPick({ url: draft.trim() })}>
-          Use this video
-        </Button>
-      </div>
     </div>
   );
 }
 
 export function VideoModal({ current, onClose, onPick }) {
   const [tab, setTab] = useState("upload");
+  const [picked, setPicked] = useState(current || null);
 
   return (
-    <Modal title="Choose video clip" description="Short clip shown when hovering on the card." open onClose={onClose} size="lg">
-      <Tabs tabs={TABS} active={tab} onChange={setTab} className="tw:mb-4" />
-      <TabPanel id="upload" active={tab}>
-        <VideoUploader
-          picked={current}
-          onUploaded={(media) => {
-            onPick(media);
-            onClose();
-          }}
+    <Modal
+      open
+      onClose={onClose}
+      size="lg"
+      title="Choose video clip"
+      description="Short clip shown when hovering on the card."
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            disabled={!picked?.url}
+            onClick={() => onPick(picked)}
+          >
+            Use video
+          </Button>
+        </>
+      }
+    >
+      <div className="adm-cms-picker">
+        <Tabs
+          tabs={TABS}
+          value={tab}
+          onChange={setTab}
+          idPrefix="adm-cms-vid"
+          variant="segmented"
+          label="Video source"
         />
-      </TabPanel>
-      <TabPanel id="url" active={tab}>
-        <VideoByUrl
-          currentUrl={current?.url}
-          onPick={(media) => {
-            onPick(media);
-            onClose();
-          }}
-        />
-      </TabPanel>
-      <TabPanel id="library" active={tab}>
-        <VideoLibrary
-          picked={current}
-          onPick={(media) => {
-            onPick(media);
-            onClose();
-          }}
-        />
-      </TabPanel>
+        <TabPanel id="upload" value={tab} idPrefix="adm-cms-vid">
+          <VideoUploader picked={picked} onUploaded={setPicked} />
+        </TabPanel>
+        <TabPanel id="url" value={tab} idPrefix="adm-cms-vid">
+          <VideoByUrl picked={picked} onPick={setPicked} />
+        </TabPanel>
+        <TabPanel id="library" value={tab} idPrefix="adm-cms-vid">
+          <VideoLibrary picked={picked} onPick={setPicked} />
+        </TabPanel>
+      </div>
     </Modal>
   );
 }
