@@ -2,7 +2,7 @@
 
 import { CmsLink } from "./CmsLink";
 import { fmt } from "../lib/format";
-import { memo, useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState, useEffect } from "react";
 import { formatPrice } from "../lib/api";
 import "../experience-cards.css";
 
@@ -37,7 +37,7 @@ function cheapest(list) {
   return best;
 }
 
-const Card = memo(function Card({ card, count, from, copy }) {
+const Card = memo(function Card({ card, count, from, copy, isHovered, onHover, onLeave }) {
   const stats =
     count == null
       ? copy.statsFallback
@@ -45,34 +45,42 @@ const Card = memo(function Card({ card, count, from, copy }) {
 
   const videoUrl = typeof card.video === "string" ? card.video : card.video?.url;
   const videoRef = useRef(null);
-  const [videoActive, setVideoActive] = useState(false);
+  const playPromiseRef = useRef(null);
 
-  const handleMouseEnter = () => {
-    if (videoUrl && videoRef.current) {
-      videoRef.current.currentTime = 0;
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setVideoActive(true))
-          .catch(() => setVideoActive(true));
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !videoUrl) return;
+
+    if (isHovered) {
+      try {
+        video.currentTime = 0;
+      } catch {}
+      const p = video.play();
+      playPromiseRef.current = p;
+      if (p !== undefined && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
+    } else {
+      const p = playPromiseRef.current;
+      if (p !== undefined && typeof p.then === "function") {
+        p.then(() => {
+          video.pause();
+        }).catch(() => {
+          video.pause();
+        });
       } else {
-        setVideoActive(true);
+        video.pause();
       }
     }
-  };
-
-  const handleMouseLeave = () => {
-    if (videoUrl && videoRef.current) {
-      videoRef.current.pause();
-      setVideoActive(false);
-    }
-  };
+  }, [isHovered, videoUrl]);
 
   return (
     <li
-      className={`xc${videoUrl ? " has-video" : ""}${videoActive ? " is-video-playing" : ""}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className={`xc${videoUrl ? " has-video" : ""}${isHovered ? " is-expanded" : ""}`}
+      onMouseEnter={() => onHover(card.id)}
+      onMouseLeave={onLeave}
+      onFocus={() => onHover(card.id)}
+      onBlur={onLeave}
     >
       <CmsLink
         className="xc-link"
@@ -95,7 +103,7 @@ const Card = memo(function Card({ card, count, from, copy }) {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
             aria-hidden="true"
           />
         ) : null}
@@ -128,11 +136,15 @@ function findCategoryItems(stats, categoryName) {
 }
 
 /**
- * Home page "Explore by Experience" cards: clean, modern, minimal rectangular cards (16px radius),
- * high-quality destination images, subtle dark gradient, bottom-left aligned icon, title, stats,
- * and white "Explore Now →" button.
+ * Home page "Explore by Experience" cards: premium accordion expanding card interaction.
+ * - Initial state: all six cards appear normally at equal widths with high-res cover photos.
+ * - On hover: the hovered card expands wider, neighbors shrink proportionally, and the image
+ *   smoothly cross-fades into the admin-uploaded video.
+ * - On mouse leave: the video fades out, image returns, and all cards smoothly return to equal sizes.
  */
 function ExperienceCards({ items, content }) {
+  const [hoveredId, setHoveredId] = useState(null);
+
   const stats = useMemo(() => {
     const map = new Map();
     (items || []).forEach((it) =>
@@ -147,7 +159,11 @@ function ExperienceCards({ items, content }) {
   }, [items]);
 
   return (
-    <ul className="xc-grid" role="list">
+    <ul
+      className={`xc-grid${hoveredId ? " has-active" : ""}`}
+      role="list"
+      onMouseLeave={() => setHoveredId(null)}
+    >
       {content.cards.map((card) => {
         const list = findCategoryItems(stats, card.category);
         return (
@@ -157,6 +173,9 @@ function ExperienceCards({ items, content }) {
             count={items ? list.length : null}
             from={items ? cheapest(list) : null}
             copy={content}
+            isHovered={hoveredId === card.id}
+            onHover={setHoveredId}
+            onLeave={() => {}}
           />
         );
       })}
