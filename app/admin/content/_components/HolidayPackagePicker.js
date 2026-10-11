@@ -2,10 +2,22 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, ExternalLink, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  ExternalLink,
+  Palmtree,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import { API_BASE_URL } from "../../../lib/api";
 import { useFormContext } from "./formContext";
 import { resolveMediaUrl } from "../../_lib/cms";
+import { Button, Modal, cx } from "../../_kit";
 
 const FALLBACK_IMG = "/images/destination-03.jpg";
 
@@ -38,19 +50,23 @@ function sanitizePackageItem(pkg) {
 }
 
 export function HolidayPackagePicker({ field, value, path }) {
-  const { readOnly, onChange } = useFormContext();
+  const { readOnly, onChange, errors } = useFormContext();
   const selectedList = useMemo(() => (Array.isArray(value) ? value : []), [value]);
 
+  const [modalOpen, setModalOpen] = useState(false);
   const [catalog, setCatalog] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(null);
   const [search, setSearch] = useState("");
+
+  const maxItems = field.max || 12;
+  const atMax = selectedList.length >= maxItems;
 
   const fetchCatalog = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/holidays?limit=50`, {
+      const res = await fetch(`${API_BASE_URL}/holidays?limit=100`, {
         headers: { Accept: "application/json" },
       });
       if (!res.ok) throw new Error(`Failed to load holidays (${res.status})`);
@@ -63,9 +79,12 @@ export function HolidayPackagePicker({ field, value, path }) {
     }
   }, []);
 
-  useEffect(() => {
-    fetchCatalog();
-  }, [fetchCatalog]);
+  const openPickerModal = useCallback(() => {
+    setModalOpen(true);
+    if (catalog.length === 0) {
+      fetchCatalog();
+    }
+  }, [catalog.length, fetchCatalog]);
 
   const selectedIndexMap = useMemo(() => {
     const map = new Map();
@@ -89,12 +108,12 @@ export function HolidayPackagePicker({ field, value, path }) {
         const next = selectedList.filter((_, idx) => idx !== existingIdx);
         onChange(path, next);
       } else {
-        if (selectedList.length >= (field.max || 12)) return;
+        if (selectedList.length >= maxItems) return;
         const newItem = sanitizePackageItem(pkg);
         onChange(path, [...selectedList, newItem]);
       }
     },
-    [readOnly, selectedIndexMap, selectedList, field.max, onChange, path]
+    [readOnly, selectedIndexMap, selectedList, maxItems, onChange, path]
   );
 
   const moveItem = useCallback(
@@ -131,79 +150,70 @@ export function HolidayPackagePicker({ field, value, path }) {
     );
   }, [catalog, search]);
 
+  const err = errors?.[path];
+
   return (
-    <div className="adm-hol-picker" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Header bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-          gap: 12,
-          paddingBottom: 8,
-          borderBottom: "1px solid var(--adm-line-soft)",
-        }}
-      >
+    <div className="adm-cms-list adm-hol-picker" style={{ display: "grid", gap: 12 }}>
+      {/* List Header */}
+      <div className="adm-cms-list__head">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <h3 style={{ margin: 0, fontSize: "var(--adm-fs-md)", fontWeight: 650, color: "var(--adm-ink)" }}>
-              {field.label || "Featured holiday package cards"}
-            </h3>
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                padding: "2px 8px",
-                borderRadius: 999,
-                background: selectedList.length > 0 ? "var(--adm-teal-soft)" : "var(--adm-fill-neutral)",
-                color: selectedList.length > 0 ? "var(--adm-brand-ink)" : "var(--adm-muted)",
-              }}
-            >
-              {selectedList.length} / {field.max || 12} chosen
-            </span>
-          </div>
-          <p style={{ margin: "4px 0 0", fontSize: "var(--adm-fs-sm)", color: "var(--adm-muted)" }}>
-            Select which holiday packages from your Catalog to showcase on the home page. If none are selected, recent catalog packages are shown automatically.
+          <h4 className="adm-cms-list__label">{field.label || "Featured holiday package cards"}</h4>
+          <p className="adm-field__hint">
+            {field.help ||
+              "Choose holiday packages from your catalogue to showcase on the home page. If none are selected, recent catalogue packages are shown automatically."}
           </p>
         </div>
-
-        <Link
-          href="/admin/catalog/holidays"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: "var(--adm-fs-xs)",
-            fontWeight: 600,
-            color: "var(--adm-link)",
-            textDecoration: "none",
-            padding: "4px 10px",
-            borderRadius: 8,
-            border: "1px solid var(--adm-line)",
-          }}
-        >
-          <span>Catalog &gt; Holidays</span>
-          <ExternalLink size={13} />
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span className="adm-cms-list__count">
+            {selectedList.length} / {maxItems} packages
+          </span>
+          <Link
+            href="/admin/catalog/holidays"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open Holidays Catalogue in new tab"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: "var(--adm-link)",
+              textDecoration: "none",
+              padding: "2px 8px",
+              borderRadius: 6,
+              border: "1px solid var(--adm-line)",
+              background: "var(--adm-surface)",
+            }}
+          >
+            <span>Catalogue</span>
+            <ExternalLink size={12} />
+          </Link>
+        </div>
       </div>
 
-      {/* Selected Showcase Tray */}
-      {selectedList.length > 0 && (
+      {err ? (
+        <p className="adm-field__error" role="alert">
+          {err}
+        </p>
+      ) : null}
+
+      {/* Selected Items Tray */}
+      {selectedList.length > 0 ? (
         <div
           style={{
+            display: "grid",
+            gap: 8,
+            padding: 12,
             background: "var(--adm-surface-2, var(--adm-fill-neutral))",
-            borderRadius: 14,
-            padding: 14,
             border: "1px solid var(--adm-line)",
+            borderRadius: 14,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <strong style={{ fontSize: "var(--adm-fs-sm)", color: "var(--adm-ink)" }}>
-              Selected for Home Page ({selectedList.length})
-            </strong>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 13, fontWeight: 650, color: "var(--adm-ink)" }}>
+              Showcase order on home page ({selectedList.length})
+            </span>
             {!readOnly && (
               <button
                 type="button"
@@ -215,6 +225,7 @@ export function HolidayPackagePicker({ field, value, path }) {
                   color: "var(--adm-danger)",
                   cursor: "pointer",
                   padding: "2px 6px",
+                  borderRadius: 4,
                 }}
               >
                 Clear all
@@ -225,8 +236,8 @@ export function HolidayPackagePicker({ field, value, path }) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-              gap: 10,
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 8,
             }}
           >
             {selectedList.map((item, index) => {
@@ -238,11 +249,10 @@ export function HolidayPackagePicker({ field, value, path }) {
                     display: "flex",
                     alignItems: "center",
                     gap: 10,
-                    padding: 8,
+                    padding: "8px 10px",
                     background: "var(--adm-surface)",
                     borderRadius: 10,
                     border: "1px solid var(--adm-line)",
-                    position: "relative",
                   }}
                 >
                   <span
@@ -266,8 +276,8 @@ export function HolidayPackagePicker({ field, value, path }) {
                     src={resolveMediaUrl(img)}
                     alt=""
                     style={{
-                      width: 48,
-                      height: 38,
+                      width: 50,
+                      height: 40,
                       borderRadius: 6,
                       objectFit: "cover",
                       flexShrink: 0,
@@ -292,9 +302,16 @@ export function HolidayPackagePicker({ field, value, path }) {
                     >
                       {item.title}
                     </div>
-                    <div style={{ fontSize: 11, color: "var(--adm-muted)", display: "flex", gap: 6 }}>
-                      <span>{item.duration || "2N / 3D"}</span>
-                      {item.country && <span>• {item.country}</span>}
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "var(--adm-muted)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.duration || "2N / 3D"} {item.country ? `• ${item.country}` : ""}
                     </div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: "var(--adm-text)" }}>
                       {item.price}
@@ -307,38 +324,38 @@ export function HolidayPackagePicker({ field, value, path }) {
                         type="button"
                         onClick={() => moveItem(index, -1)}
                         disabled={index === 0}
-                        title="Move left"
+                        title="Move left/up"
                         style={{
                           background: "transparent",
                           border: "none",
                           padding: 4,
                           cursor: index === 0 ? "default" : "pointer",
-                          opacity: index === 0 ? 0.3 : 0.8,
+                          opacity: index === 0 ? 0.25 : 0.8,
                           color: "var(--adm-ink)",
                         }}
                       >
-                        <ArrowLeft size={14} />
+                        <ArrowUp size={14} />
                       </button>
                       <button
                         type="button"
                         onClick={() => moveItem(index, 1)}
                         disabled={index === selectedList.length - 1}
-                        title="Move right"
+                        title="Move right/down"
                         style={{
                           background: "transparent",
                           border: "none",
                           padding: 4,
                           cursor: index === selectedList.length - 1 ? "default" : "pointer",
-                          opacity: index === selectedList.length - 1 ? 0.3 : 0.8,
+                          opacity: index === selectedList.length - 1 ? 0.25 : 0.8,
                           color: "var(--adm-ink)",
                         }}
                       >
-                        <ArrowRight size={14} />
+                        <ArrowDown size={14} />
                       </button>
                       <button
                         type="button"
                         onClick={() => removeItem(index)}
-                        title="Remove from featured"
+                        title="Remove"
                         style={{
                           background: "transparent",
                           border: "none",
@@ -357,279 +374,355 @@ export function HolidayPackagePicker({ field, value, path }) {
             })}
           </div>
         </div>
+      ) : (
+        <div
+          className="adm-cms-list__empty"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            padding: "20px 16px",
+          }}
+        >
+          <Palmtree size={24} style={{ color: "var(--adm-muted)", opacity: 0.7 }} />
+          <span>No holiday packages selected for the home page yet.</span>
+          <span style={{ fontSize: 12, color: "var(--adm-muted)" }}>
+            By default, recent catalogue packages are shown. Click <strong>Add package</strong> to choose specific packages.
+          </span>
+        </div>
       )}
 
-      {/* Available Packages from Catalog */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <strong style={{ fontSize: "var(--adm-fs-sm)", color: "var(--adm-ink)" }}>
-            Available Holiday Packages in Catalog ({catalog.length})
-          </strong>
-
+      {/* Explicit "Add package" Button */}
+      {!readOnly && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
           <button
             type="button"
-            onClick={fetchCatalog}
-            title="Refresh catalog"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--adm-muted)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: 12,
-            }}
+            className="adm-btn adm-btn--secondary adm-btn--sm adm-cms-list__add"
+            onClick={openPickerModal}
+            disabled={atMax}
           >
-            <RefreshCw size={12} className={loading ? "tw:animate-spin" : ""} />
-            <span>Refresh</span>
+            <Plus size={15} />
+            <span className="adm-btn__label">{atMax ? `Maximum of ${maxItems} reached` : "Add package"}</span>
           </button>
         </div>
+      )}
 
-        {/* Search input */}
-        <div style={{ position: "relative" }}>
-          <Search
-            size={14}
-            style={{
-              position: "absolute",
-              left: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--adm-muted)",
-              pointerEvents: "none",
-            }}
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search packages by title, country or destination..."
-            style={{
-              width: "100%",
-              padding: "7px 12px 7px 32px",
-              fontSize: 13,
-              borderRadius: 8,
-              border: "1px solid var(--adm-line)",
-              background: "var(--adm-surface)",
-              color: "var(--adm-ink)",
-            }}
-          />
-        </div>
-
-        {/* Loading / Error states */}
-        {loading && catalog.length === 0 && (
-          <div style={{ padding: 20, textAlign: "center", color: "var(--adm-muted)", fontSize: 13 }}>
-            Loading holiday packages from catalog...
-          </div>
-        )}
-
-        {loadError && catalog.length === 0 && (
+      {/* Package Selection Modal */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Select Holiday Packages"
+        description="Choose holiday packages uploaded in your catalogue to showcase on the home page."
+        size="lg"
+        footer={
           <div
             style={{
-              padding: 12,
-              borderRadius: 8,
-              background: "var(--adm-danger-soft)",
-              color: "var(--adm-danger)",
-              fontSize: 13,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              width: "100%",
             }}
           >
-            <span>{loadError}</span>
+            <span style={{ fontSize: 13, color: "var(--adm-muted)", fontWeight: 550 }}>
+              {selectedList.length} of {maxItems} packages selected
+            </span>
+            <Button variant="primary" onClick={() => setModalOpen(false)}>
+              Done
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Search bar & Refresh */}
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ position: "relative", flex: 1 }}>
+              <Search
+                size={14}
+                style={{
+                  position: "absolute",
+                  left: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--adm-muted)",
+                  pointerEvents: "none",
+                }}
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search packages by title, country or destination..."
+                style={{
+                  width: "100%",
+                  padding: "8px 30px 8px 32px",
+                  fontSize: 13,
+                  borderRadius: 8,
+                  border: "1px solid var(--adm-line)",
+                  background: "var(--adm-surface)",
+                  color: "var(--adm-ink)",
+                }}
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--adm-muted)",
+                    cursor: "pointer",
+                    padding: 2,
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={fetchCatalog}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "inherit",
-                textDecoration: "underline",
-                cursor: "pointer",
-              }}
+              title="Refresh catalogue"
+              disabled={loading}
+              className="adm-btn adm-btn--ghost adm-btn--sm"
+              style={{ padding: "6px 10px" }}
             >
-              Retry
+              <RefreshCw size={13} className={loading ? "tw:animate-spin" : ""} />
+              <span className="adm-btn__label">Refresh</span>
             </button>
           </div>
-        )}
 
-        {/* Catalog Cards Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 12,
-            maxHeight: 460,
-            overflowY: "auto",
-            padding: "4px 2px",
-          }}
-        >
-          {filteredCatalog.map((pkg) => {
-            const isSelected =
-              selectedIndexMap.has(pkg.slug) || (pkg.id && selectedIndexMap.has(pkg.id));
-            const selectedIdx = isSelected
-              ? selectedIndexMap.has(pkg.slug)
-                ? selectedIndexMap.get(pkg.slug)
-                : selectedIndexMap.get(pkg.id)
-              : -1;
+          {/* Loading state */}
+          {loading && catalog.length === 0 && (
+            <div style={{ padding: "30px 10px", textAlign: "center", color: "var(--adm-muted)", fontSize: 13 }}>
+              Loading holiday packages from catalogue...
+            </div>
+          )}
 
-            const img = pkg.coverImage || (pkg.images?.[0]?.url || pkg.images?.[0]) || FALLBACK_IMG;
-            const nights = pkg.durationNights || 2;
-            const days = pkg.durationDays || nights + 1;
-            const durationText = `${nights}N / ${days}D`;
-            const priceText = formatMoney(pkg.salePrice || pkg.price);
-
-            return (
-              <div
-                key={pkg.id || pkg.slug}
-                onClick={() => toggleSelect(pkg)}
+          {/* Error state */}
+          {loadError && catalog.length === 0 && (
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                background: "var(--adm-danger-soft)",
+                color: "var(--adm-danger)",
+                fontSize: 13,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span>{loadError}</span>
+              <button
+                type="button"
+                onClick={fetchCatalog}
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  borderRadius: 12,
-                  border: isSelected
-                    ? "2px solid var(--adm-teal, #0d9488)"
-                    : "1px solid var(--adm-line)",
-                  background: isSelected
-                    ? "var(--adm-teal-soft, rgba(13, 148, 136, 0.08))"
-                    : "var(--adm-surface)",
-                  cursor: readOnly ? "default" : "pointer",
-                  overflow: "hidden",
-                  transition: "all 0.18s ease",
-                  boxShadow: isSelected ? "0 0 0 1px var(--adm-teal, #0d9488)" : "none",
+                  border: "none",
+                  background: "transparent",
+                  color: "inherit",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  fontWeight: 600,
                 }}
               >
-                {/* Media banner */}
-                <div style={{ position: "relative", height: 110, width: "100%", background: "#111" }}>
-                  <img
-                    src={resolveMediaUrl(img)}
-                    alt=""
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    onError={(e) => {
-                      if (!e.currentTarget.src.endsWith(FALLBACK_IMG)) e.currentTarget.src = FALLBACK_IMG;
-                    }}
-                  />
+                Retry
+              </button>
+            </div>
+          )}
 
-                  <span
-                    style={{
-                      position: "absolute",
-                      bottom: 6,
-                      left: 6,
-                      background: "rgba(0,0,0,0.7)",
-                      color: "#fff",
-                      fontSize: 10.5,
-                      fontWeight: 650,
-                      padding: "2px 6px",
-                      borderRadius: 4,
-                      backdropFilter: "blur(4px)",
-                    }}
-                  >
-                    {durationText}
-                  </span>
+          {/* Packages Grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+              gap: 12,
+              maxHeight: "52vh",
+              overflowY: "auto",
+              padding: "4px 2px",
+            }}
+          >
+            {filteredCatalog.map((pkg) => {
+              const isSelected =
+                selectedIndexMap.has(pkg.slug) || (pkg.id && selectedIndexMap.has(pkg.id));
+              const selectedIdx = isSelected
+                ? selectedIndexMap.has(pkg.slug)
+                  ? selectedIndexMap.get(pkg.slug)
+                  : selectedIndexMap.get(pkg.id)
+                : -1;
 
-                  {isSelected && (
+              const img = pkg.coverImage || (pkg.images?.[0]?.url || pkg.images?.[0]) || FALLBACK_IMG;
+              const nights = pkg.durationNights || 2;
+              const days = pkg.durationDays || nights + 1;
+              const durationText = `${nights}N / ${days}D`;
+              const priceText = formatMoney(pkg.salePrice || pkg.price);
+
+              return (
+                <div
+                  key={pkg.id || pkg.slug}
+                  onClick={() => toggleSelect(pkg)}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    borderRadius: 12,
+                    border: isSelected
+                      ? "2px solid var(--adm-teal, #0d9488)"
+                      : "1px solid var(--adm-line)",
+                    background: isSelected
+                      ? "var(--adm-teal-soft, rgba(13, 148, 136, 0.08))"
+                      : "var(--adm-surface)",
+                    cursor: readOnly ? "default" : "pointer",
+                    overflow: "hidden",
+                    transition: "all 0.16s ease",
+                    boxShadow: isSelected ? "0 0 0 1px var(--adm-teal, #0d9488)" : "none",
+                  }}
+                >
+                  {/* Photo with duration badge & selected pill */}
+                  <div style={{ position: "relative", height: 110, width: "100%", background: "#111" }}>
+                    <img
+                      src={resolveMediaUrl(img)}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => {
+                        if (!e.currentTarget.src.endsWith(FALLBACK_IMG)) e.currentTarget.src = FALLBACK_IMG;
+                      }}
+                    />
                     <span
                       style={{
                         position: "absolute",
-                        top: 6,
-                        right: 6,
-                        background: "var(--adm-teal, #0d9488)",
+                        bottom: 6,
+                        left: 6,
+                        background: "rgba(0,0,0,0.7)",
                         color: "#fff",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: "3px 8px",
-                        borderRadius: 999,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                        fontSize: 10.5,
+                        fontWeight: 650,
+                        padding: "2px 6px",
+                        borderRadius: 4,
+                        backdropFilter: "blur(4px)",
                       }}
                     >
-                      <Check size={12} strokeWidth={3} />
-                      Featured #{selectedIdx + 1}
-                    </span>
-                  )}
-                </div>
-
-                {/* Body info */}
-                <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
-                  <div
-                    style={{
-                      fontSize: 13.5,
-                      fontWeight: 650,
-                      color: "var(--adm-ink)",
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {pkg.title}
-                  </div>
-
-                  <div style={{ fontSize: 11.5, color: "var(--adm-muted)" }}>
-                    {pkg.country || (pkg.destinations || []).join(", ") || "Holiday Package"}
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: 6,
-                      paddingTop: 6,
-                      borderTop: "1px solid var(--adm-line-soft)",
-                    }}
-                  >
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--adm-ink)" }}>
-                      {priceText}
+                      {durationText}
                     </span>
 
-                    <button
-                      type="button"
-                      disabled={readOnly}
+                    {isSelected && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 6,
+                          right: 6,
+                          background: "var(--adm-teal, #0d9488)",
+                          color: "#fff",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: "3px 8px",
+                          borderRadius: 999,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                        }}
+                      >
+                        <Check size={12} strokeWidth={3} />
+                        Featured #{selectedIdx + 1}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Body Info */}
+                  <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+                    <div
                       style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        padding: "4px 8px",
-                        borderRadius: 6,
-                        border: isSelected
-                          ? "1px solid var(--adm-danger)"
-                          : "1px solid var(--adm-line)",
-                        background: isSelected
-                          ? "transparent"
-                          : "var(--adm-teal, #0d9488)",
-                        color: isSelected ? "var(--adm-danger)" : "#fff",
-                        cursor: readOnly ? "default" : "pointer",
+                        fontSize: 13,
+                        fontWeight: 650,
+                        color: "var(--adm-ink)",
+                        lineHeight: 1.3,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={pkg.title}
+                    >
+                      {pkg.title}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "var(--adm-muted)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {isSelected ? (
-                        <>
-                          <Trash2 size={12} />
-                          <span>Remove</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={12} />
-                          <span>Select card</span>
-                        </>
-                      )}
-                    </button>
+                      {pkg.country || (pkg.destinations || []).join(", ") || "Holiday Package"}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: 6,
+                        paddingTop: 6,
+                        borderTop: "1px solid var(--adm-line-soft)",
+                      }}
+                    >
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--adm-ink)" }}>
+                        {priceText}
+                      </span>
+
+                      <button
+                        type="button"
+                        disabled={readOnly}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "3px 8px",
+                          borderRadius: 6,
+                          border: isSelected
+                            ? "1px solid var(--adm-danger)"
+                            : "1px solid var(--adm-teal, #0d9488)",
+                          background: isSelected ? "transparent" : "var(--adm-teal, #0d9488)",
+                          color: isSelected ? "var(--adm-danger)" : "#fff",
+                          cursor: readOnly ? "default" : "pointer",
+                        }}
+                      >
+                        {isSelected ? (
+                          <>
+                            <Trash2 size={11} />
+                            <span>Remove</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={11} />
+                            <span>Select</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {filteredCatalog.length === 0 && !loading && (
-          <div style={{ padding: 24, textAlign: "center", color: "var(--adm-muted)", fontSize: 13 }}>
-            {catalog.length === 0
-              ? "No holiday packages found in catalog. Create packages under Admin > Catalog > Holidays first."
-              : `No packages match "${search}".`}
+              );
+            })}
           </div>
-        )}
-      </div>
+
+          {filteredCatalog.length === 0 && !loading && (
+            <div style={{ padding: 24, textAlign: "center", color: "var(--adm-muted)", fontSize: 13 }}>
+              {catalog.length === 0
+                ? "No holiday packages found in catalogue. Create packages under Admin > Catalog > Holidays first."
+                : `No packages match "${search}".`}
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
