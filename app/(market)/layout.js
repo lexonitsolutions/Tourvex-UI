@@ -15,6 +15,8 @@ import { getGlobalContent } from "../lib/content";
 import { getCruiseMenu, getEventMenu, getHolidayMenu } from "../lib/menus";
 import { getVisaHome } from "../lib/visas";
 
+export const instant = false;
+
 // The shell (header, footer, tab bar) is prerendered: its CMS content is cached (lib/content.js) and nothing here reads
 // request data. The visitor's currency cookie streams in through <CurrencySeed /> instead of being awaited up here.
 export default async function MarketLayout({ children }) {

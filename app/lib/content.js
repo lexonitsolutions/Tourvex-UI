@@ -67,11 +67,10 @@ async function readPreviewToken() {
 
 async function request(keys, token) {
   const query = `keys=${keys.map(encodeURIComponent).join(",")}${token ? `&preview=${encodeURIComponent(token)}` : ""}`;
-  const isDev = process.env.NODE_ENV === "development";
   const response = await fetch(`${BASE}/content?${query}`, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(TIMEOUT_MS),
-    ...(token || isDev ? { cache: "no-store" } : { next: { revalidate: REVALIDATE_SECONDS } }),
+    ...(token ? { cache: "no-store" } : { next: { revalidate: REVALIDATE_SECONDS, tags: ["cms"] } }),
   });
   if (!response.ok) throw new Error(`content request failed (${response.status})`);
   const body = await response.json();
