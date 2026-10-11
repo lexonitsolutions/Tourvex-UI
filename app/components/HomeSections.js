@@ -98,6 +98,42 @@ function toHolidayCardItem(pkg, liveItems) {
   };
 }
 
+function toCruiseCardItem(c, liveItems) {
+  const live = (liveItems || []).find((it) => (it.slug && it.slug === c.slug) || (it.id && it.id === c.cruiseId));
+  if (live) return live;
+
+  const nights = parseInt(c.duration) || 7;
+  const numPrice = c.price ? parseFloat(String(c.price).replace(/[^0-9.]/g, "")) : null;
+
+  return {
+    id: c.cruiseId || c.id || c.slug,
+    slug: c.slug,
+    title: c.title,
+    coverImage: (typeof c.image === "object" ? c.image?.url : c.image) || c.coverImage || FALLBACK_IMG,
+    departureCity: c.departureCity || "",
+    durationNights: nights,
+    price: numPrice ? { amount: numPrice, currency: "AED" } : null,
+  };
+}
+
+function toEventCardItem(e, liveItems) {
+  const live = (liveItems || []).find((it) => (it.slug && it.slug === e.slug) || (it.id && it.id === e.eventId));
+  if (live) return live;
+
+  const numPrice = e.price ? parseFloat(String(e.price).replace(/[^0-9.]/g, "")) : null;
+
+  return {
+    id: e.eventId || e.id || e.slug,
+    slug: e.slug,
+    title: e.title,
+    coverImage: (typeof e.image === "object" ? e.image?.url : e.image) || e.coverImage || FALLBACK_IMG,
+    venue: e.location || "",
+    city: e.city || "",
+    nextDate: e.duration || "",
+    price: numPrice ? { amount: numPrice, currency: "AED" } : null,
+  };
+}
+
 function Skeletons({ count }) {
   return <ShowcaseSkeleton count={count} />;
 }
@@ -458,8 +494,14 @@ export default function HomeSections({ sections = [], partners = null }) {
       );
     },
 
-    cruises: (c) =>
-      (cruiseData === null || featuredCruises.length > 0) && (
+    cruises: (c) => {
+      const hasChosen = Array.isArray(c.cruises) && c.cruises.length > 0;
+      const liveItems = cruiseData?.featured || cruiseData?.items || [];
+      const itemsToShow = hasChosen
+        ? c.cruises.map((p) => toCruiseCardItem(p, liveItems))
+        : (cruiseData ? featuredCruises : null);
+
+      return (cruiseData === null || hasChosen || featuredCruises.length > 0) && (
         <section className="mk-container mk-section" ref={cruisesRef}>
           <div className="mk-section-head" data-reveal>
             <div>
@@ -469,15 +511,22 @@ export default function HomeSections({ sections = [], partners = null }) {
             <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
           </div>
           <div className="mk-grid mk-grid-4">
-            {cruiseData
-              ? featuredCruises.map((it) => <CruiseCard key={it.id || it.slug} item={it} reveal />)
+            {itemsToShow
+              ? itemsToShow.map((it) => <CruiseCard key={it.id || it.slug} item={it} reveal />)
               : Array.from({ length: 4 }, (_, i) => <div key={i} className="sc-card mk-skeleton" aria-hidden="true" style={{ minHeight: 280 }} />)}
           </div>
         </section>
-      ),
+      );
+    },
 
-    events: (c) =>
-      (eventData === null || featuredEvents.length > 0) && (
+    events: (c) => {
+      const hasChosen = Array.isArray(c.events) && c.events.length > 0;
+      const liveItems = eventData?.featured || eventData?.items || [];
+      const itemsToShow = hasChosen
+        ? c.events.map((p) => toEventCardItem(p, liveItems))
+        : (eventData ? featuredEvents : null);
+
+      return (eventData === null || hasChosen || featuredEvents.length > 0) && (
         <section className="mk-container mk-section" ref={eventsRef}>
           <div className="mk-section-head" data-reveal>
             <div>
@@ -487,12 +536,13 @@ export default function HomeSections({ sections = [], partners = null }) {
             <CmsLink className="mk-link" href={c.viewAll.href}>{c.viewAll.label}</CmsLink>
           </div>
           <div className="mk-grid mk-grid-4">
-            {eventData
-              ? featuredEvents.map((it) => <EventCard key={it.id || it.slug} item={it} reveal />)
+            {itemsToShow
+              ? itemsToShow.map((it) => <EventCard key={it.id || it.slug} item={it} reveal />)
               : Array.from({ length: 4 }, (_, i) => <div key={i} className="sc-card mk-skeleton" aria-hidden="true" style={{ minHeight: 280 }} />)}
           </div>
         </section>
-      ),
+      );
+    },
 
     exploreByExperience: (c) => (
       <section className="mk-container mk-section" ref={brandsRef}>

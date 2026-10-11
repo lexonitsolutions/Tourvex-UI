@@ -282,7 +282,8 @@ const pageHome = {
         "viewAll": {
           "label": "View all cruises",
           "href": "/cruises"
-        }
+        },
+        "cruises": []
       }
     },
     {
@@ -295,7 +296,8 @@ const pageHome = {
         "viewAll": {
           "label": "View all events",
           "href": "/events"
-        }
+        },
+        "events": []
       }
     },
     {

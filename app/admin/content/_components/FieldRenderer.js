@@ -12,6 +12,8 @@ import LinkField from "./LinkField";
 import ImageField from "./ImagePicker";
 import RichTextField from "./RichTextField";
 import HolidayPackagePicker from "./HolidayPackagePicker";
+import CruiseCardPicker from "./CruiseCardPicker";
+import EventCardPicker from "./EventCardPicker";
 
 const WIDE = new Set(["text", "textarea", "richtext", "image", "link", "list", "group"]);
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -129,6 +131,10 @@ function FieldRenderer({ field, value, path }) {
     case "list":
       if (field.name === "packages") {
         body = <HolidayPackagePicker field={field} value={value} path={path} />;
+      } else if (field.name === "cruises") {
+        body = <CruiseCardPicker field={field} value={value} path={path} />;
+      } else if (field.name === "events") {
+        body = <EventCardPicker field={field} value={value} path={path} />;
       } else {
         body = <ListField field={field} value={value} path={path} />;
       }
