@@ -773,23 +773,16 @@ function DayDetailModal({ day, onClose }) {
         <div className="hol-day-modal-content">
           <h2 id="day-modal-title">{day.title}</h2>
           <p className="hol-day-modal-desc">{day.description}</p>
-          <div className="hol-day-modal-timeline">
-            <div className="hol-timeline-step">
-              <span className="hol-timeline-dot" />
-              <strong>Morning:</strong>
-              <span>Hotel breakfast followed by private meet & greet with licensed guide.</span>
-            </div>
-            <div className="hol-timeline-step">
-              <span className="hol-timeline-dot" />
-              <strong>Afternoon:</strong>
-              <span>Curated city exploration, photo stops at landmark architecture and scenic views.</span>
-            </div>
-            <div className="hol-timeline-step">
-              <span className="hol-timeline-dot" />
-              <strong>Evening:</strong>
-              <span>Signature dinner experience or relaxing promenade walk under illuminated skyline.</span>
-            </div>
-          </div>
+          {day.bulletPoints?.length ? (
+            <ul className="hol-day-modal-timeline" aria-label="Day highlights">
+              {day.bulletPoints.map((point, index) => (
+                <li className="hol-timeline-step" key={`${point}-${index}`}>
+                  <span className="hol-timeline-dot" aria-hidden="true" />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <button type="button" className="mk-btn hol-day-modal-btn" onClick={onClose}>
             Back to Itinerary
           </button>
@@ -1247,6 +1240,86 @@ export default function HolidayDetail({ pkg, related }) {
     setOpenAccordions((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+function resolveDayBulletPoints(day) {
+  if (Array.isArray(day?.bulletPoints) && day.bulletPoints.length > 0) {
+    return day.bulletPoints.filter(Boolean);
+  }
+  if (!day?.description) return [];
+
+  if (day.description.includes("\n") || day.description.includes("•")) {
+    const lines = day.description
+      .split(/[\n•]/)
+      .map((s) => s.trim().replace(/^[-*•]\s*/, ""))
+      .filter((s) => s.length > 3);
+    if (lines.length > 1) return lines;
+  }
+
+  const titleLower = (day.title || "").toLowerCase();
+  const descLower = (day.description || "").toLowerCase();
+
+  if (titleLower.includes("arrival") || descLower.includes("arrival") || descLower.includes("landing")) {
+    const pts = ["Airport reception & comfortable private transfer", "Smooth hotel check-in & leisure time"];
+    if (descLower.includes("coffee") || descLower.includes("dates")) {
+      pts.push("Welcome Arabic coffee & dates hospitality");
+    } else if (descLower.includes("cruise") || descLower.includes("dinner")) {
+      pts.push("Evening marina dinner cruise with live entertainment");
+    } else {
+      pts.push("Evening at leisure to explore nearby areas");
+    }
+    return pts;
+  }
+
+  if (titleLower.includes("departure") || descLower.includes("departure") || descLower.includes("airport")) {
+    return [
+      "Complimentary breakfast at hotel",
+      "Leisure morning & check-out assistance",
+      "Private transfer to airport for departure flight",
+    ];
+  }
+
+  if (titleLower.includes("heritage") || descLower.includes("culture") || descLower.includes("museum")) {
+    return [
+      "Guided walk through historic wind-tower quarter",
+      "Visits to cultural museums & local art galleries",
+      "Traditional storytelling with an expert guide",
+    ];
+  }
+
+  if (titleLower.includes("mosque") || descLower.includes("cooking") || descLower.includes("lunch")) {
+    return [
+      "Guided mosque visit & architectural tour",
+      "Hands-on culinary workshop & cooking lesson",
+      "Shared traditional lunch with regional flavors",
+    ];
+  }
+
+  if (titleLower.includes("safari") || descLower.includes("desert") || descLower.includes("dune")) {
+    return [
+      "Thrilling 4x4 desert dune bashing session",
+      "Scenic sunset photography stop in the desert",
+      "Barbecue dinner buffet & cultural show",
+    ];
+  }
+
+  if (titleLower.includes("city") || descLower.includes("tour")) {
+    return [
+      "Comprehensive guided city sightseeing tour",
+      "Iconic photo stops at major landmark attractions",
+      "Free time for shopping & self-guided exploration",
+    ];
+  }
+
+  const sentences = day.description
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim().replace(/\.+$/, ""))
+    .filter((s) => s.length > 6);
+  if (sentences.length >= 2) {
+    return sentences.slice(0, 3);
+  }
+
+  return [day.description];
+}
+
   // Daywise Itinerary list
   const itineraryDays = useMemo(() => {
     const days = pkg.itinerary?.length ? [...pkg.itinerary].sort((a, b) => a.day - b.day) : [];
@@ -1454,32 +1527,35 @@ export default function HolidayDetail({ pkg, related }) {
               </div>
             </div>
 
-            {/* 5. Daywise Itinerary Visual Cards */}
+            {/* 5. Daywise Itinerary Simple Cards */}
             <section className="hol-section-block" aria-labelledby="daywise-heading" data-reveal>
               <div className="hol-section-header-row">
                 <h2 id="daywise-heading">Daywise Itinerary</h2>
               </div>
 
               <div className="hol-itinerary-cards-grid">
-                {itineraryDays.map((d) => (
-                  <article key={d.day} className="hol-itinerary-visual-card">
-                    <img src={d.photo} alt={d.title} loading="lazy" onError={showFallback} />
-                    <span className="hol-itinerary-day-tag">Day {d.day}</span>
-                    <div className="hol-itinerary-card-overlay">
-                      <h3 className="hol-itinerary-card-title">{d.title}</h3>
-                      <p className="hol-itinerary-card-snippet">
-                        {d.description?.slice(0, 95)}...{" "}
-                        <button
-                          type="button"
-                          className="hol-itinerary-more-link"
-                          onClick={() => setSelectedDay(d)}
-                        >
-                          Read More
-                        </button>
-                      </p>
-                    </div>
-                  </article>
-                ))}
+                {itineraryDays.map((d) => {
+                  const bullets = resolveDayBulletPoints(d);
+                  return (
+                    <article key={d.day} className="hol-itinerary-simple-card">
+                      <div className="hol-itinerary-card-top">
+                        <span className="hol-itinerary-day-tag">Day {d.day}</span>
+                        <h3 className="hol-itinerary-card-title">{d.title}</h3>
+                      </div>
+                      <p className="hol-itinerary-card-desc">{d.description}</p>
+                      {bullets.length > 0 ? (
+                        <ul className="hol-itinerary-bullets" aria-label={`Day ${d.day} highlights`}>
+                          {bullets.map((point, index) => (
+                            <li key={`${point}-${index}`} className="hol-itinerary-bullet-item">
+                              <span className="hol-itinerary-bullet-dot" aria-hidden="true" />
+                              <span>{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </article>
+                  );
+                })}
               </div>
             </section>
 

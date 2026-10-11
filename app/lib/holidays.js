@@ -26,7 +26,7 @@ import { resolveCurrency, withCurrency } from "./currencyCookie";
  * @typedef {PackageCard & {
  *   summary: string, description: string, images: { url: string, alt: string }[],
  *   highlights: string[], inclusions: string[], exclusions: string[],
- *   itinerary: { day: number, title: string, description: string }[],
+ *   itinerary: { day: number, title: string, description: string, bulletPoints: string[] }[],
  *   collections: string[], isSample?: boolean, updatedAt: string
  * }} HolidayPackage
  */

@@ -51,7 +51,15 @@ const holidays = {
         list(
           "itinerary",
           "Itinerary",
-          [text("title", "Title", { required: true, maxLength: 200 }), textarea("description", "Description", { required: true, maxLength: 2000, rows: 4 })],
+          [
+            text("title", "Title", { required: true, maxLength: 200 }),
+            textarea("description", "Description", { required: true, maxLength: 2000, rows: 4 }),
+            strings("bulletPoints", "Bullet points", {
+              max: 12,
+              itemMax: 300,
+              help: "Add the key activities or moments for this day. These appear in the itinerary details popup.",
+            }),
+          ],
           { itemLabel: "Day", max: 62, autoNumber: "day", help: "Days are numbered by their position. Drag or use the arrows to reorder." }
         ),
         strings("highlights", "Highlights", { max: 20 }),
