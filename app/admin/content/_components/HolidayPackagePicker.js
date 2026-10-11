@@ -66,12 +66,40 @@ export function HolidayPackagePicker({ field, value, path }) {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/holidays?limit=100`, {
+      const res = await fetch(`${API_BASE_URL}/holidays?limit=48`, {
         headers: { Accept: "application/json" },
       });
-      if (!res.ok) throw new Error(`Failed to load holidays (${res.status})`);
+      if (!res.ok) {
+        let msg = `Failed to load holidays (${res.status})`;
+        try {
+          const errJson = await res.json();
+          if (errJson?.message) {
+            msg = Array.isArray(errJson.message) ? errJson.message.join(", ") : errJson.message;
+          }
+        } catch {
+          /* ignore */
+        }
+        throw new Error(msg);
+      }
       const data = await res.json();
-      setCatalog(Array.isArray(data?.items) ? data.items : []);
+      let allItems = Array.isArray(data?.items) ? data.items : [];
+      if (data?.pagination?.pages > 1) {
+        const extraPages = [];
+        for (let p = 2; p <= Math.min(data.pagination.pages, 5); p++) {
+          extraPages.push(
+            fetch(`${API_BASE_URL}/holidays?limit=48&page=${p}`, {
+              headers: { Accept: "application/json" },
+            }).then((r) => (r.ok ? r.json() : null))
+          );
+        }
+        const extraResults = await Promise.all(extraPages);
+        extraResults.forEach((r) => {
+          if (Array.isArray(r?.items)) {
+            allItems = allItems.concat(r.items);
+          }
+        });
+      }
+      setCatalog(allItems);
     } catch (err) {
       setLoadError(err.message || "Could not fetch holiday packages");
     } finally {
