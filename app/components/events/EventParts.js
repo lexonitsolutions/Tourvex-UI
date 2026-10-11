@@ -3,11 +3,12 @@
 import { memo } from "react";
 import { formatPrice } from "../../lib/api";
 import ShowcaseCard from "../ShowcaseCard";
-import { StateMessage, CardSkeletons, plural, showFallback, FALLBACK_IMG } from "../holidays/HolidayParts";
+import { StateMessage, CardSkeletons, plural, showFallback } from "../holidays/HolidayParts";
 import "../../holidays.css";
 import "../../events.css";
 
-export { CardSkeletons, StateMessage, plural, showFallback, FALLBACK_IMG };
+export const FALLBACK_IMG = "/images/event-01.jpg";
+export { CardSkeletons, StateMessage, plural, showFallback };
 export { IconCheck, IconChevron, IconX, IconPin, RailSection } from "../holidays/HolidayParts";
 
 /** The API converts prices to the requested currency; always format in the currency the money itself carries. */
@@ -96,6 +97,7 @@ export const EventCard = memo(function EventCard({ item, reveal = true }) {
       href={`/events/${item.slug}`}
       title={item.title}
       image={item.coverImage}
+      fallbackImage="/images/event-01.jpg"
       tag={item.category || undefined}
       stock={item.stock}
       location={[item.venue, item.city].filter(Boolean).join(", ") || undefined}

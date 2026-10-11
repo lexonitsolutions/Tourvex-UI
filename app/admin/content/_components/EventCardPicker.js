@@ -20,7 +20,7 @@ import { resolveMediaUrl } from "../../_lib/cms";
 import { useAdminApi } from "../../_lib/adminApi";
 import { Button, Modal } from "../../_kit";
 
-const FALLBACK_IMG = "/images/destination-a.jpg";
+const FALLBACK_IMG = "/images/event-01.jpg";
 
 function formatMoney(p) {
   if (!p) return "Price on request";
