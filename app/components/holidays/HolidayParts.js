@@ -242,6 +242,17 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
     ? item.images.map((img) => (typeof img === "string" ? img : img.url))
     : [item?.coverImage || FALLBACK_IMG];
 
+  useEffect(() => {
+    if (allImages.length <= 1) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      if (document.hidden) return;
+      setActiveImgIndex((current) => (current + 1) % allImages.length);
+    }, 3000);
+
+    return () => window.clearInterval(intervalId);
+  }, [allImages.length]);
+
   const currentImage = allImages[activeImgIndex] || item?.coverImage || FALLBACK_IMG;
   const detailHref = `/holidays/${item?.slug || ""}`;
 

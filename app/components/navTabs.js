@@ -24,13 +24,19 @@ export const NAV_ICONS = {
   help: <Icon><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></Icon>,
 };
 
+/** Which dropdown a tab opens, by its CMS icon key. Tabs with another icon keep the editorial CMS menu. */
+const MENU_BY_ICON = { activities: "activities", holidays: "holidays", visas: "visas", cruises: "cruises", events: "events", yachts: "yachts" };
+
 /** CMS tab entries -> the shape the header and mobile tiles use. */
 export function buildTabs(tabs) {
   return (tabs || []).map((tab) => ({
     id: tab.id,
     label: tab.link.label,
     href: tab.link.href,
-    mega: Boolean(tab.mega),
+    // Every catalog tab (activities, holidays, visas, cruises, events, yachts) opens a dropdown built from its live catalog;
+    // the CMS `mega` flag still opens the editorial menu for any other tab.
+    mega: Boolean(tab.mega) || tab.icon in MENU_BY_ICON,
+    megaMenu: MENU_BY_ICON[tab.icon] || "default",
     match: splitMatch(tab.match),
     icon: NAV_ICONS[tab.icon] || null,
     mobileTile: Boolean(tab.mobileTile),

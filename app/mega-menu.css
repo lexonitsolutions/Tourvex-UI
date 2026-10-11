@@ -258,6 +258,41 @@ a.mm-item-card:hover {
   display: block !important;
 }
 
+/* Visa dropdown thumbnails come from the visa collection's country codes. Keep flags fully visible. */
+.mm-overlay-panel.is-visa .mm-item-thumb,
+.mm-overlay-panel.is-visa .mm-deal-pill-img {
+  object-fit: contain !important;
+  padding: 5px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+/* Database-backed activity menu: slightly richer typography and clear browse/error states. */
+.mm-overlay-panel.is-activities .mm-cat-label,
+.mm-overlay-panel.is-activities .mm-item-title,
+.mm-overlay-panel.is-activities .mm-deal-pill-title {
+  font-family: "Barlow Semi Condensed", "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.mm-overlay-panel.is-activities .mm-item-card.is-browse {
+  background: rgba(236, 253, 245, 0.72) !important;
+  border-color: rgba(4, 120, 87, 0.18) !important;
+}
+
+.mm-overlay-panel.is-activities .mm-item-card.is-browse .mm-item-title {
+  color: #047857 !important;
+}
+
+.mm-overlay-panel.is-activities .mm-item-card.is-error {
+  background: rgba(254, 242, 242, 0.86) !important;
+  border-color: rgba(185, 28, 28, 0.2) !important;
+}
+
+.mm-overlay-panel.is-activities .mm-item-card.is-error .mm-item-title {
+  color: #991b1b !important;
+}
+
 .mm-item-meta {
   min-width: 0 !important;
   flex: 1 !important;
@@ -608,3 +643,22 @@ a.mm-deal-pill-card, a.mm-deal-pill-card:hover, a.mm-deal-pill-card:focus, a.mm-
   color: inherit; font-weight: 500; font-size: 13px; letter-spacing: 0; transition: none; text-shadow: none;
 }
 .mm-cat-btn:focus-visible { outline: none; }
+
+/* Every catalog dropdown (activities, holidays, visas, cruises, events, yachts) shares the same typography and the
+   "view all" / unavailable tiles; originally only the Activities menu had them. */
+.mm-overlay-panel .mm-cat-label,
+.mm-overlay-panel .mm-item-title,
+.mm-overlay-panel .mm-deal-pill-title {
+  font-family: "Barlow Semi Condensed", "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
+}
+.mm-overlay-panel .mm-item-card.is-browse {
+  background: rgba(236, 253, 245, 0.72) !important;
+  border-color: rgba(4, 120, 87, 0.18) !important;
+}
+.mm-overlay-panel .mm-item-card.is-browse .mm-item-title { color: #047857 !important; }
+.mm-overlay-panel .mm-item-card.is-error {
+  background: rgba(254, 242, 242, 0.86) !important;
+  border-color: rgba(185, 28, 28, 0.2) !important;
+}
+.mm-overlay-panel .mm-item-card.is-error .mm-item-title { color: #991b1b !important; }

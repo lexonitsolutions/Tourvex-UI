@@ -12,10 +12,13 @@ export class ApiError extends Error {
 }
 
 const isServer = typeof window === "undefined";
+const REQUEST_BASE_URL = isServer
+  ? (process.env.API_INTERNAL_URL || API_BASE_URL).replace(/\/$/, "")
+  : API_BASE_URL;
 const SERVER_REVALIDATE_SECONDS = 60;
 
 export async function apiRequest(path, { method = "GET", body, token, signal } = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${REQUEST_BASE_URL}${path}`, {
     method,
     signal,
     // Public GETs rendered on the server go through Next's data cache; anything signed-in or mutating never does.

@@ -107,12 +107,12 @@ function Dock({ openMega, closeMega }) {
           aria-current={isCurrent(tab) ? "page" : undefined}
           onMouseEnter={(e) => {
             point(e);
-            if (tab.mega) openMega();
+            if (tab.mega) openMega(tab.megaMenu);
             else closeMega();
           }}
           onFocus={(e) => {
             point(e);
-            if (tab.mega) openMega();
+            if (tab.mega) openMega(tab.megaMenu);
             else closeMega();
           }}
         >
@@ -131,13 +131,15 @@ export default function SiteHeader() {
   const [engaged, setEngaged] = useState(false);
   const [localeOpen, setLocaleOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
+  const [megaMenu, setMegaMenu] = useState("default");
   const closeTimer = useRef(null);
 
   const openLocale = useCallback(() => setLocaleOpen(true), []);
   const closeLocale = useCallback(() => setLocaleOpen(false), []);
 
-  const openMega = useCallback(() => {
+  const openMega = useCallback((menu = "default") => {
     clearTimeout(closeTimer.current);
+    setMegaMenu(menu);
     setMegaOpen(true);
   }, []);
 
@@ -215,7 +217,8 @@ export default function SiteHeader() {
         {/* Full-width Mega Menu Dropdown */}
         <MegaMenu
           isOpen={megaOpen}
-          onMouseEnter={openMega}
+          menu={megaMenu}
+          onMouseEnter={() => openMega(megaMenu)}
           onMouseLeave={closeMega}
           onClose={() => setMegaOpen(false)}
         />

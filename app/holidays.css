@@ -2889,6 +2889,12 @@ a.hol-btn-wa-circle:focus,
   box-shadow: 0 4px 14px rgba(37, 211, 102, 0.42) !important;
 }
 
+.hol-quote-wa-btn svg,
+.hol-quote-wa-btn:hover svg,
+.hol-quote-wa-btn:focus svg {
+  margin: 0 !important;
+}
+
 .hol-quote-done-btn {
   display: inline-block;
   height: 42px;
