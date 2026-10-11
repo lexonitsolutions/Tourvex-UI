@@ -17,6 +17,7 @@ import {
 import { API_BASE_URL } from "../../../lib/api";
 import { useFormContext } from "./formContext";
 import { resolveMediaUrl } from "../../_lib/cms";
+import { useAdminApi } from "../../_lib/adminApi";
 import { Button, Modal } from "../../_kit";
 
 const FALLBACK_IMG = "/images/destination-c.jpg";
@@ -50,6 +51,7 @@ function sanitizeCruiseItem(cruise) {
 
 export function CruiseCardPicker({ field, value, path }) {
   const { readOnly, onChange, errors } = useFormContext();
+  const api = useAdminApi();
   const selectedList = useMemo(() => (Array.isArray(value) ? value : []), [value]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -65,30 +67,40 @@ export function CruiseCardPicker({ field, value, path }) {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/cruises?limit=48`, {
-        headers: { Accept: "application/json" },
-      });
-      if (!res.ok) {
-        let msg = `Failed to load cruises (${res.status})`;
-        try {
-          const errJson = await res.json();
-          if (errJson?.message) {
-            msg = Array.isArray(errJson.message) ? errJson.message.join(", ") : errJson.message;
+      let data;
+      try {
+        data = await api.get("/cruises/admin/all", { query: { limit: 48 } });
+      } catch {
+        const res = await fetch(`${API_BASE_URL}/cruises?limit=48`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) {
+          let msg = `Failed to load cruises (${res.status})`;
+          try {
+            const errJson = await res.json();
+            if (errJson?.message) {
+              msg = Array.isArray(errJson.message) ? errJson.message.join(", ") : errJson.message;
+            }
+          } catch {
+            /* ignore */
           }
-        } catch {
-          /* ignore */
+          throw new Error(msg);
         }
-        throw new Error(msg);
+        data = await res.json();
       }
-      const data = await res.json();
+
       let allItems = Array.isArray(data?.items) ? data.items : [];
       if (data?.pagination?.pages > 1) {
         const extraPages = [];
         for (let p = 2; p <= Math.min(data.pagination.pages, 5); p++) {
           extraPages.push(
-            fetch(`${API_BASE_URL}/cruises?limit=48&page=${p}`, {
-              headers: { Accept: "application/json" },
-            }).then((r) => (r.ok ? r.json() : null))
+            api
+              .get("/cruises/admin/all", { query: { limit: 48, page: p } })
+              .catch(() =>
+                fetch(`${API_BASE_URL}/cruises?limit=48&page=${p}`, {
+                  headers: { Accept: "application/json" },
+                }).then((r) => (r.ok ? r.json() : null))
+              )
           );
         }
         const extraResults = await Promise.all(extraPages);
@@ -104,7 +116,7 @@ export function CruiseCardPicker({ field, value, path }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [api]);
 
   const openPickerModal = useCallback(() => {
     setModalOpen(true);
