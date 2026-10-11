@@ -57,12 +57,12 @@ const Card = memo(function Card({ card, count, from, copy, isHovered, onHover, o
       } catch {}
       const p = video.play();
       playPromiseRef.current = p;
-      if (p !== undefined && typeof p.catch === "function") {
+      if (typeof p?.catch === "function") {
         p.catch(() => {});
       }
     } else {
       const p = playPromiseRef.current;
-      if (p !== undefined && typeof p.then === "function") {
+      if (typeof p?.then === "function") {
         p.then(() => {
           video.pause();
         }).catch(() => {
