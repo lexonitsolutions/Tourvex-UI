@@ -100,7 +100,7 @@ function OptionResult({ row, date, modifying, busy, added, onProceed, onAdd, onS
   );
 }
 
-export default function ActivityBooking({ activity, initial, sheetOpen, onSheetClose }) {
+export default function ActivityBooking({ activity, initial, sheetOpen, onSheetClose, extra }) {
   const router = useRouter();
   const { user, ready, getAccessToken, currency } = useApp();
   const { setScrollLocked } = useMotion();
@@ -452,6 +452,7 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
             </section>
           )}
         </div>
+        {extra}
       </aside>
     </>
   );

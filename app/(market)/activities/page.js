@@ -4,6 +4,7 @@ import "../../activities.css";
 import { fetchAllActivities } from "../../lib/api";
 import { getServerCurrency } from "../../lib/currencyServer";
 import { getPartnersSafe } from "../../lib/partners";
+import { enabledSections, getPageContent } from "../../lib/content";
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
 // Remove this opt-out after verifying the segment passes validation without it.
@@ -42,17 +43,20 @@ const slim = (it) => ({
   durationNights: it.durationNights,
   price: it.price,
   salePrice: it.salePrice,
+  summary: it.summary,
+  stock: it.stock,
 });
 
 export default async function ActivitiesPage() {
   const currency = await getServerCurrency();
-  const [catalog, partners] = await Promise.all([
+  const [catalog, partners, content] = await Promise.all([
     fetchAllActivities({ currency }).then((items) => items.map(slim)).catch(() => null),
     getPartnersSafe("activities"),
+    getPageContent("activities"),
   ]);
   return (
     <>
-      <ActivitiesListing initial={catalog ? { currency, items: catalog } : null} />
+      <ActivitiesListing initial={catalog ? { currency, items: catalog } : null} sections={enabledSections(content.sections)} />
       <div className="ac-partners"><PartnersStrip data={partners} id="activities-partners" /></div>
     </>
   );

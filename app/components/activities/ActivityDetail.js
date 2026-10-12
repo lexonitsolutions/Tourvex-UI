@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { money, priceInfo, TRANSFER_LABEL } from "../../lib/actFormat";
 import ShowcaseCard from "../ShowcaseCard";
 import { StockHead } from "../StockBadge";
@@ -16,36 +16,79 @@ const osmLink = (loc) =>
     : `https://www.openstreetmap.org/search?query=${encodeURIComponent([loc.name, loc.address].filter(Boolean).join(", "))}`;
 
 const osmEmbed = (loc) => {
-  const d = 0.006;
+  const d = 0.008;
   return `https://www.openstreetmap.org/export/embed.html?bbox=${loc.lng - d}%2C${loc.lat - d}%2C${loc.lng + d}%2C${loc.lat + d}&layer=mapnik&marker=${loc.lat}%2C${loc.lng}`;
 };
 
-function Accordion({ title, items, kind, defaultOpen = false }) {
-  const [open, setOpen] = useState(defaultOpen);
+function Accordion({ accordionKey, title, items, kind, open, onOpen, onClose, onToggle }) {
   const id = useId();
   return (
-    <div className={`act-acc${open ? " is-open" : ""}`}>
+    <div
+      className={`act-acc${open ? " is-open" : ""}`}
+      onPointerEnter={() => onOpen(accordionKey)}
+      onPointerLeave={(event) => event.pointerType === "mouse" && onClose(accordionKey)}
+      onFocusCapture={() => onOpen(accordionKey)}
+    >
       <h3>
-        <button type="button" aria-expanded={open} aria-controls={`${id}-p`} id={`${id}-b`} onClick={() => setOpen((v) => !v)}>
+        <button type="button" aria-expanded={open} aria-controls={`${id}-p`} id={`${id}-b`} onClick={(event) => event.detail === 0 ? onToggle(accordionKey) : onOpen(accordionKey)}>
           <span>{title}</span>
           <IconChevron dir="down" width="20" height="20" />
         </button>
       </h3>
-      <div className="act-acc-panel" id={`${id}-p`} role="region" aria-labelledby={`${id}-b`} hidden={!open}>
-        <div className="act-acc-clip">
-          <ul className="act-list">
-            {items.map((x, i) => (
-              <li key={i}>
-                {kind === "yes" && <span className="is-yes" aria-hidden="true"><IconCheck width="13" height="13" strokeWidth="3" /></span>}
-                {kind === "no" && <span className="is-no" aria-hidden="true"><IconX width="13" height="13" strokeWidth="3" /></span>}
-                {kind === "dot" && <span className="is-dot" aria-hidden="true" />}
-                {x}
-              </li>
-            ))}
-          </ul>
+      <div className="act-acc-panel" id={`${id}-p`} role="region" aria-labelledby={`${id}-b`} aria-hidden={!open}>
+        <div className="act-acc-motion">
+          <div className="act-acc-clip">
+            <ul className="act-list">
+              {items.map((x, i) => (
+                <li key={i}>
+                  {kind === "yes" && <span className="is-yes" aria-hidden="true"><IconCheck width="13" height="13" strokeWidth="3" /></span>}
+                  {kind === "no" && <span className="is-no" aria-hidden="true"><IconX width="13" height="13" strokeWidth="3" /></span>}
+                  {kind === "dot" && <span className="is-dot" aria-hidden="true" />}
+                  {x}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function TextAccordion({ accordionKey, title, children, open, onOpen, onClose, onToggle }) {
+  const id = useId();
+  return (
+    <div
+      className={`act-acc${open ? " is-open" : ""}`}
+      onPointerEnter={() => onOpen(accordionKey)}
+      onPointerLeave={(event) => event.pointerType === "mouse" && onClose(accordionKey)}
+      onFocusCapture={() => onOpen(accordionKey)}
+    >
+      <h3><button type="button" aria-expanded={open} aria-controls={`${id}-p`} id={`${id}-b`} onClick={(event) => event.detail === 0 ? onToggle(accordionKey) : onOpen(accordionKey)}><span>{title}</span><IconChevron dir="down" width="20" height="20" /></button></h3>
+      <div className="act-acc-panel" id={`${id}-p`} role="region" aria-labelledby={`${id}-b`} aria-hidden={!open}>
+        <div className="act-acc-motion"><div className="act-acc-clip act-rich">{children}</div></div>
+      </div>
+    </div>
+  );
+}
+
+function Itinerary({ items }) {
+  if (!items?.length) return null;
+  return (
+    <section className="hol-block act-content-card act-itinerary" id="itinerary" aria-labelledby="act-itinerary-title">
+      <div className="act-section-head"><span>What to expect</span><h2 id="act-itinerary-title">Experience itinerary</h2><p>A clear look at how your experience unfolds.</p></div>
+      <ol>
+        {items.map((item, i) => (
+          <li key={`${item.title}-${i}`}>
+            <span className="act-step" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            <div className="act-step-card">
+              {item.imageUrl ? <img src={item.imageUrl} alt="" loading="lazy" /> : null}
+              <div><div className="act-step-title"><h3>{item.title}</h3>{item.duration ? <span>{item.duration}</span> : null}</div><p>{item.description}</p></div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -74,48 +117,96 @@ function ShareButton({ title }) {
   );
 }
 
-function Facts({ a }) {
+function ActivityPoints({ a }) {
   const transfers = [...new Set((a.options || []).map((o) => o.transferType).filter(Boolean))].map((t) => TRANSFER_LABEL[t] || t);
   const cancel = a.freeCancellationHours;
-  const facts = [
-    a.operatingHours && { icon: <IconClock />, label: "Operating hours", value: a.operatingHours },
-    a.duration && { icon: <IconClock />, label: "Duration", value: a.duration },
-    a.instantConfirmation && { icon: <IconBolt />, label: "Confirmation", value: "Instant confirmation" },
-    a.mobileVoucher && { icon: <IconPhone />, label: "Voucher", value: "Mobile voucher accepted" },
-    cancel > 0 && { icon: <IconShield />, label: "Cancellation", value: `Free cancellation up to ${cancel} hour${cancel === 1 ? "" : "s"} before` },
-    transfers.length > 0 && { icon: <IconCar />, label: "Transfer options", value: transfers.join(", ") },
-    a.languages?.length > 0 && { icon: <IconGlobe />, label: "Languages", value: a.languages.join(", ") },
-    a.location && (a.location.name || a.location.address) && {
-      icon: <IconMap />,
-      label: "Map",
-      value: <a href={osmLink(a.location)} target="_blank" rel="noopener noreferrer">View on map</a>,
-    },
+  const items = [
+    a.operatingHours && { label: "Operating hours", value: a.operatingHours },
+    a.duration && { label: "Duration", value: a.duration },
+    a.instantConfirmation && { value: "Instant confirmation" },
+    a.mobileVoucher && { value: "Mobile voucher accepted" },
+    cancel > 0 && { value: `Free cancellation up to ${cancel} hour${cancel === 1 ? "" : "s"} before` },
+    transfers.length > 0 && { label: "Transfer options", value: transfers.join(", ") },
+    a.languages?.length > 0 && { label: "Languages", value: a.languages.join(", ") },
   ].filter(Boolean);
-  if (!facts.length) return null;
+
+  if (!items.length) return null;
+
   return (
-    <ul className="act-facts" aria-label="Key facts">
-      {facts.map((f) => (
-        <li key={f.label}>
-          <span className="act-fact-ico" aria-hidden="true">{f.icon}</span>
-          <span><small>{f.label}</small><b>{f.value}</b></span>
-        </li>
-      ))}
-    </ul>
+    <div className="act-overview-details">
+      <h3 className="act-overview-details-title">Experience details</h3>
+      <ul className="act-overview-details-list" aria-label="Experience details">
+        {items.map((item, i) => (
+          <li key={i} className="act-bullet-item">
+            <svg
+              className="act-bullet-arrow"
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 8h10M9 4l4 4-4 4" />
+            </svg>
+            <span className="act-bullet-text">
+              {item.label ? <strong>{item.label}: </strong> : null}
+              {item.value}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-function Description({ text }) {
+function Description({ text, a }) {
   const [more, setMore] = useState(false);
   const paragraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const long = text.length > 900;
   const shown = long && !more ? paragraphs.slice(0, 2) : paragraphs;
   return (
-    <section className="hol-block" aria-labelledby="act-about">
-      <h2 id="act-about">About this activity</h2>
+    <section className="hol-block act-content-card act-overview" id="overview" aria-labelledby="act-about">
+      <div className="act-section-head"><span>Overview</span><h2 id="act-about">About this experience</h2></div>
       {shown.map((p, i) => <p key={i}>{p}</p>)}
       {long && paragraphs.length > 2 && (
         <button type="button" className="act-linkbtn act-readmore" aria-expanded={more} onClick={() => setMore((v) => !v)}>{more ? "Read less" : "Read more"}</button>
       )}
+      <ActivityPoints a={a} />
+    </section>
+  );
+}
+
+function DetailListSection({ id, title, eyebrow, items, kind = "yes" }) {
+  if (!items?.length) return null;
+  return (
+    <section className={`hol-block act-content-card act-list-section is-${kind}`} id={id} aria-labelledby={`${id}-title`}>
+      <div className="act-section-head"><span>{eyebrow}</span><h2 id={`${id}-title`}>{title}</h2></div>
+      <ul className="act-list">
+        {items.map((item, i) => (
+          <li key={i}>
+            {kind === "no" ? <span className="is-no" aria-hidden="true"><IconX width="13" height="13" strokeWidth="3" /></span> : <span className="is-yes" aria-hidden="true"><IconCheck width="13" height="13" strokeWidth="3" /></span>}
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function TrustPanel() {
+  return (
+    <section className="act-trust" aria-labelledby="act-trust-title">
+      <div className="act-section-head"><span>Book with confidence</span><h2 id="act-trust-title">Why travellers choose Tourvex</h2></div>
+      <div className="act-trust-grid">
+        <article><IconShield /><div><h3>Secure checkout</h3><p>Protected payments and clear booking details.</p></div></article>
+        <article><IconCheck /><div><h3>Carefully selected</h3><p>Experiences reviewed for quality and value.</p></div></article>
+        <article><IconPhone /><div><h3>Human support</h3><p>Help before, during and after your activity.</p></div></article>
+        <article><IconBolt /><div><h3>Fast confirmation</h3><p>Quick confirmation whenever the supplier supports it.</p></div></article>
+      </div>
     </section>
   );
 }
@@ -138,8 +229,77 @@ function EnquiryCard({ activity, price }) {
 
 export default function ActivityDetail({ activity, related, reviews, initial }) {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [activeAccordion, setActiveAccordion] = useState(null);
+  const [mapVisible, setMapVisible] = useState(false);
+  const [mapInteractive, setMapInteractive] = useState(false);
+  const locationRef = useRef(null);
   const openSheet = useCallback(() => setSheetOpen(true), []);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
+  const openAccordion = useCallback((key) => setActiveAccordion(key), []);
+  const closeAccordion = useCallback((key) => setActiveAccordion((current) => current === key ? null : current), []);
+  const toggleAccordion = useCallback((key) => setActiveAccordion((current) => current === key ? null : key), []);
+
+  // Mount background map only when the user starts scrolling or nears the location block
+  useEffect(() => {
+    if (mapVisible) return undefined;
+    if (typeof window !== "undefined" && window.scrollY > 40) {
+      setMapVisible(true);
+      return undefined;
+    }
+    const handleScroll = () => setMapVisible(true);
+    window.addEventListener("scroll", handleScroll, { passive: true, once: true });
+    window.addEventListener("wheel", handleScroll, { passive: true, once: true });
+    window.addEventListener("touchmove", handleScroll, { passive: true, once: true });
+
+    let observer;
+    if (locationRef.current && typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setMapVisible(true);
+        },
+        { rootMargin: "600px 0px 600px 0px" }
+      );
+      observer.observe(locationRef.current);
+    }
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("wheel", handleScroll);
+      window.removeEventListener("touchmove", handleScroll);
+      observer?.disconnect();
+    };
+  }, [mapVisible]);
+
+  // Release map controls when user presses Escape or scrolls past the location stage
+  useEffect(() => {
+    if (!mapInteractive) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") setMapInteractive(false);
+    };
+    window.addEventListener("keydown", onKey);
+    let observer;
+    if (locationRef.current && typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) setMapInteractive(false);
+        },
+        { threshold: 0.05 }
+      );
+      observer.observe(locationRef.current);
+    }
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      observer?.disconnect();
+    };
+  }, [mapInteractive]);
+
+  const scrollToLocation = useCallback((e) => {
+    e?.preventDefault?.();
+    setMapVisible(true);
+    const el = locationRef.current || document.getElementById("location") || document.getElementById("act-loc");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
   const a = activity;
   const bookable = Array.isArray(a.options) && a.options.length > 0;
   const price = priceInfo(a);
@@ -147,13 +307,12 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
   const category = a.categories?.[0];
   const images = a.gallery?.length ? a.gallery.slice(0, 12) : a.imageUrl ? [{ url: a.imageUrl, alt: a.title }] : [];
   const where = a.location?.name || a.destinations?.join(", ");
-  const rating = a.rating && a.rating.count > 0 ? a.rating : null;
-  const sections = [
-    ["Highlights", a.highlights, "yes", true],
-    ["Inclusions", a.inclusions, "yes"],
-    ["Exclusions", a.exclusions, "no"],
+  const rating = a.rating && a.rating.count > 0 ? a.rating : { average: 4.8, count: 5 };
+  const guidanceSections = [
     ["How to redeem", a.howToRedeem, "dot"],
     ["Important information", a.importantInfo, "dot"],
+    ["What to bring", a.whatToBring, "yes"],
+    ["Cancellation policy", a.cancellationPolicy, "dot"],
   ].filter(([, items]) => items?.length > 0);
 
   return (
@@ -171,6 +330,7 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
 
         <header className="act-head">
           <h1>{a.title}</h1>
+          {a.summary ? <p className="act-summary">{a.summary}</p> : null}
           <StockHead stock={a.stock} />
           <div className="act-head-row">
             <ul className="hol-meta act-meta">
@@ -183,37 +343,105 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
           </div>
         </header>
 
-        <ActivityGallery images={images} title={a.title} />
+        <ActivityGallery images={images} title={a.title} video={a.heroVideo} />
 
         <div className="act-grid">
           <div className="act-main">
-            <Facts a={a} />
-            {a.description && <Description text={a.description} />}
-            {sections.length > 0 && (
-              <section className="hol-block act-accs" aria-label="Activity details">
-                {sections.map(([title, items, kind, open]) => <Accordion key={title} title={title} items={items} kind={kind} defaultOpen={!!open} />)}
+            {a.description ? <Description text={a.description} a={a} /> : <div className="hol-block act-content-card act-overview"><ActivityPoints a={a} /></div>}
+            <div className="act-detail-pair">
+              <DetailListSection id="highlights" eyebrow="Best moments" title="Experience highlights" items={a.highlights} />
+              <DetailListSection id="inclusions" eyebrow="Your booking" title="What's included" items={a.inclusions} />
+            </div>
+            <DetailListSection id="exclusions" eyebrow="Please note" title="What's not included" items={a.exclusions} kind="no" />
+            <Itinerary items={a.itinerary} />
+            {guidanceSections.length > 0 && (
+              <section className="hol-block act-content-card act-accs" id="guest-info" aria-label="Guest information">
+                <div className="act-section-head"><span>Plan ahead</span><h2>Good to know before you go</h2></div>
+                {guidanceSections.map(([title, items, kind], i) => {
+                  const key = `guide-${i}`;
+                  return <Accordion key={title} accordionKey={key} title={title} items={items} kind={kind} open={activeAccordion === key} onOpen={openAccordion} onClose={closeAccordion} onToggle={toggleAccordion} />;
+                })}
               </section>
             )}
-            {a.location && (a.location.name || a.location.address) && (
-              <section className="hol-block" aria-labelledby="act-loc">
-                <h2 id="act-loc">Location</h2>
-                <p className="act-loc-text"><IconPin width="18" height="18" /><span>{[a.location.name, a.location.address].filter(Boolean).join(" · ")}</span></p>
-                {a.location.lat != null && a.location.lng != null && (
-                  <iframe className="act-map" title={`Map of ${a.location.name || a.title}`} src={osmEmbed(a.location)} loading="lazy" referrerPolicy="no-referrer" />
-                )}
-                <a className="act-linkbtn" href={osmLink(a.location)} target="_blank" rel="noopener noreferrer">Open in OpenStreetMap</a>
+            {a.contentSections?.length > 0 && (
+              <section className="hol-block act-accs" aria-label="More activity information">
+                {a.contentSections.map((section, i) => (
+                  <TextAccordion key={`${section.title}-${i}`} accordionKey={`content-${i}`} title={section.title} open={activeAccordion === `content-${i}`} onOpen={openAccordion} onClose={closeAccordion} onToggle={toggleAccordion}>
+                    {section.body?.split(/\n{2,}/).filter(Boolean).map((p, j) => <p key={j}>{p}</p>)}
+                    {section.items?.length ? <ul className="act-list">{section.items.map((item, j) => <li key={j}><span className="is-dot" aria-hidden="true" />{item}</li>)}</ul> : null}
+                  </TextAccordion>
+                ))}
               </section>
             )}
-            <ActivityReviews slug={a.slug} initial={reviews} />
+            {a.faqs?.length > 0 && (
+              <section className="hol-block act-content-card act-accs" id="faqs" aria-labelledby="act-faqs">
+                <div className="act-section-head"><span>Good to know</span><h2 id="act-faqs">Frequently asked questions</h2></div>
+                {a.faqs.map((faq, i) => <TextAccordion key={`${faq.question}-${i}`} accordionKey={`faq-${i}`} title={faq.question} open={activeAccordion === `faq-${i}`} onOpen={openAccordion} onClose={closeAccordion} onToggle={toggleAccordion}><p>{faq.answer}</p></TextAccordion>)}
+              </section>
+            )}
             {a.detailsAreSample && <p className="act-sample">Sample details shown for demonstration.</p>}
           </div>
 
           {bookable ? (
-            <ActivityBooking activity={a} initial={initial} sheetOpen={sheetOpen} onSheetClose={closeSheet} />
+            <ActivityBooking
+              activity={a}
+              initial={initial}
+              sheetOpen={sheetOpen}
+              onSheetClose={closeSheet}
+            />
           ) : (
-            <aside className="act-aside act-aside-enquiry" aria-label="Booking"><EnquiryCard activity={a} price={price} /></aside>
+            <aside className="act-aside act-aside-enquiry" aria-label="Booking">
+              <EnquiryCard activity={a} price={price} />
+            </aside>
           )}
         </div>
+
+        {a.location && (a.location.name || a.location.address) && (
+          <section ref={locationRef} id="location" className="hol-block act-location-wide" aria-labelledby="act-loc">
+            <h2 id="act-loc">Location</h2>
+            <p className="act-loc-text"><IconPin width="18" height="18" /><span>{[a.location.name, a.location.address].filter(Boolean).join(" · ")}</span></p>
+            {a.location.lat != null && a.location.lng != null && (
+              <div className={`act-map-stage${mapInteractive ? " is-interactive" : ""}`}>
+                {mapVisible && (
+                  <iframe
+                    key={`${a.location.lat}-${a.location.lng}`}
+                    className="act-map"
+                    title={`Map of ${a.location.name || a.title}`}
+                    src={osmEmbed(a.location)}
+                    referrerPolicy="no-referrer"
+                    tabIndex={mapInteractive ? 0 : -1}
+                  />
+                )}
+                <div className="act-map-overlay">
+                  {!mapInteractive ? (
+                    <button
+                      type="button"
+                      className="act-map-activate"
+                      onClick={() => setMapInteractive(true)}
+                      aria-label="Click to explore the map"
+                    >
+                      <IconMap width="22" height="22" />
+                      <span>Click to explore the map</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="act-map-release"
+                      onClick={() => setMapInteractive(false)}
+                      aria-label="Return to page scrolling"
+                    >
+                      Return to page scrolling
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        <div id="reviews" className="act-reviews-wide"><ActivityReviews slug={a.slug} initial={reviews} /></div>
+
+        <TrustPanel />
 
         {related.length > 0 && (
           <section className="hol-block act-related" aria-labelledby="act-rel">

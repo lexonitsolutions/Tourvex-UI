@@ -77,6 +77,7 @@ const PATHS = {
   arrowUpRight: "M7 17 17 7M8 7h9v9",
   arrowDownRight: "M7 7l10 10M17 8v9H8",
   holidays: "M4 8h16v11H4V8zm5 0V5h6v3M4 13h16M11 13v2h2v-2",
+  activities: "M13 3 5 14h6l-1 7 8-11h-6l1-7z",
   cruises: "M3 15h18l-2.500 5h-13L3 15zM6 15v-5h12v5M10 10V6h4v4",
   events: "M12 3l1.800 5.200L19 10l-5.200 1.800L12 17l-1.800-5.200L5 10l5.200-1.800L12 3zM19 16l.7 2.300L22 19l-2.300.7L19 22l-.7-2.300L16 19l2.300-.7L19 16z",
   visas: "M6 3h12v18H6V3zm6 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM9 18h6",

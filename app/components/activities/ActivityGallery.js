@@ -47,12 +47,65 @@ function Lightbox({ images, index, onIndex, onClose, title }) {
 }
 
 /** One large photo plus up to four smaller ones; "See more" opens every photo in a lightbox. */
-export default function ActivityGallery({ images, title }) {
+export default function ActivityGallery({ images, title, video }) {
   const [index, setIndex] = useState(null);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const videoRef = useRef(null);
   const close = useCallback(() => setIndex(null), []);
   const list = images.length ? images : [{ url: FALLBACK_IMG, alt: title }];
   const shown = list.slice(0, 5);
   const extra = list.length - shown.length;
+
+  const playVideo = useCallback(() => {
+    const player = videoRef.current;
+    if (!player) return;
+    player.muted = true;
+    player.play().then(() => setVideoPlaying(true)).catch(() => setVideoPlaying(false));
+  }, []);
+  const stopVideo = useCallback(() => {
+    videoRef.current?.pause();
+    setVideoPlaying(false);
+  }, []);
+
+  useEffect(() => () => videoRef.current?.pause(), [video?.url]);
+
+  if (video?.url) {
+    return (
+      <div
+        className={`act-gallery act-gallery-video has-1${videoPlaying ? " is-playing" : ""}`}
+        role="button"
+        tabIndex={0}
+        aria-label={`${videoPlaying ? "Pause" : "Play"} ${title} preview video`}
+        aria-pressed={videoPlaying}
+        onPointerEnter={playVideo}
+        onPointerLeave={stopVideo}
+        onFocus={playVideo}
+        onBlur={stopVideo}
+        onClick={() => (videoPlaying ? stopVideo() : playVideo())}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            videoPlaying ? stopVideo() : playVideo();
+          }
+        }}
+      >
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video
+          ref={videoRef}
+          className="act-hero-video"
+          src={video.url}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-label={`${title} video`}
+          onEnded={() => setVideoPlaying(false)}
+          onError={() => setVideoPlaying(false)}
+        />
+        <img className="act-video-cover" src={list[0]?.url} alt={list[0]?.alt || title} />
+      </div>
+    );
+  }
 
   return (
     <div className={`act-gallery has-${shown.length}`}>

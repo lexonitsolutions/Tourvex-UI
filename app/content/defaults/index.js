@@ -2,11 +2,13 @@
 import globalFooter from "./global.footer.js";
 import globalHeader from "./global.header.js";
 import globalSeo from "./global.seo.js";
+import pageActivities from "./page.activities.js";
 import pageHome from "./page.home.js";
 
 export const DEFAULTS = {
   "global.footer": globalFooter,
   "global.header": globalHeader,
   "global.seo": globalSeo,
+  "page.activities": pageActivities,
   "page.home": pageHome,
 };

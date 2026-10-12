@@ -60,6 +60,8 @@ function blank(field, { initial = true } = {}) {
     case "dates":
     case "gallery":
       return [];
+    case "video":
+      return { url: "" };
     case "group":
       return Object.fromEntries(field.fields.map((f) => [f.name, blank(f)]));
     case "list":
@@ -101,6 +103,8 @@ function hydrate(field, raw) {
       return raw ? isoToDubaiLocal(raw) : "";
     case "gallery":
       return (Array.isArray(raw) ? raw : []).map((img) => ({ id: uid("img"), url: String(img?.url || ""), alt: String(img?.alt || "") }));
+    case "video":
+      return { url: typeof raw === "string" ? raw : String(raw?.url || "") };
     case "group": {
       const src = raw && typeof raw === "object" ? raw : {};
       return Object.fromEntries(field.fields.map((f) => [f.name, hydrate(f, src[f.name])]));
@@ -153,6 +157,10 @@ function emit(field, v, ctx) {
       return dubaiLocalToIso(v) || undefined;
     case "gallery":
       return (Array.isArray(v) ? v : []).map((img) => ({ url: trim(img.url), alt: trim(img.alt) }));
+    case "video": {
+      const url = trim(typeof v === "string" ? v : v?.url);
+      return url ? { url } : ctx.create ? undefined : null;
+    }
     case "group": {
       const out = {};
       field.fields.forEach((f) => {
@@ -237,7 +245,10 @@ function check(field, v, key, out, ctx) {
       break;
     case "money": {
       const amount = v?.amount;
-      if (amount === null || amount === undefined || amount === "") break;
+      if (amount === null || amount === undefined || amount === "") {
+        if (field.required) set("Enter an amount.", `${key}.amount`);
+        break;
+      }
       if (Number.isNaN(Number(amount)) || Number(amount) < 0) set("Enter an amount of 0 or more.", `${key}.amount`);
       else if (Math.round(Number(amount) * 100) / 100 !== Number(amount)) set("Use at most two decimal places.", `${key}.amount`);
       if (!/^[A-Za-z]{3}$/.test(trim(v?.currency))) set("Use a 3 letter currency code, for example AED.", `${key}.currency`);
@@ -286,7 +297,19 @@ function check(field, v, key, out, ctx) {
       });
       break;
     }
+    case "video": {
+      const url = trim(typeof v === "string" ? v : v?.url);
+      if (!url) {
+        if (field.required) set("Choose a video.");
+      } else if (!/^(https:\/\/|\/videos\/|\/api\/v1\/media\/videos\/)\S+$/.test(url)) {
+        set("Use an uploaded video or an https:// address.", `${key}.url`);
+      } else if (url.length > (field.maxLength || 500)) {
+        set(`Keep the address under ${field.maxLength || 500} characters.`, `${key}.url`);
+      }
+      break;
+    }
     case "group":
+      if (field.optionalGroup && field.fields.every((f) => v?.[f.name] === null || v?.[f.name] === undefined || v?.[f.name] === "")) break;
       field.fields.forEach((f) => check(f, v?.[f.name], `${key}.${f.name}`, out, ctx));
       break;
     case "list": {

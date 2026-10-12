@@ -42,3 +42,6 @@ next-env.d.ts
 
 # verification builds
 /.next-*/
+
+# browser temp
+.edge-temp/

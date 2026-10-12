@@ -85,6 +85,7 @@ function TitleCell({ config, item, href }) {
 
 export default function CatalogList({ config }) {
   const { type } = config;
+  const apiPath = config.apiPath || `/${type}`;
   const api = useAdminApi();
   const router = useRouter();
   const toast = useToast();
@@ -107,7 +108,7 @@ export default function CatalogList({ config }) {
     }),
     [params.q, params.sort, page, limit, status, sample]
   );
-  const list = useAdminQuery(`/${type}/admin/all`, query);
+  const list = useAdminQuery(`${apiPath}/admin/all`, query);
   const [confirm, setConfirm] = useState(null); // { item, error }
   const [busy, setBusy] = useState(null); // id of the row being changed
   const [deleting, setDeleting] = useState(false);
@@ -152,7 +153,7 @@ export default function CatalogList({ config }) {
   async function setPublished(item, published) {
     setBusy(item.id);
     try {
-      await api.patch(`/${type}/${item.id}`, { published });
+      await api.patch(`${apiPath}/${item.id}`, { published });
       toast.success(published ? `Published "${item.title}"` : `Unpublished "${item.title}"`);
       list.reload();
     } catch (e) {
@@ -182,7 +183,7 @@ export default function CatalogList({ config }) {
     const { item } = confirm;
     setDeleting(true);
     try {
-      await api.delete(`/${type}/${item.id}`);
+      await api.delete(`${apiPath}/${item.id}`);
       toast.success(`Deleted "${item.title}"`);
       setConfirm(null);
       if ((list.data?.items?.length || 0) <= 1 && page > 1) setParams({ page: page - 1 });
@@ -205,13 +206,13 @@ export default function CatalogList({ config }) {
         return [
           { label: canWrite ? "Edit" : "View", icon: canWrite ? "edit" : "eye", onSelect: () => router.push(`/admin/catalog/${type}/${r.id}`) },
           ...(r.published && url ? [{ label: "View on site", icon: "external", onSelect: () => window.open(url, "_blank", "noopener,noreferrer") }] : []),
-          ...(canWrite
+          ...(canWrite && config.allowPublishing !== false
             ? [
                 { label: r.published ? "Unpublish" : "Publish", icon: r.published ? "xCircle" : "checkCircle", disabled: busy === r.id, onSelect: () => setPublished(r, !r.published) },
-                { label: "Duplicate", icon: "copy", disabled: busy === r.id, onSelect: () => duplicate(r) },
+                ...(config.allowDuplicate === false ? [] : [{ label: "Duplicate", icon: "copy", disabled: busy === r.id, onSelect: () => duplicate(r) }]),
               ]
             : []),
-          ...(canDelete ? [{ separator: true }, { label: "Delete", icon: "trash", danger: true, onSelect: () => setConfirm({ item: r }) }] : []),
+          ...(canDelete && config.allowDelete !== false ? [{ separator: true }, { label: "Delete", icon: "trash", danger: true, onSelect: () => setConfirm({ item: r }) }] : []),
         ];
       }),
     // handlers close over stable api / toast / list; only inputs that change the menu are listed
@@ -237,7 +238,7 @@ export default function CatalogList({ config }) {
         title={config.plural}
         description={typeof total === "number" ? `${total.toLocaleString("en-GB")} ${total === 1 ? config.singular : config.plural.toLowerCase()}${filtered ? " match your filters" : ""}. ${config.description}` : config.description}
         actions={
-          canWrite ? (
+          canWrite && config.allowCreate !== false ? (
             <Link href={newHref} className="adm-btn adm-btn--primary">
               <Icon name="plus" size={16} />
               <span className="adm-btn__label">Add {config.singular}</span>
@@ -272,9 +273,9 @@ export default function CatalogList({ config }) {
           <div className="adm-empty">
             <span className="adm-empty__icon"><Icon name={filtered ? "search" : "inbox"} size={22} /></span>
             <p className="adm-empty__title">{filtered ? `No ${config.plural.toLowerCase()} match your filters` : `No ${config.plural.toLowerCase()} yet`}</p>
-            <p className="adm-empty__desc">{filtered ? "Try a different search or clear the filters." : canWrite ? `Add the first ${config.singular} to see it here.` : "Nothing has been added yet."}</p>
+            <p className="adm-empty__desc">{filtered ? "Try a different search or clear the filters." : canWrite && config.allowCreate !== false ? `Add the first ${config.singular} to see it here.` : "Nothing has been added yet."}</p>
             <div className="adm-empty__action">
-              {filtered ? <Button onClick={() => setParams({ q: "", status: "", sample: "" })}>Clear filters</Button> : canWrite ? <Link href={newHref} className="adm-btn adm-btn--primary"><span className="adm-btn__label">Add {config.singular}</span></Link> : null}
+              {filtered ? <Button onClick={() => setParams({ q: "", status: "", sample: "" })}>Clear filters</Button> : canWrite && config.allowCreate !== false ? <Link href={newHref} className="adm-btn adm-btn--primary"><span className="adm-btn__label">Add {config.singular}</span></Link> : null}
             </div>
           </div>
         }

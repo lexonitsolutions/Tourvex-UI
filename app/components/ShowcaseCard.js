@@ -52,6 +52,7 @@ export const ShowcaseCard = memo(function ShowcaseCard({
   fallbackImage = SHOWCASE_FALLBACK_IMG,
   tag,
   location,
+  description,
   meta,
   price,
   priceFallback,
@@ -100,6 +101,7 @@ export const ShowcaseCard = memo(function ShowcaseCard({
           <h3 className="sc-title">
             <Link className="sc-link" href={href} aria-label={label}>{title}</Link>
           </h3>
+          {description && <p className="sc-description">{description}</p>}
           {facts.length > 0 && (
             <ul className="sc-meta">
               {facts.map((f) => (

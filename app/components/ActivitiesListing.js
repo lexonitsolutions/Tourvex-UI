@@ -139,7 +139,7 @@ function Section({ id, title, active = 0, defaultOpen = true, children }) {
   return (
     <section className="ac-sec">
       <h3 className="ac-sec-h">
-        <button type="button" aria-expanded={open} aria-controls={`${id}-body`} onClick={() => setOpen((o) => !o)}>
+        <button type="button" aria-expanded={open} aria-controls={`${id}-body`} onClick={() => setOpen((o) => !o)} suppressHydrationWarning>
           <span>{title}</span>
           {active > 0 && <span className="ac-sec-n" aria-label={`${active} selected`}>{active}</span>}
           <IconChevron dir="down" width="16" height="16" />
@@ -167,7 +167,7 @@ function CheckList({ legend, name, options, selected, counts, onToggle, limit })
           return (
             <li key={o.value}>
               <label className={`ac-check${n === 0 && !on ? " is-empty" : ""}`}>
-                <input type="checkbox" name={name} value={o.value} checked={on} disabled={n === 0 && !on} onChange={() => onToggle(o.value)} />
+                <input type="checkbox" name={name} value={o.value} checked={on} disabled={n === 0 && !on} onChange={() => onToggle(o.value)} suppressHydrationWarning />
                 <span className="ac-check-box" aria-hidden="true">
                   <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m3.5 8.5 3 3 6-7" /></svg>
                 </span>
@@ -179,7 +179,7 @@ function CheckList({ legend, name, options, selected, counts, onToggle, limit })
         })}
       </ul>
       {limit && options.length > limit && (
-        <button type="button" className="ac-more" aria-expanded={all} onClick={() => setAll((v) => !v)}>
+        <button type="button" className="ac-more" aria-expanded={all} onClick={() => setAll((v) => !v)} suppressHydrationWarning>
           {all ? "Show less" : `Show more (${hidden})`}
         </button>
       )}
@@ -236,21 +236,21 @@ function PriceFilter({ bounds, min, max, currency, onCommit }) {
     <div className="ac-price">
       <div className="ac-range" style={{ "--a": pct(lo), "--b": pct(hi) }}>
         <span className="ac-range-track" aria-hidden="true"><span className="ac-range-fill" /></span>
-        <input type="range" min={bounds.lo} max={bounds.hi} step={step} value={lo} onChange={(e) => slide("lo", Number(e.target.value))} aria-label={`Minimum price, ${currency}`} aria-valuetext={money(lo)} />
-        <input type="range" min={bounds.lo} max={bounds.hi} step={step} value={hi} onChange={(e) => slide("hi", Number(e.target.value))} aria-label={`Maximum price, ${currency}`} aria-valuetext={money(hi)} />
+        <input type="range" min={bounds.lo} max={bounds.hi} step={step} value={lo} onChange={(e) => slide("lo", Number(e.target.value))} aria-label={`Minimum price, ${currency}`} aria-valuetext={money(lo)} suppressHydrationWarning />
+        <input type="range" min={bounds.lo} max={bounds.hi} step={step} value={hi} onChange={(e) => slide("hi", Number(e.target.value))} aria-label={`Maximum price, ${currency}`} aria-valuetext={money(hi)} suppressHydrationWarning />
       </div>
       <p className="ac-price-labels" aria-hidden="true"><span>{money(lo)}</span><span>{money(hi)}</span></p>
       <div className="ac-price-inputs">
         <label>
           <span>Min ({currency})</span>
-          <input type="number" inputMode="decimal" min={bounds.lo} max={bounds.hi} value={texts?.lo ?? String(lo)} onChange={(e) => setTexts({ lo: e.target.value, hi: texts?.hi ?? String(hi) })} onBlur={commitText} onKeyDown={onKey} />
+          <input type="number" inputMode="decimal" min={bounds.lo} max={bounds.hi} value={texts?.lo ?? String(lo)} onChange={(e) => setTexts({ lo: e.target.value, hi: texts?.hi ?? String(hi) })} onBlur={commitText} onKeyDown={onKey} suppressHydrationWarning />
         </label>
         <label>
           <span>Max ({currency})</span>
-          <input type="number" inputMode="decimal" min={bounds.lo} max={bounds.hi} value={texts?.hi ?? String(hi)} onChange={(e) => setTexts({ lo: texts?.lo ?? String(lo), hi: e.target.value })} onBlur={commitText} onKeyDown={onKey} />
+          <input type="number" inputMode="decimal" min={bounds.lo} max={bounds.hi} value={texts?.hi ?? String(hi)} onChange={(e) => setTexts({ lo: texts?.lo ?? String(lo), hi: e.target.value })} onBlur={commitText} onKeyDown={onKey} suppressHydrationWarning />
         </label>
       </div>
-      {dirty && <button type="button" className="ac-more" onClick={() => { setDrag(null); setTexts(null); commit(null, null); }}>Clear price</button>}
+      {dirty && <button type="button" className="ac-more" onClick={() => { setDrag(null); setTexts(null); commit(null, null); }} suppressHydrationWarning>Clear price</button>}
     </div>
   );
 }
@@ -273,7 +273,7 @@ const CloseIcon = ({ size = 14 }) => (
  * real cards. Prices arrive already converted by the API; filters, sort and "load more" are client side and synced to the URL
  * (q, destination, activity, trip, duration, min, max, offer, sort, view).
  */
-export default function ActivitiesListing({ initial }) {
+export default function ActivitiesListing({ initial, sections = [] }) {
   const { currency } = useApp();
   const { setScrollLocked } = useMotion();
   const pathname = usePathname();
@@ -484,16 +484,27 @@ export default function ActivitiesListing({ initial }) {
   const subtitle = params.dest.length === 1 || params.cat.length === 1
     ? "Hand-picked tours, attractions and experiences, with prices shown in your currency."
     : "Desert safaris, theme parks, cruises and city tours across the UAE and beyond, with prices shown in your currency.";
-  const countText = results ? `${total} ${total === 1 ? "experience" : "experiences"}${filtered ? " found" : ""}` : failed ? "" : "Finding experiences...";
+  const filtersSection = sections.find((section) => section.type === "activitiesFilters")?.data || {};
+  const resultTemplate = filtersSection.resultsLabel || "{count} {noun} found";
+  const countText = results ? resultTemplate.replace("{count}", total).replace("{noun}", total === 1 ? "experience" : "experiences") : failed ? "" : "Finding experiences...";
   const ready = !!items;
+  const heroSection = sections.find((section) => section.type === "activitiesHero")?.data || {};
+  const featuredSection = sections.find((section) => section.type === "activitiesFeatured")?.data;
+  const lowerSections = sections.filter((section) => !["activitiesHero", "activitiesFilters", "activitiesFeatured"].includes(section.type));
+  const featuredSlugs = (featuredSection?.activities || []).filter((item) => item.visible !== false).map((item) => item.slug);
+  const featuredRows = featuredSlugs.map((slug) => rowsAll?.find((row) => row.it.slug === slug)).filter(Boolean);
+  const heroImage = heroSection.image?.url;
+  const heroVideo = heroSection.video?.url;
+  const categories = (heroSection.categories || []).filter((item) => item.visible !== false);
 
   return (
     <div className="hol-page ac-page">
       <div className="mk-container ac-hero-wrap">
-        <header className="ac-hero">
-          <p className="ac-eyebrow">Karnish Activities</p>
-          <h1>{subject}</h1>
-          <p className="ac-sub">{subtitle}</p>
+        <header className={`ac-hero is-${heroSection.alignment || "left"}`} style={{ "--ac-hero-image": heroImage ? `url(${heroImage})` : undefined, "--ac-overlay": heroSection.overlay || "#10295b", "--ac-overlay-strength": `${heroSection.overlayOpacity ?? 58}%` }}>
+          {heroVideo && <video className="ac-hero-video" src={heroVideo} poster={heroImage || undefined} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" />}
+          <p className="ac-eyebrow">{heroSection.eyebrow || "Activities & Experiences"}</p>
+          <h1>{params.dest.length || params.cat.length ? subject : <>{heroSection.heading || subject} {heroSection.accent && <em>{heroSection.accent}</em>}</>}</h1>
+          <p className="ac-sub">{params.dest.length || params.cat.length ? subtitle : heroSection.description || subtitle}</p>
           <form className="ac-search" role="search" onSubmit={(e) => e.preventDefault()}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
@@ -503,23 +514,29 @@ export default function ActivitiesListing({ initial }) {
               type="search"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Search activities, cities or experiences"
+              placeholder={heroSection.searchPlaceholder || "Search activities, cities or experiences"}
               aria-label="Search activities"
               autoComplete="off"
               spellCheck="false"
+              suppressHydrationWarning
             />
           </form>
         </header>
+        {categories.length > 0 && <div className="ac-hero-cats" role="group" aria-label="Activity categories">
+          {categories.map((category) => { const selected = category.category ? params.cat.includes(category.category) : !params.cat.length; return <button key={category.id || category.label} type="button" className={selected ? "is-active" : ""} aria-pressed={selected} onClick={() => update({ activity: category.category || "" })} suppressHydrationWarning><span aria-hidden="true">{category.icon || "◇"}</span><strong>{category.label}</strong>{category.category && <small>{counts.cat.get(category.category) || 0} experiences</small>}</button>; })}
+        </div>}
       </div>
+
+      {featuredRows.length > 0 && <section className="mk-container ac-featured" aria-labelledby="ac-featured-title"><div className="ac-section-head"><div><p>Curated for you</p><h2 id="ac-featured-title">{featuredSection.heading}</h2>{featuredSection.description && <span>{featuredSection.description}</span>}</div></div><div className="sc-grid ac-featured-grid">{featuredRows.map((r) => <ShowcaseCard key={r.it._id || r.it.slug} href={`/activities/${r.it.slug}`} title={r.it.title} image={r.it.imageUrl} fallbackImage={FALLBACK_IMG} tag={featuredSection.activities.find((x) => x.slug === r.it.slug)?.label || r.it.categories?.[0]} location={r.loc} price={r.price} stock={r.it.stock} />)}</div></section>}
 
       <section className="mk-container hol-list ac-list" aria-label="Activities">
         {options.cat.length > 0 && (
           <div className="ac-chips" role="group" aria-label="Quick category filter">
-            <button type="button" className={`hol-chip${params.cat.length ? "" : " is-active"}`} aria-pressed={!params.cat.length} onClick={() => update({ activity: "" })}>
+            <button type="button" className={`hol-chip${params.cat.length ? "" : " is-active"}`} aria-pressed={!params.cat.length} onClick={() => update({ activity: "" })} suppressHydrationWarning>
               All
             </button>
             {options.cat.map((c) => (
-              <button key={c.value} type="button" className={`hol-chip${params.cat.includes(c.value) ? " is-active" : ""}`} aria-pressed={params.cat.includes(c.value)} onClick={() => toggle("cat", "activity")(c.value)}>
+              <button key={c.value} type="button" className={`hol-chip${params.cat.includes(c.value) ? " is-active" : ""}`} aria-pressed={params.cat.includes(c.value)} onClick={() => toggle("cat", "activity")(c.value)} suppressHydrationWarning>
                 {c.value}
               </button>
             ))}
@@ -531,59 +548,60 @@ export default function ActivitiesListing({ initial }) {
             ref={sideRef}
             className={`ac-side${sheetOpen ? " is-open" : ""}`}
             aria-label="Filters"
+            data-lenis-prevent
             inert={isMobile && !sheetOpen}
           >
-            <button type="button" className="ac-scrim" aria-label="Close filters" tabIndex={-1} onClick={closeSheet} />
+            <button type="button" className="ac-scrim" aria-label="Close filters" tabIndex={-1} onClick={closeSheet} suppressHydrationWarning />
             <div className="ac-side-panel" role={isMobile ? "dialog" : undefined} aria-modal={isMobile ? "true" : undefined} aria-labelledby="ac-side-title">
               <span className="ac-grab" aria-hidden="true" />
               <div className="ac-side-head">
-                <h2 id="ac-side-title">Filters</h2>
-                {activeCount > 0 && <button type="button" className="ac-linkbtn ac-side-clear" onClick={clearAll}>Clear all</button>}
-                <button ref={closeRef} type="button" className="ac-close" onClick={closeSheet} aria-label="Close filters"><CloseIcon size={18} /></button>
+                <h2 id="ac-side-title">{filtersSection.heading || "Filters"}</h2>
+                {activeCount > 0 && <button type="button" className="ac-linkbtn ac-side-clear" onClick={clearAll} suppressHydrationWarning>{filtersSection.clearLabel || "Clear all"}</button>}
+                <button ref={closeRef} type="button" className="ac-close" onClick={closeSheet} aria-label="Close filters" suppressHydrationWarning><CloseIcon size={18} /></button>
               </div>
               <div className="ac-side-body">
                 {!ready ? (
                   <div className="ac-side-skel" aria-hidden="true">{Array.from({ length: 6 }, (_, i) => <span key={i} />)}</div>
                 ) : (
                   <>
-                    {options.dest.length > 1 && (
-                      <Section id="ac-f-dest" title="Destination" active={params.dest.length}>
+                    {filtersSection.showDestination !== false && options.dest.length > 1 && (
+                      <Section id="ac-f-dest" title={filtersSection.destinationLabel || "Destination"} active={params.dest.length}>
                         <CheckList legend="Destination" name="destination" options={options.dest} selected={params.dest} counts={counts.dest} onToggle={toggle("dest", "destination")} limit={DEST_LIMIT} />
                       </Section>
                     )}
-                    {options.cat.length > 1 && (
-                      <Section id="ac-f-cat" title="Category" active={params.cat.length}>
+                    {filtersSection.showCategory !== false && options.cat.length > 1 && (
+                      <Section id="ac-f-cat" title={filtersSection.categoryLabel || "Category"} active={params.cat.length}>
                         <CheckList legend="Category" name="activity" options={options.cat} selected={params.cat} counts={counts.cat} onToggle={toggle("cat", "activity")} />
                       </Section>
                     )}
-                    {bounds && (
-                      <Section id="ac-f-price" title="Price" active={params.min != null || params.max != null ? 1 : 0}>
+                    {filtersSection.showPrice !== false && bounds && (
+                      <Section id="ac-f-price" title={filtersSection.priceLabel || "Price"} active={params.min != null || params.max != null ? 1 : 0}>
                         <PriceFilter bounds={bounds} min={params.min} max={params.max} currency={bounds.code} onCommit={commitPrice} />
                       </Section>
                     )}
-                    {durOptions.length > 1 && (
-                      <Section id="ac-f-dur" title="Duration" active={params.dur.length}>
+                    {filtersSection.showDuration !== false && durOptions.length > 1 && (
+                      <Section id="ac-f-dur" title={filtersSection.durationLabel || "Duration"} active={params.dur.length}>
                         <CheckList legend="Duration" name="duration" options={durOptions.map((d) => ({ value: d.key, label: d.label }))} selected={params.dur} counts={counts.dur} onToggle={toggle("dur", "duration")} />
                       </Section>
                     )}
-                    {options.trip.length > 0 && (
-                      <Section id="ac-f-trip" title="Trip type" active={params.trip.length} defaultOpen={false}>
+                    {filtersSection.showTripType !== false && options.trip.length > 0 && (
+                      <Section id="ac-f-trip" title={filtersSection.tripTypeLabel || "Trip type"} active={params.trip.length} defaultOpen={false}>
                         <CheckList legend="Trip type" name="trip" options={options.trip} selected={params.trip} counts={counts.trip} onToggle={toggle("trip", "trip")} />
                       </Section>
                     )}
-                    <section className="ac-sec ac-sec-flat">
+                    {filtersSection.showOffers !== false && <section className="ac-sec ac-sec-flat">
                       <label className={`ac-switch${counts.offer === 0 && !params.offer ? " is-empty" : ""}`}>
-                        <input type="checkbox" role="switch" checked={params.offer} disabled={counts.offer === 0 && !params.offer} onChange={(e) => update({ offer: e.target.checked })} />
-                        <span className="ac-switch-label">On offer<small>{counts.offer} {counts.offer === 1 ? "activity" : "activities"} with a discount</small></span>
+                        <input type="checkbox" role="switch" checked={params.offer} disabled={counts.offer === 0 && !params.offer} onChange={(e) => update({ offer: e.target.checked })} suppressHydrationWarning />
+                        <span className="ac-switch-label">{filtersSection.offerLabel || "On offer"}<small>{(filtersSection.offerDescription || "{count} activities with a discount").replace("{count}", counts.offer)}</small></span>
                         <span className="ac-switch-track" aria-hidden="true"><span /></span>
                       </label>
-                    </section>
+                    </section>}
                   </>
                 )}
               </div>
               <div className="ac-side-foot">
-                <button type="button" className="ac-foot-clear" onClick={clearAll} disabled={!activeCount}>Clear all</button>
-                <button type="button" className="mk-btn ac-apply" onClick={closeSheet}>
+                <button type="button" className="ac-foot-clear" onClick={clearAll} disabled={!activeCount} suppressHydrationWarning>{filtersSection.clearLabel || "Clear all"}</button>
+                <button type="button" className="mk-btn ac-apply" onClick={closeSheet} suppressHydrationWarning>
                   {results ? `Show ${total} ${total === 1 ? "result" : "results"}` : "Apply"}
                 </button>
               </div>
@@ -592,18 +610,18 @@ export default function ActivitiesListing({ initial }) {
 
           <div className="ac-results">
             <div className="ac-toolbar" role="group" aria-label="Sort and view">
-              <button ref={openerRef} type="button" className="ac-filter-btn" aria-haspopup="dialog" aria-expanded={sheetOpen} onClick={() => setSheet(true)}>
+              <button ref={openerRef} type="button" className="ac-filter-btn" aria-haspopup="dialog" aria-expanded={sheetOpen} onClick={() => setSheet(true)} suppressHydrationWarning>
                 <SlidersIcon />
                 <span>Filters</span>
                 {activeCount > 0 && <span className="ac-badge" aria-label={`${activeCount} active`}>{activeCount}</span>}
               </button>
               <p className="ac-count" aria-live="polite" aria-atomic="true">{countText}</p>
-              <Select id="ac-sort" label="Sort by" value={params.sort} onChange={(v) => update({ sort: v })}>
+              <Select id="ac-sort" label={filtersSection.sortLabel || "Sort by"} value={params.sort} onChange={(v) => update({ sort: v })}>
                 {ACTIVITY_SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </Select>
               <div className="ac-view" role="group" aria-label="Layout">
-                <button type="button" aria-pressed={params.view === "grid"} aria-label="Grid view" onClick={() => update({ view: "grid" })}><GridIcon /></button>
-                <button type="button" aria-pressed={params.view === "list"} aria-label="List view" onClick={() => update({ view: "list" })}><ListIcon /></button>
+                <button type="button" aria-pressed={params.view === "grid"} aria-label="Grid view" onClick={() => update({ view: "grid" })} suppressHydrationWarning><GridIcon /></button>
+                <button type="button" aria-pressed={params.view === "list"} aria-label="List view" onClick={() => update({ view: "list" })} suppressHydrationWarning><ListIcon /></button>
               </div>
             </div>
 
@@ -611,13 +629,13 @@ export default function ActivitiesListing({ initial }) {
               <ul className="ac-active" aria-label="Active filters">
                 {chips.map((c) => (
                   <li key={c.id}>
-                    <button type="button" className="ac-tag" onClick={() => removeChip(c)} aria-label={`Remove filter ${c.label}`}>
+                    <button type="button" className="ac-tag" onClick={() => removeChip(c)} aria-label={`Remove filter ${c.label}`} suppressHydrationWarning>
                       <span>{c.label}</span>
                       <CloseIcon />
                     </button>
                   </li>
                 ))}
-                <li><button type="button" className="ac-linkbtn" onClick={clearAll}>Clear all</button></li>
+                <li><button type="button" className="ac-linkbtn" onClick={clearAll} suppressHydrationWarning>{filtersSection.clearLabel || "Clear all"}</button></li>
               </ul>
             )}
 
@@ -657,13 +675,14 @@ export default function ActivitiesListing({ initial }) {
                       meta={r.meta}
                       price={r.price}
                       priceFallback="Price on request"
+                      description={r.it.summary}
                     />
                   ))}
                 </div>
                 {visible < total && (
                   <div className="hol-more">
-                    <button type="button" className="mk-btn" onClick={() => setShown({ sig, n: visible + PAGE_SIZE })}>
-                      Load more ({total - visible} left)
+                    <button type="button" className="mk-btn" onClick={() => setShown({ sig, n: visible + PAGE_SIZE })} suppressHydrationWarning>
+                      {(filtersSection.loadMoreLabel || "Load more ({count} left)").replace("{count}", total - visible)}
                     </button>
                   </div>
                 )}
@@ -672,6 +691,15 @@ export default function ActivitiesListing({ initial }) {
           </div>
         </div>
       </section>
+      {lowerSections.length > 0 && <div className="mk-container ac-managed-sections">{lowerSections.map((section) => <ManagedSection key={section.id} section={section} />)}</div>}
     </div>
   );
+}
+
+function ManagedSection({ section }) {
+  const data = section.data || {};
+  if (section.type === "activitiesHighlights") return <section className="ac-managed ac-highlights"><div className="ac-section-head"><div><p>Why Karnish</p><h2>{data.heading}</h2>{data.description && <span>{data.description}</span>}</div></div><div className="ac-highlight-grid">{(data.items || []).map((item) => <article key={item.id || item.title}><i aria-hidden="true">{item.icon || "✓"}</i><div><h3>{item.title}</h3><p>{item.description}</p></div></article>)}</div></section>;
+  if (section.type === "activitiesFaqs") return <section className="ac-managed ac-faq"><div className="ac-section-head"><div><p>Good to know</p><h2>{data.heading}</h2></div></div>{(data.items || []).map((item) => <details key={item.id || item.question}><summary>{item.question}<span>+</span></summary><p>{item.answer}</p></details>)}</section>;
+  if (section.type === "activitiesGallery") return <section className="ac-managed"><div className="ac-section-head"><div><h2>{data.heading}</h2><span>{data.description}</span></div></div><div className="ac-gallery">{(data.images || []).map((item) => <figure key={item.id || item.image?.url}><img src={item.image?.url} alt={item.image?.alt || item.caption || ""} loading="lazy"/><figcaption>{item.caption}</figcaption></figure>)}</div></section>;
+  return <section className={`ac-managed ac-content-block ${section.type === "activitiesCta" ? "is-cta" : ""}`}><div><h2>{data.heading}</h2>{data.description && <p>{data.description}</p>}{data.cta?.href && data.cta?.label && <a className="mk-btn" href={data.cta.href}>{data.cta.label}</a>}</div>{data.image?.url && <img src={data.image.url} alt={data.image.alt || ""} loading="lazy"/>}</section>;
 }

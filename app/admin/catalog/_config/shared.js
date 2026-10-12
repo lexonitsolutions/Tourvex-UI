@@ -14,6 +14,7 @@ export const money = (name, label, o = {}) => ({ name, type: "money", label, nul
 export const chips = (name, label, o = {}) => ({ name, type: "chips", label, ...o });
 export const strings = (name, label, o = {}) => ({ name, type: "strings", label, ...o });
 export const list = (name, label, fields, o = {}) => ({ name, type: "list", label, fields, ...o });
+export const group = (name, label, fields, o = {}) => ({ name, type: "group", label, fields, ...o });
 
 export const slugField = () =>
   text("slug", "URL slug", {

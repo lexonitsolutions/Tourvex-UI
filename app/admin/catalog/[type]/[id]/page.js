@@ -38,7 +38,7 @@ function Loader({ config, id }) {
   useEffect(() => {
     const controller = new AbortController();
     api
-      .get(`/${config.type}/admin/${encodeURIComponent(id)}`, { signal: controller.signal })
+      .get(`${config.apiPath || `/${config.type}`}/admin/${encodeURIComponent(id)}`, { signal: controller.signal })
       .then((record) => setResult({ attempt, record, error: null }))
       .catch((error) => {
         if (!isAbortError(error)) setResult({ attempt, record: null, error });

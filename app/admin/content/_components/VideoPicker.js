@@ -22,11 +22,6 @@ function VideoThumb({ url, className = "" }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    setLoadError(false);
-    setIsPlaying(false);
-  }, [url]);
-
   if (!url || loadError) {
     return (
       <div className={cx("adm-cms-image__frame is-empty", className)} style={{ width: 144, aspectRatio: "4/5" }}>
@@ -51,7 +46,6 @@ function VideoThumb({ url, className = "" }) {
         setIsPlaying(false);
       }}
     >
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
         ref={videoRef}
         src={resolveMediaUrl(url)}
@@ -81,7 +75,7 @@ function VideoLibrary({ picked, onPick }) {
   useEffect(() => {
     const controller = new AbortController();
     cms
-      .mediaList({ q: q || undefined, page, limit: LIMIT }, { signal: controller.signal })
+      .mediaVideoList({ q: q || undefined, page, limit: LIMIT }, { signal: controller.signal })
       .then((data) => setResult({ key, data, error: null }))
       .catch((error) => {
         if (!isAbortError(error)) setResult({ key, data: null, error });
@@ -92,12 +86,7 @@ function VideoLibrary({ picked, onPick }) {
 
   const settled = result.key === key;
   const rawItems = settled && result.data ? listOf(result.data) : [];
-  // Filter for video files or files with video extensions/contentTypes
-  const items = rawItems.filter((m) => {
-    const ct = String(m.contentType || "");
-    const fn = String(m.filename || "").toLowerCase();
-    return ct.startsWith("video/") || /\.(mp4|webm|mov|ogg)$/.test(fn);
-  });
+  const items = rawItems;
   const pagination = settled ? result.data?.pagination : null;
 
   return (
@@ -121,7 +110,6 @@ function VideoLibrary({ picked, onPick }) {
             return (
               <li key={m.id || m.url}>
                 <button type="button" className={cx("adm-cms-tile", on && "is-selected")} aria-pressed={on} onClick={() => onPick(m)}>
-                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                   <video src={resolveMediaUrl(m.url)} preload="metadata" muted playsInline />
                   <span className="adm-cms-tile__meta">
                     <b>{m.filename || "video"}</b>
@@ -226,7 +214,6 @@ function VideoUploader({ onUploaded, picked }) {
 
       {picked?.url ? (
         <div className="adm-cms-up__done">
-          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
             src={resolveMediaUrl(picked.url)}
             muted
@@ -277,7 +264,6 @@ function VideoByUrl({ picked, onPick }) {
 
       {text.trim() ? (
         <div className="adm-cms-up__done">
-          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
             src={resolveMediaUrl(text.trim())}
             playsInline
@@ -365,7 +351,7 @@ function VideoPickerField({ field, value, path }) {
       {field.help ? <p className="adm-field__hint">{field.help}</p> : null}
 
       <div className="adm-cms-image__row">
-        <VideoThumb url={url} />
+        <VideoThumb key={url || "empty-video"} url={url} />
         <div className="adm-cms-image__side">
           {url ? (
             <div className="tw:grid tw:gap-1">

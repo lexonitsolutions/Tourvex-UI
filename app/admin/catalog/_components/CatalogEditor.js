@@ -38,6 +38,7 @@ const timeOf = (ms) => new Date(ms).toLocaleTimeString("en-GB", { hour: "2-digit
 /** `record` is the API record being edited, or null for "Add new". */
 export default function CatalogEditor({ config, record }) {
   const { type } = config;
+  const apiPath = config.apiPath || `/${type}`;
   const isNew = !record;
   const api = useAdminApi();
   const toast = useToast();
@@ -134,7 +135,7 @@ export default function CatalogEditor({ config, record }) {
       setProblems([]);
       try {
         if (isNew) {
-          const created = await api.post(`/${type}`, toPayload(config, form, { create: true }));
+          const created = await api.post(apiPath, toPayload(config, form, { create: true }));
           const id = recordId(created);
           toast.success(form.published ? `${config.singular} created and published` : `${config.singular} created as a draft`);
           baseRef.current = valueRef.current; // nothing left to lose: the page is replaced by the saved record
@@ -142,10 +143,10 @@ export default function CatalogEditor({ config, record }) {
           else router.replace(`/admin/catalog/${type}`);
           return true;
         }
-        const updated = await api.patch(`/${type}/${meta.id}`, patch);
+        const updated = await api.patch(`${apiPath}/${meta.id}${config.updateSuffix || ""}`, patch);
         let fresh = updated;
         try {
-          fresh = await api.get(`/${type}/admin/${meta.id}`); // refetch: the stored record is the source of truth
+          fresh = await api.get(`${apiPath}/admin/${meta.id}`); // refetch: the stored record is the source of truth
         } catch {
           /* the PATCH answer is the updated record as well */
         }
@@ -173,7 +174,7 @@ export default function CatalogEditor({ config, record }) {
     },
     // showErrors only uses stable setters
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canWrite, config, isNew, api, type, meta.id, record, applyRecord, toast, router]
+    [canWrite, config, isNew, api, type, apiPath, meta.id, record, applyRecord, toast, router]
   );
 
   useEffect(() => {
@@ -191,7 +192,7 @@ export default function CatalogEditor({ config, record }) {
     setBusy(true);
     setDialogError("");
     try {
-      await api.delete(`/${type}/${meta.id}`);
+      await api.delete(`${apiPath}/${meta.id}`);
       baseRef.current = valueRef.current;
       toast.success("Deleted");
       router.push(`/admin/catalog/${type}`);
@@ -221,13 +222,13 @@ export default function CatalogEditor({ config, record }) {
   const nextPublished = !meta.published;
 
   const menuItems = [
-    ...(!isNew && canWrite ? [{ label: "Duplicate", icon: "copy", onSelect: duplicate }] : []),
-    ...(!isNew && canDelete ? [{ separator: true }, { label: "Delete", icon: "trash", danger: true, onSelect: () => { setDialogError(""); setDialog("delete"); } }] : []),
+    ...(!isNew && canWrite && config.allowDuplicate !== false ? [{ label: "Duplicate", icon: "copy", onSelect: duplicate }] : []),
+    ...(!isNew && canDelete && config.allowDelete !== false ? [{ separator: true }, { label: "Delete", icon: "trash", danger: true, onSelect: () => { setDialogError(""); setDialog("delete"); } }] : []),
   ];
 
   const actions = (
     <>
-      {canWrite && isNew ? (
+      {canWrite && isNew && config.allowCreate !== false ? (
         <>
           <Button variant="secondary" onClick={() => save(false)} loading={saving === "save" || saving === "publish"} disabled={!!saving}>Create as draft</Button>
           <Button variant="primary" icon="check" onClick={() => save(true)} disabled={!!saving}>Create and publish</Button>
@@ -236,9 +237,11 @@ export default function CatalogEditor({ config, record }) {
       {canWrite && !isNew ? (
         <>
           <Button variant="secondary" onClick={() => save()} loading={saving === "save"} disabled={(!dirty && !saveError) || !!saving || gone}>Save changes</Button>
-          <Button variant={meta.published ? "secondary" : "primary"} icon={meta.published ? "xCircle" : "check"} onClick={() => save(nextPublished)} loading={saving === "publish"} disabled={!!saving || gone}>
-            {meta.published ? "Unpublish" : "Publish"}
-          </Button>
+          {config.allowPublishing !== false ? (
+            <Button variant={meta.published ? "secondary" : "primary"} icon={meta.published ? "xCircle" : "check"} onClick={() => save(nextPublished)} loading={saving === "publish"} disabled={!!saving || gone}>
+              {meta.published ? "Unpublish" : "Publish"}
+            </Button>
+          ) : null}
         </>
       ) : null}
     </>

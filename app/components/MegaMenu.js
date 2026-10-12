@@ -334,7 +334,7 @@ export default function MegaMenu({ isOpen, menu = "default", onMouseEnter, onMou
       {/* TOP SECTION: Left Sidebar + Right 3-Column Items Grid */}
       <div className="mm-main-grid">
         {/* Left Vertical Categories with Icon, Badge & Chevrons */}
-        <aside className="mm-sidebar" aria-label={mega.sidebarAriaLabel}>
+        <aside className="mm-sidebar" aria-label={mega.sidebarAriaLabel} data-lenis-prevent>
           {groups.map((cat) => {
             const isActive = cat.id === selectedCategoryId;
             return (
