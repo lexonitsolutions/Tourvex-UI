@@ -108,6 +108,20 @@ function SocialIcon({ platform }) {
   return null;
 }
 
+function PaymentIcon({ type }) {
+  const files = {
+    visa: "visa.svg", mastercard: "mastercard.svg", amex: "americanexpress.svg",
+    gpay: "googlepay.svg", applepay: "applepay.svg", rupay: "rupay.svg", paypal: "paypal.svg",
+    discover: "discover.svg", jcb: "jcb.svg", unionpay: "unionpay.svg", dinersclub: "dinersclub.svg",
+    maestro: "maestro.svg", samsungpay: "samsungpay.svg", alipay: "alipay.svg", wechatpay: "wechatpay.svg",
+    upi: "upi.svg", mada: "mada.svg", klarna: "klarna.svg", afterpay: "afterpay.svg",
+    banktransfer: "banktransfer.svg",
+  };
+  if (files[type]) return <img src={`/payment-icons/${files[type]}`} alt="" aria-hidden="true" />;
+  if (type === "cash") return <svg viewBox="0 0 54 32" role="img" aria-hidden="true"><path d="M8 7h38v18H8z" rx="2" fill="#e7f6ec" stroke="#168a4a" strokeWidth="2"/><circle cx="27" cy="16" r="5" fill="none" stroke="#168a4a" strokeWidth="2"/><path d="M11 11c3 0 4-1 4-2m28 2c-3 0-4-1-4-2M11 21c3 0 4 1 4 2m28-2c-3 0-4 1-4 2" fill="none" stroke="#168a4a" strokeWidth="1.5"/></svg>;
+  return null;
+}
+
 const DEFAULT_SOCIALS = [
   { id: "s-instagram", platform: "instagram", label: "Instagram", href: "https://instagram.com" },
   { id: "s-x", platform: "x", label: "X (Twitter)", href: "https://x.com" },
@@ -150,6 +164,39 @@ const LEGAL_LINKS = [
   { label: "Terms & Conditions", href: "/terms" },
 ];
 
+const FOOTER_PAYMENT_METHODS = [
+  { id: "pay-visa", type: "visa", label: "Visa" },
+  { id: "pay-mastercard", type: "mastercard", label: "Mastercard" },
+  { id: "pay-amex", type: "amex", label: "American Express" },
+  { id: "pay-paypal", type: "paypal", label: "PayPal" },
+  { id: "pay-applepay", type: "applepay", label: "Apple Pay" },
+  { id: "pay-gpay", type: "gpay", label: "Google Pay" },
+];
+
+const PAYMENT_LABELS = {
+  visa: "Visa",
+  mastercard: "Mastercard",
+  amex: "American Express",
+  paypal: "PayPal",
+  applepay: "Apple Pay",
+  gpay: "Google Pay",
+  discover: "Discover",
+  rupay: "RuPay",
+  jcb: "JCB",
+  unionpay: "UnionPay",
+  dinersclub: "Diners Club",
+  maestro: "Maestro",
+  samsungpay: "Samsung Pay",
+  alipay: "Alipay",
+  wechatpay: "WeChat Pay",
+  upi: "UPI",
+  mada: "Mada",
+  klarna: "Klarna",
+  afterpay: "Afterpay",
+  banktransfer: "Bank Transfer",
+  cash: "Cash",
+};
+
 export default async function SiteFooter({ content }) {
   "use cache";
   cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
@@ -159,7 +206,6 @@ export default async function SiteFooter({ content }) {
   const email = contact.email || "info@karnishtourism.com";
   const address = contact.address || "Dubai, United Arab Emirates";
 
-  // Use CMS socials if provided, otherwise standard complete set with Instagram, X, Facebook, YouTube, LinkedIn
   const socialsList = Array.isArray(content?.socials) && content.socials.length > 0
     ? content.socials.map((s) => ({
         id: s.id || s.platform,
@@ -168,6 +214,9 @@ export default async function SiteFooter({ content }) {
         href: s.link?.href || "#",
       }))
     : DEFAULT_SOCIALS;
+  const configuredPayments = content?.paymentMethods || [];
+  const paymentMethods = (configuredPayments.length ? configuredPayments : FOOTER_PAYMENT_METHODS)
+    .filter((method) => method.visible !== false && method.type);
 
   return (
     <footer className="mk-footer">
@@ -205,15 +254,9 @@ export default async function SiteFooter({ content }) {
 
           {/* Contact details */}
           <address className="mk-footer-contact" style={{ fontStyle: "normal" }}>
-            <a href={`tel:${phone.replace(/[^+\d]/g, "")}`} className="mk-footer-contact-row">
-              <IconPhone /><span>{phone}</span>
-            </a>
-            <a href={`mailto:${email}`} className="mk-footer-contact-row">
-              <IconMail /><span>{email}</span>
-            </a>
-            <span className="mk-footer-contact-row">
-              <IconPin /><span>{address}</span>
-            </span>
+            <a href={`tel:${phone.replace(/[^+\d]/g, "")}`} className="mk-footer-contact-row"><IconPhone /><span>{phone}</span></a>
+            <a href={`mailto:${email}`} className="mk-footer-contact-row"><IconMail /><span>{email}</span></a>
+            <span className="mk-footer-contact-row"><IconPin /><span>{address}</span></span>
           </address>
 
           {/* Social icons */}
@@ -233,66 +276,54 @@ export default async function SiteFooter({ content }) {
           </div>
         </div>
 
-        {/* Column 1: Experiences */}
-        <div className="mk-footer-col">
-          <h4 className="mk-footer-col-title">Experiences</h4>
-          <ul className="mk-footer-links" role="list">
-            {EXPERIENCES_LINKS.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="mk-footer-link">{l.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Column 2: Company */}
-        <div className="mk-footer-col">
-          <h4 className="mk-footer-col-title">Company</h4>
-          <ul className="mk-footer-links" role="list">
-            {COMPANY_LINKS.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="mk-footer-link">{l.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Column 3: Customer Care & Account */}
-        <div className="mk-footer-col">
-          <h4 className="mk-footer-col-title">Account &amp; Help</h4>
-          <ul className="mk-footer-links" role="list">
-            {SUPPORT_LINKS.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="mk-footer-link">{l.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Column 4: Destinations & Highlights */}
-        <div className="mk-footer-col">
-          <h4 className="mk-footer-col-title">Destinations</h4>
-          <ul className="mk-footer-links" role="list">
-            {DESTINATIONS_LINKS.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="mk-footer-link">{l.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <div className="mk-footer-col"><h4 className="mk-footer-col-title">Experiences</h4><ul className="mk-footer-links" role="list">{EXPERIENCES_LINKS.map((l) => <li key={l.href}><Link href={l.href} className="mk-footer-link">{l.label}</Link></li>)}</ul></div>
+        <div className="mk-footer-col"><h4 className="mk-footer-col-title">Company</h4><ul className="mk-footer-links" role="list">{COMPANY_LINKS.map((l) => <li key={l.href}><Link href={l.href} className="mk-footer-link">{l.label}</Link></li>)}</ul></div>
+        <div className="mk-footer-col"><h4 className="mk-footer-col-title">Account &amp; Help</h4><ul className="mk-footer-links" role="list">{SUPPORT_LINKS.map((l) => <li key={l.href}><Link href={l.href} className="mk-footer-link">{l.label}</Link></li>)}</ul></div>
+        <div className="mk-footer-col"><h4 className="mk-footer-col-title">Destinations</h4><ul className="mk-footer-links" role="list">{DESTINATIONS_LINKS.map((l) => <li key={l.href}><Link href={l.href} className="mk-footer-link">{l.label}</Link></li>)}</ul></div>
       </div>
 
       {/* ── Divider ── */}
       {/* ── Bottom bar ── */}
       <div className="mk-container mk-footer-bottom">
+        <div className="mk-footer-bottom-left">
         <span className="mk-footer-copy">
           {fmt(content?.copyright || "© {year} Karnish Tourism LLC. All rights reserved.", { year: new Date().getFullYear() })}
         </span>
-        <nav className="mk-footer-legal" aria-label="Legal">
-          {LEGAL_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="mk-footer-legal-link">{l.label}</Link>
-          ))}
-        </nav>
+          <span className="mk-footer-separator" aria-hidden="true">|</span>
+          <nav className="mk-footer-legal" aria-label="Legal">
+            {LEGAL_LINKS.map((link, index) => (
+              <span className="mk-footer-legal-item" key={link.href}>
+                <Link href={link.href} className="mk-footer-legal-link">{link.label}</Link>
+                {index < LEGAL_LINKS.length - 1 && (
+                  <span className="mk-footer-separator" aria-hidden="true">|</span>
+                )}
+              </span>
+            ))}
+          </nav>
+        </div>
+        <div className="mk-footer-bottom-right">
+          {paymentMethods.length > 0 && (
+            <div className="mk-footer-payments" aria-label="Accepted payment methods">
+              {paymentMethods.map((method) => {
+                const label = method.label || PAYMENT_LABELS[method.type] || method.type;
+                return (
+                  <span
+                    className="mk-footer-payment"
+                    key={method.id || method.type}
+                    data-payment={method.type}
+                    aria-label={label}
+                    tabIndex={0}
+                  >
+                    <PaymentIcon type={method.type} />
+                    <span className="mk-footer-payment-hint" role="tooltip">
+                      {label}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </footer>
   );

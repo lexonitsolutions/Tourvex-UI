@@ -123,9 +123,21 @@ const CruiseHero = memo(function CruiseHero({ banners }) {
             <div
               key={b.id || i}
               className={`hol-slide${i === slide ? " is-active" : ""}`}
-              style={{ backgroundImage: `url("${b.image}")` }}
+              style={b.image ? { backgroundImage: `url("${b.image}")` } : undefined}
               aria-hidden={i !== slide}
-            />
+            >
+              {b.video && (
+                <video
+                  src={b.video}
+                  poster={b.image || undefined}
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                  preload="metadata"
+                />
+              )}
+            </div>
           ))}
         </div>
         <div className="hol-hero-shade" />

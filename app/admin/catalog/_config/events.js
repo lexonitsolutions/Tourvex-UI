@@ -8,6 +8,10 @@ const events = {
   plural: "Events",
   description: "Shows, sports and attractions listed under Events on the website.",
   publicPath: "/events",
+  listFilters: [
+    { key: "category", label: "Category", facet: "categories", allLabel: "All categories" },
+    { key: "city", label: "City", facet: "cities", allLabel: "All cities" },
+  ],
   sections: [
     {
       id: "basics",
@@ -46,18 +50,25 @@ const events = {
     },
     {
       id: "tickets",
-      label: "Tickets & pricing",
-      description: "Two to four ticket types.",
+      label: "Packages & pricing",
+      description: "Create two to four bookable event packages with price, availability and sales rules.",
       fields: [
         list(
           "ticketTypes",
-          "Ticket types",
+          "Event packages",
           [
-            text("type", "Ticket type", { required: true, maxLength: 80 }),
+            text("type", "Package name", { required: true, maxLength: 80, help: "For example General admission, VIP or Family package." }),
+            text("badge", "Badge", { maxLength: 40, help: "Optional label such as Best value or Selling fast." }),
             textarea("description", "Description", { required: true, maxLength: 400, rows: 3 }),
-            money("price", "Price per ticket", { help: "Indicative price. Leave empty for none." }),
+            money("price", "Selling price", { help: "Current indicative price per ticket or package." }),
+            money("originalPrice", "Original price", { help: "Optional higher price shown crossed out." }),
+            number("availableQuantity", "Available quantity", { optional: true, nullable: true, integer: true, min: 0, help: "Leave empty when availability is not tracked here." }),
+            number("maxPerBooking", "Maximum per booking", { optional: true, nullable: true, integer: true, min: 1, max: 50 }),
+            { name: "salesEndAt", type: "datetime", label: "Sales end", help: "Optional booking cutoff date and time." },
+            { name: "refundable", type: "toggle", label: "Refundable" },
+            strings("benefits", "Package benefits", { max: 10, itemMax: 120, help: "For example Priority entry, reserved seating or welcome drink." }),
           ],
-          { itemLabel: "Ticket", min: 2, max: 4 }
+          { itemLabel: "Package", min: 2, max: 4 }
         ),
         money("price", "Fallback price", { help: "Used for the card price when no ticket type has a price." }),
       ],
@@ -79,7 +90,7 @@ const events = {
       description: "Cover photo and gallery.",
       fields: [coverImageField(), galleryField({ max: 12, label: "Extra gallery images" })],
     },
-    publishingSection(),
+    publishingSection({ cart: true }),
   ],
   columns: [
     { key: "category", label: "Category", value: (r) => r.category },

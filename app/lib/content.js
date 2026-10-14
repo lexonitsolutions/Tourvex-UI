@@ -17,7 +17,7 @@ import { DEFAULTS } from "../content/defaults";
 export const PREVIEW_COOKIE = "cms_preview";
 const REVALIDATE_SECONDS = 30;
 const TIMEOUT_MS = 4000;
-const ALL_KEYS = ["page.home", "page.activities", "global.header", "global.footer", "global.seo"];
+const ALL_KEYS = ["page.home", "page.activities", "page.events", "page.holidays", "page.voyager", "global.header", "global.footer", "global.seo"];
 
 const BASE = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4100/api/v1").replace(/\/$/, "");
 
@@ -37,8 +37,16 @@ function normalise(key, item) {
   const fallback = DEFAULTS[key];
   if (isObject(item) && Array.isArray(item.sections)) {
     const byType = Object.fromEntries((fallback?.sections || []).map((section) => [section.type, section.data]));
+    const existing = new Set(item.sections.map((s) => s.type));
+    const merged = item.sections.map((section) => ({ ...section, data: withDefaults(section.data, byType[section.type]) }));
+    for (const [idx, defSec] of (fallback?.sections || []).entries()) {
+      if (!existing.has(defSec.type)) {
+        merged.splice(idx, 0, defSec);
+        existing.add(defSec.type);
+      }
+    }
     return {
-      sections: item.sections.map((section) => ({ ...section, data: withDefaults(section.data, byType[section.type]) })),
+      sections: merged,
     };
   }
   if (isObject(item) && isObject(item.data)) return { data: withDefaults(item.data, fallback?.data) };

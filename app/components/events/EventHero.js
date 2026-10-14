@@ -117,7 +117,9 @@ const EventHero = memo(function EventHero({ banners }) {
               className={`hol-slide${i === slide ? " is-active" : ""}`}
               style={{ backgroundImage: `url("${b.image}")` }}
               aria-hidden={i !== slide}
-            />
+            >
+              {b.video && i === slide && <video src={b.video} poster={b.image} muted loop autoPlay playsInline preload="metadata" />}
+            </div>
           ))}
         </div>
         <div className="hol-hero-shade" />
@@ -135,6 +137,7 @@ const EventHero = memo(function EventHero({ banners }) {
             {banners.map((b, i) => (
               <button
                 key={b.id || i}
+                suppressHydrationWarning
                 type="button"
                 role="tab"
                 aria-selected={i === slide}

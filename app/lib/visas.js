@@ -13,7 +13,7 @@ import { resolveCurrency, withCurrency } from "./currencyCookie";
  *   summary: string, description: string, entries: "single" | "multiple" | "varies", stay: string,
  *   highlights: string[], requirements: string[], documents: string[],
  *   steps: { title: string, description: string }[], faqs: { question: string, answer: string }[],
- *   notes: string, sections: string[], isSample?: boolean, updatedAt: string
+ *   notes: string, gallery: { url: string, alt: string }[], sections: string[], isSample?: boolean, updatedAt: string
  * }} Visa
  */
 /** @typedef {{ id: string, eyebrow?: string, title: string, subtitle: string, description: string, countryCode: string, ctaLabel: string, ctaHref: string }} VisaBanner */

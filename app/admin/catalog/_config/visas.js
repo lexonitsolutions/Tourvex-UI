@@ -1,4 +1,4 @@
-import { chips, descriptionField, list, money, publishingSection, select, slugField, strings, summaryField, text, textarea } from "./shared";
+import { chips, descriptionField, galleryField, list, money, publishingSection, select, slugField, strings, summaryField, text, textarea } from "./shared";
 
 const visas = {
   type: "visas",
@@ -6,6 +6,9 @@ const visas = {
   plural: "Visas",
   description: "Visa services shown under Visas on the website.",
   publicPath: "/visas",
+  listFilters: [
+    { key: "kind", label: "Visa type", facet: "kinds", allLabel: "All visa types", labels: { evisa: "e-Visa", embassy: "Embassy" } },
+  ],
   sections: [
     {
       id: "basics",
@@ -72,6 +75,12 @@ const visas = {
           { itemLabel: "FAQ", max: 20 }
         ),
       ],
+    },
+    {
+      id: "gallery",
+      label: "Tourist places gallery",
+      description: "Show famous places from this country on the public visa page.",
+      fields: [galleryField({ name: "gallery", max: 12, label: "Famous tourist places", help: "Upload images, add descriptive captions in the alt text, and drag to reorder them." })],
     },
     publishingSection(),
   ],

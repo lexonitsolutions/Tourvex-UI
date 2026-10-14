@@ -31,37 +31,15 @@ const globalHeader = {
         "mobileTile": true
       },
       {
-        "id": "tab-3",
-        "link": {
-          "label": "Visas",
-          "href": "/visas"
-        },
-        "icon": "visas",
-        "mega": false,
-        "match": "/visas",
-        "mobileTile": true
-      },
-      {
         "id": "tab-4",
         "link": {
-          "label": "Cruises",
+          "label": "Voyages",
           "href": "/cruises"
         },
         "icon": "cruises",
         "mega": false,
         "match": "/cruises",
         "mobileTile": true
-      },
-      {
-        "id": "tab-5",
-        "link": {
-          "label": "Yachts",
-          "href": "/activities?activity=Dhow%20Cruise%20%26%20Yacht"
-        },
-        "icon": "yachts",
-        "mega": false,
-        "match": "",
-        "mobileTile": false
       },
       {
         "id": "tab-6",
@@ -73,6 +51,17 @@ const globalHeader = {
         "mega": false,
         "match": "/events",
         "mobileTile": false
+      },
+      {
+        "id": "tab-3",
+        "link": {
+          "label": "Visas",
+          "href": "/visas"
+        },
+        "icon": "visas",
+        "mega": false,
+        "match": "/visas",
+        "mobileTile": true
       }
     ],
     "search": {
@@ -96,14 +85,6 @@ const globalHeader = {
       "closeLabel": "Close",
       "localeRowLabel": "Language & Currency",
       "moreLinks": [
-        {
-          "id": "more-1",
-          "link": {
-            "label": "Yachts",
-            "href": "/activities?activity=Dhow%20Cruise%20%26%20Yacht"
-          },
-          "icon": "yachts"
-        },
         {
           "id": "more-2",
           "link": {

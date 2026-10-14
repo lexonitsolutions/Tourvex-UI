@@ -4,6 +4,7 @@ import Link from "next/link";
 import { memo } from "react";
 import { formatPrice } from "../../lib/api";
 import ShowcaseCard from "../ShowcaseCard";
+import WavingFlag from "./WavingFlag";
 import "../../holidays.css";
 import "../../visas.css";
 
@@ -56,13 +57,28 @@ const onFlagError = (e, code) => {
   }
 };
 
-/** Decorative 4:3 flag (the country name is always shown as text next to it). */
+/** Decorative 4:3 flag (the country name is always shown as text next to it).
+ *  For is-hero and is-banner contexts a canvas-based waving animation is used;
+ *  for all other contexts (cards, sheets, reviews) a plain <img> is used to
+ *  keep canvas overhead to only where it is visually impactful.
+ */
 export const Flag = memo(function Flag({ code, className = "" }) {
+  const src = code ? `/flags/${String(code).toLowerCase()}.svg` : null;
+  const isAnimated = className.includes("is-hero") || className.includes("is-banner");
+
+  // Canvas waving dimensions: match the logical sizes defined in visas.css
+  // is-hero → 340 wide; is-banner → 240 wide. Aspect 4:3.
+  const canvasW = className.includes("is-hero") ? 340 : 240;
+  const canvasH = Math.round(canvasW * (3 / 4));
+
   return (
     <span className={`vis-flag ${className}`} aria-hidden="true">
-      {code && (
+      {src && isAnimated && (
+        <WavingFlag src={src} alt="" width={canvasW} height={canvasH} />
+      )}
+      {src && !isAnimated && (
         <img
-          src={`/flags/${String(code).toLowerCase()}.svg`}
+          src={src}
           alt=""
           width="160"
           height="120"

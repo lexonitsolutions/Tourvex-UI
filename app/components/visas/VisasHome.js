@@ -8,6 +8,7 @@ import { useApp } from "../AppProvider";
 import VisaHero, { HeroSkeleton } from "./VisaHero";
 import {
   CardSkeletons,
+  Flag,
   IconClose,
   IconDoc,
   IconInfo,
@@ -256,6 +257,71 @@ export default function VisasHome() {
                   </li>
                 ))}
               </ol>
+            </div>
+          </section>
+
+          <section className="mk-container vis-home-reviews-wrap" aria-labelledby="vis-home-rev-title">
+            <div className="hol-head" data-reveal>
+              <div>
+                <span className="vis-reviews-eyebrow">Client Feedback</span>
+                <h2 id="vis-home-rev-title">Recent Visa Experiences &amp; Approvals</h2>
+                <p className="hol-sub">Over 5,000+ applicants trust our visa specialists for stress-free travel document assistance.</p>
+              </div>
+            </div>
+
+            <div className="vis-home-reviews-grid">
+              {[
+                {
+                  country: "Schengen (France)",
+                  code: "fr",
+                  name: "Ahmed & Laila Al-Qasimi",
+                  residence: "Abu Dhabi",
+                  rating: 5,
+                  text: "Securing our Schengen appointment was seamless. Karnish Tourism prepared all our flight reservations, travel insurance, and hotel vouchers with zero errors. Visas granted for 1 year multiple entry!",
+                  highlight: "Multiple Entry Approved",
+                },
+                {
+                  country: "Turkey",
+                  code: "tr",
+                  name: "Ananya Sharma",
+                  residence: "Dubai Resident",
+                  rating: 5,
+                  text: "Applied for our family Turkey e-Visas through Karnish. Sent our passport details in the morning and received the approved PDF visas the same evening. Outstanding turnaround!",
+                  highlight: "Approved in 24 Hours",
+                },
+                {
+                  country: "United Kingdom",
+                  code: "gb",
+                  name: "Mohammad Al-Hassan",
+                  residence: "Sharjah",
+                  rating: 5,
+                  text: "Their advisors checked every single bank statement and financial document before submission. The appointment guidance at VFS was thorough and clear. Visa stamped in 12 days.",
+                  highlight: "Approved on 1st Attempt",
+                },
+              ].map((item) => (
+                <article key={item.country} className="vis-home-review-card" data-reveal>
+                  <div className="vis-home-review-head">
+                    <div className="vis-home-review-country">
+                      <Flag code={item.code} className="is-review" />
+                      <div>
+                        <strong>{item.country}</strong>
+                        <span>{item.highlight}</span>
+                      </div>
+                    </div>
+                    <div className="vis-stars-row" aria-label="5 stars">
+                      {"★★★★★"}
+                    </div>
+                  </div>
+                  <p className="vis-home-review-text">&ldquo;{item.text}&rdquo;</p>
+                  <div className="vis-home-review-author">
+                    <div className="vis-author-avatar">{item.name[0]}</div>
+                    <div>
+                      <div className="vis-author-name">{item.name}</div>
+                      <div className="vis-author-sub">{item.residence} · Verified Applicant</div>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           </section>
 

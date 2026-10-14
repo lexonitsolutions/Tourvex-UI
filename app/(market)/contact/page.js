@@ -1,11 +1,109 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_BASE_URL } from "../../lib/api";
+import "../../activity-detail.css";
+import "../../contact.css";
 
 const EMPTY = { name: "", email: "", phone: "", subject: "", message: "", consent: false, website: "" };
 const slugTitle = (slug) => slug.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+
+const COMPANY_LOCATION = {
+  name: "Karnish Tourism",
+  address: "Dubai, United Arab Emirates",
+  lat: 25.2048,
+  lng: 55.2708,
+};
+
+function CompanyMap() {
+  const [interactive, setInteractive] = useState(false);
+  const delta = 0.025;
+  const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${COMPANY_LOCATION.lng - delta}%2C${COMPANY_LOCATION.lat - delta}%2C${COMPANY_LOCATION.lng + delta}%2C${COMPANY_LOCATION.lat + delta}&layer=mapnik&marker=${COMPANY_LOCATION.lat}%2C${COMPANY_LOCATION.lng}`;
+
+  useEffect(() => {
+    if (!interactive) return undefined;
+    const release = (event) => event.key === "Escape" && setInteractive(false);
+    window.addEventListener("keydown", release);
+    return () => window.removeEventListener("keydown", release);
+  }, [interactive]);
+
+  return (
+    <section className="hol-block act-location-wide contact-location" aria-labelledby="contact-location-title">
+      <div className="container">
+        <div className="section-subtitle">Visit Our Office</div>
+        <h2 id="contact-location-title" className="section-title mb-20">Find us in <i>Dubai</i></h2>
+        <p className="act-loc-text">
+          <i className="fa-solid fa-location-dot" aria-hidden="true" />
+          <span>{COMPANY_LOCATION.name} · {COMPANY_LOCATION.address}</span>
+        </p>
+      </div>
+      <div className={`act-map-stage${interactive ? " is-interactive" : ""}`}>
+        <iframe
+          className="act-map"
+          title={`Map of ${COMPANY_LOCATION.name}`}
+          src={embedUrl}
+          loading="lazy"
+          tabIndex={interactive ? 0 : -1}
+        />
+        <div className="act-map-overlay">
+          {!interactive ? (
+            <button type="button" className="act-map-activate" onClick={() => setInteractive(true)} aria-label="Click to explore the company location map">
+              <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
+              <span>Click to explore the map</span>
+            </button>
+          ) : (
+            <button type="button" className="act-map-release" onClick={() => setInteractive(false)}>Stop exploring map</button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CustomerServiceSection() {
+  const services = [
+    {
+      icon: "fa-solid fa-route",
+      title: "Personal travel planning",
+      text: "Tell us what you have in mind and our team will help shape activities, holidays, visas, and transfers around your trip.",
+    },
+    {
+      icon: "fa-solid fa-headset",
+      title: "Booking assistance",
+      text: "Get clear answers about availability, inclusions, timings, and booking details before you confirm your plans.",
+    },
+    {
+      icon: "fa-solid fa-shield-heart",
+      title: "Support after booking",
+      text: "Need help with an existing booking? Our customer care team can guide you through updates and next steps.",
+    },
+  ];
+
+  return (
+    <section className="contact-service" aria-labelledby="customer-service-title">
+      <div className="container">
+        <div className="contact-service-head">
+          <div>
+            <span className="section-subtitle">Customer Service</span>
+            <h2 id="customer-service-title">Support for every step of your <i>journey</i></h2>
+          </div>
+          <p>From the first idea to the final booking detail, our team is here to make travel planning feel straightforward.</p>
+        </div>
+        <div className="contact-service-grid">
+          {services.map((service, index) => (
+            <article className="contact-service-card" key={service.title}>
+              <span className="contact-service-number">0{index + 1}</span>
+              <span className="contact-service-icon"><i className={service.icon} aria-hidden="true"></i></span>
+              <h3>{service.title}</h3>
+              <p>{service.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /** Contact form: posts to POST /contact (creates a lead for the sales team). `?activity=<slug>` prefills the subject. */
 function ContactForm() {
@@ -14,15 +112,33 @@ function ContactForm() {
   const activitySlug = /^[a-z0-9][a-z0-9-]{0,119}$/.test(activity) ? activity : "";
   const [values, setValues] = useState(() => ({ ...EMPTY, subject: activitySlug ? `Enquiry about ${slugTitle(activitySlug)}`.slice(0, 150) : "" }));
   const [state, setState] = useState({ status: "idle", message: "" }); // idle | sending | done | error
-  const set = (key) => (e) => setValues((v) => ({ ...v, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
+  const [buttonMotion, setButtonMotion] = useState("idle");
+  const resetMotionRef = useRef(null);
+  const set = (key) => (e) => {
+    setValues((v) => ({ ...v, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
+    if (buttonMotion === "success") setButtonMotion("idle");
+  };
+
+  useEffect(() => () => window.clearTimeout(resetMotionRef.current), []);
+
+  const rejectSubmit = (message) => {
+    window.clearTimeout(resetMotionRef.current);
+    setState({ status: "error", message });
+    setButtonMotion("invalid");
+    resetMotionRef.current = window.setTimeout(() => setButtonMotion("idle"), 650);
+  };
 
   async function submit(e) {
     e.preventDefault();
     if (state.status === "sending") return;
+    if (values.name.trim().length < 2) return rejectSubmit("Please enter your name.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) return rejectSubmit("Please enter a valid email address.");
     const phone = values.phone.trim();
-    if (phone && !/^[0-9+\-\s]{6,20}$/.test(phone)) return setState({ status: "error", message: "Phone numbers may only contain digits, spaces, + and - (6 to 20 characters)." });
-    if (values.message.trim().length < 5) return setState({ status: "error", message: "Please write a short message." });
-    if (!values.consent) return setState({ status: "error", message: "Please agree to be contacted so we can reply to you." });
+    if (phone && !/^[0-9+\-\s]{6,20}$/.test(phone)) return rejectSubmit("Phone numbers may only contain digits, spaces, + and - (6 to 20 characters).");
+    if (values.subject.trim().length < 2) return rejectSubmit("Please enter a subject.");
+    if (values.message.trim().length < 5) return rejectSubmit("Please write a short message.");
+    if (!values.consent) return rejectSubmit("Please agree to be contacted so we can reply to you.");
+    setButtonMotion("sending");
     setState({ status: "sending", message: "" });
     try {
       const response = await fetch(`${API_BASE_URL}/contact`, {
@@ -47,17 +163,23 @@ function ContactForm() {
       }
       setValues(EMPTY);
       setState({ status: "done", message: `Thank you, your message was sent. Our team will reply by email soon. Reference: ${data?.reference || "received"}` });
+      setButtonMotion("success");
     } catch (error) {
       setState({ status: "error", message: error.message || "We could not send your message. Please try again." });
+      setButtonMotion("idle");
     }
   }
 
   const sending = state.status === "sending";
   return (
-    <form onSubmit={submit} noValidate>
+    <form className="contact-form" onSubmit={submit} noValidate>
       <div className="row">
         <div className="col-md-12 text-left">
-          <h3 style={{ marginBottom: 18, fontFamily: "Barlow Condensed, sans-serif", fontSize: 28, color: "var(--mk-navy)" }}>Get in touch with us</h3>
+          <div className="contact-form-heading">
+            <span>Send an enquiry</span>
+            <h3>How can we help?</h3>
+            <p>Share a few details and our travel team will get back to you shortly.</p>
+          </div>
         </div>
       </div>
       <div className="row">
@@ -101,13 +223,13 @@ function ContactForm() {
             <p role={state.status === "error" ? "alert" : "status"} style={{ marginBottom: 16, fontSize: 15, padding: "10px 14px", borderRadius: 8, background: state.status === "error" ? "#fef2f2" : "#f0fdf4", color: state.status === "error" ? "#b42318" : "#0f7a4f" }}>{state.message}</p>
           </div>
         ) : null}
-        <div className="col-md-12">
-          <button className="butn-arrow" type="submit" disabled={sending} style={{ borderRadius: 10 }}>
-            <span className="btn-text">{sending ? "Sending message..." : "Send message"}</span>
+        <div className="col-md-12 contact-submit-track">
+          <button className={`butn-arrow contact-submit is-${buttonMotion}`} type="submit" disabled={sending}>
+            <span className="btn-text">{state.status === "done" ? "Message sent" : sending ? "Sending message..." : "Send message"}</span>
             <span className="arrow-wrap">
               <span className="arrow-inner">
-                <i className="ti-arrow-right"></i>
-                <i className="ti-arrow-right"></i>
+                <i className={state.status === "done" ? "fa-solid fa-check" : "ti-arrow-right"}></i>
+                <i className={state.status === "done" ? "fa-solid fa-check" : "ti-arrow-right"}></i>
               </span>
             </span>
           </button>
@@ -121,13 +243,13 @@ export default function ContactPage() {
   return (
     <div className="mk-contact-page">
       {/* Header Banner */}
-      <header className="pg-hero section-padding" style={{ paddingBottom: 40 }}>
+      <header className="pg-hero contact-hero">
         <div className="container">
-          <div className="row mb-40 justify-content-center">
+          <div className="row justify-content-center">
             <div className="col-md-8 text-center">
               <div className="section-subtitle">Talk To Our Team</div>
-              <div className="section-title mb-30">Get personalized travel support <i>today</i></div>
-              <p style={{ color: "var(--mk-text)", fontSize: 17, maxWidth: 560, margin: "0 auto" }}>
+              <div className="section-title">Travel questions? <i>We&apos;re here.</i></div>
+              <p>
                 Whether you have a question about activities, holiday packages, visas, or custom itineraries, our travel experts are ready to assist.
               </p>
             </div>
@@ -136,57 +258,44 @@ export default function ContactPage() {
       </header>
 
       {/* Contact Content */}
-      <div className="contact section-padding" style={{ paddingTop: 0 }}>
+      <div className="contact contact-main">
         <div className="container">
-          <div className="row justify-content-center align-items-stretch" style={{ gap: "30px 0" }}>
-            <div className="col-lg-5">
-              <div style={{ background: "#ffffff", padding: "36px 32px", borderRadius: 20, border: "1px solid var(--mk-line)", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                <div>
-                  <h3 style={{ fontFamily: "Barlow Condensed, sans-serif", fontSize: 26, color: "var(--mk-navy)", marginBottom: 16 }}>Direct Contacts</h3>
-                  <p style={{ color: "var(--mk-text)", fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>
-                    Reach out to our customer care team directly or visit our office in Dubai.
+          <div className="row justify-content-center align-items-stretch contact-layout">
+            <div className="col-lg-4">
+              <aside className="contact-info-card">
+                <div className="contact-info-top">
+                  <span className="contact-info-kicker">Direct support</span>
+                  <h2>Let&apos;s plan something memorable.</h2>
+                  <p>
+                    Speak directly with our customer care team for bookings, visa questions, or a tailored itinerary.
                   </p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                      <div style={{ width: 42, height: 42, borderRadius: 10, background: "rgba(32, 149, 174, 0.12)", color: "var(--mk-primary)", display: "grid", placeItems: "center", fontSize: 18, flexShrink: 0 }}>
+                  <div className="contact-methods">
+                    <a className="contact-method" href="tel:+97142223456">
+                      <span className="contact-method-icon">
                         <i className="fa-solid fa-phone-volume"></i>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, color: "var(--mk-text)" }}>Phone</div>
-                        <a href="tel:+97142223456" style={{ fontSize: 16, fontWeight: 600, color: "var(--mk-navy)" }}>+971 4 222 3456</a>
-                      </div>
-                    </div>
+                      </span>
+                      <span><small>Call our team</small><strong>+971 4 222 3456</strong></span>
+                      <i className="fa-solid fa-arrow-right contact-method-arrow" aria-hidden="true"></i>
+                    </a>
 
-                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                      <div style={{ width: 42, height: 42, borderRadius: 10, background: "rgba(32, 149, 174, 0.12)", color: "var(--mk-primary)", display: "grid", placeItems: "center", fontSize: 18, flexShrink: 0 }}>
+                    <a className="contact-method" href="mailto:info@karnishtourism.com">
+                      <span className="contact-method-icon">
                         <i className="fa-solid fa-envelope"></i>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, color: "var(--mk-text)" }}>Email</div>
-                        <a href="mailto:info@karnishtourism.com" style={{ fontSize: 16, fontWeight: 600, color: "var(--mk-navy)" }}>info@karnishtourism.com</a>
-                      </div>
-                    </div>
-
-                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                      <div style={{ width: 42, height: 42, borderRadius: 10, background: "rgba(32, 149, 174, 0.12)", color: "var(--mk-primary)", display: "grid", placeItems: "center", fontSize: 18, flexShrink: 0 }}>
-                        <i className="fa-solid fa-location-dot"></i>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, color: "var(--mk-text)" }}>Address</div>
-                        <span style={{ fontSize: 15, fontWeight: 500, color: "var(--mk-navy)" }}>Dubai, United Arab Emirates</span>
-                      </div>
-                    </div>
+                      </span>
+                      <span><small>Email us</small><strong>info@karnishtourism.com</strong></span>
+                      <i className="fa-solid fa-arrow-right contact-method-arrow" aria-hidden="true"></i>
+                    </a>
                   </div>
                 </div>
-
-                <div style={{ marginTop: 32, borderRadius: 14, overflow: "hidden" }}>
-                  <img src="/images/destination-b.jpg" alt="Dubai skyline" style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 14 }} />
+                <div className="contact-hours">
+                  <i className="fa-regular fa-clock" aria-hidden="true"></i>
+                  <div><small>Customer care hours</small><strong>Daily · 9:00 AM–8:00 PM</strong></div>
                 </div>
-              </div>
+              </aside>
             </div>
 
-            <div className="col-lg-7">
-              <div style={{ background: "#ffffff", padding: "36px 32px", borderRadius: 20, border: "1px solid var(--mk-line)" }}>
+            <div className="col-lg-8">
+              <div className="contact-form-card">
                 <Suspense fallback={<div>Loading form...</div>}>
                   <ContactForm />
                 </Suspense>
@@ -195,6 +304,8 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+      <CompanyMap />
+      <CustomerServiceSection />
     </div>
   );
 }

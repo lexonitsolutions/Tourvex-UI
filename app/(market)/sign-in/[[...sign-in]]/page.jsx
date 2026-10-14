@@ -1,4 +1,6 @@
 import { SignIn } from "@clerk/nextjs";
+import AuthShell from "../../../components/AuthShell";
+import "../../../auth.css";
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
 // Remove this opt-out after verifying the segment passes validation without it.
@@ -16,11 +18,8 @@ export default async function SignInPage({ searchParams }) {
   const params = (await searchParams) || {};
   const note = NOTES[params.reason];
   return (
-    <section className="mk-auth mk-clerk">
-      <div className="mk-clerk-wrap">
-        {note && <p className="mk-clerk-note">{note}</p>}
-        <SignIn />
-      </div>
-    </section>
+    <AuthShell mode="signin" note={note}>
+      <SignIn />
+    </AuthShell>
   );
 }

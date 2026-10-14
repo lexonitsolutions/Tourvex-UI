@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatPrice } from "../../lib/api";
 import { IconMoon, StateMessage, CardSkeletons, plural, showFallback, IconChevron } from "../holidays/HolidayParts";
 import { StockChip } from "../StockBadge";
+import PackageCartButton from "../PackageCartButton";
 import "../../holidays.css";
 import "../../cruises.css";
 
@@ -150,6 +151,7 @@ export const CruiseCard = memo(function CruiseCard({ item, reveal = true, classN
               {item?.price ? money(item.price) : (item?.priceFallback || "Fare on request")}
             </strong>
           </div>
+          <PackageCartButton item={item} type="cruise" />
           <Link href={detailHref} className="cr-card-cta" aria-label={`View cruise ${item?.title || ""}`}>
             <span>Details</span>
             <IconChevron width="14" height="14" />

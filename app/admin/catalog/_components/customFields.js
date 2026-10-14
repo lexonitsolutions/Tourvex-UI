@@ -6,12 +6,13 @@
  * sessions ...) render them too. Importing this module once (see CatalogEditor) is enough.
  */
 
-import { memo, useEffect, useId, useRef, useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ImageOff, ImagePlus, Plus, Trash2, X } from "lucide-react";
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ImageOff, ImagePlus, Plus, Sparkles, Tag, Trash2, X } from "lucide-react";
 import { Button, Field, MoneyField, cx } from "../../_kit";
 import { Input } from "../../_ui/components/input";
 import { dayKey } from "../../_lib/format";
 import { resolveMediaUrl } from "../../_lib/cms";
+import { API_BASE_URL } from "../../../lib/api";
 import { ImagePicker } from "../../content/_components/ImagePicker";
 import { registerFieldType, useFormContext } from "../../content/_components/formContext";
 import { CONTROL } from "../../content/_components/parts";
@@ -42,27 +43,183 @@ const Money = memo(function Money({ field, value, path }) {
 
 /* ------------------------------------------------------------------ chips (short strings: destinations, themes, tags) */
 
+const DEFAULT_SUGGESTIONS = {
+  categories: [
+    "Dhow Cruise & Yacht",
+    "Yacht Charter",
+    "Desert Safari",
+    "Desert Safari Tours",
+    "Theme Parks",
+    "Water Activities",
+    "Water Sports",
+    "City Tours",
+    "Adventure Tours",
+    "Family Experiences",
+    "Sightseeing & Cruises",
+    "Cultural & Heritage",
+    "Luxury Experiences",
+    "Dinner Cruises",
+    "Helicopter & Aerial Tours",
+    "Nature & Wildlife",
+    "Day Trips & Excursions",
+  ],
+  destinations: [
+    "Dubai",
+    "Dubai Marina",
+    "Abu Dhabi",
+    "Ras Al Khaimah",
+    "Sharjah",
+    "Fujairah",
+    "Musandam",
+    "Istanbul",
+    "Singapore",
+    "Baku",
+    "Almaty",
+    "Maldives",
+  ],
+  themes: [
+    "Family",
+    "Beach",
+    "Luxury",
+    "Culture",
+    "Adventure",
+    "Honeymoon",
+    "Budget",
+    "Romantic",
+    "Wildlife & Safari",
+    "City Break",
+  ],
+  tags: [
+    "Family Friendly",
+    "Outdoor",
+    "Indoor",
+    "Luxury",
+    "Best Seller",
+    "Adventure",
+    "Waterfront",
+    "Evening",
+  ],
+};
+
 const Chips = memo(function Chips({ field, value, path }) {
   const { errors, readOnly, onChange } = useFormContext();
   const items = Array.isArray(value) ? value : [];
   const [draft, setDraft] = useState("");
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [liveSuggestions, setLiveSuggestions] = useState([]);
   const atMax = !!field.max && items.length >= field.max;
   const inputRef = useRef(null);
+
+  // Dynamically discover existing categories / destinations from live catalog
+  useEffect(() => {
+    let ignore = false;
+    const fetchLive = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/catalog/activities?limit=100`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const catalogItems = Array.isArray(data?.items) ? data.items : [];
+        if (field.name === "categories") {
+          const fetched = [...new Set(catalogItems.flatMap((it) => it.categories || []).filter(Boolean))];
+          if (!ignore && fetched.length) setLiveSuggestions(fetched);
+        } else if (field.name === "destinations") {
+          const fetched = [...new Set(catalogItems.flatMap((it) => it.destinations || []).filter(Boolean))];
+          if (!ignore && fetched.length) setLiveSuggestions(fetched);
+        }
+      } catch {
+        // Fall back to built-in suggestions
+      }
+    };
+    if (field.name === "categories" || field.name === "destinations") {
+      fetchLive();
+    }
+    return () => {
+      ignore = true;
+    };
+  }, [field.name]);
+
+  // Combined unique suggestions
+  const allSuggestions = useMemo(() => {
+    const declared = field.suggestions || DEFAULT_SUGGESTIONS[field.name] || [];
+    const pool = [...declared, ...liveSuggestions];
+    const seen = new Set();
+    const unique = [];
+    pool.forEach((s) => {
+      const trimmed = String(s || "").trim();
+      if (!trimmed) return;
+      const key = trimmed.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(trimmed);
+      }
+    });
+    return unique;
+  }, [field.suggestions, field.name, liveSuggestions]);
+
+  // Filtered matching suggestions (excluding already added chips)
+  const filteredSuggestions = useMemo(() => {
+    const q = draft.trim().toLowerCase();
+    const available = allSuggestions.filter(
+      (s) => !items.some((it) => it.toLowerCase() === s.toLowerCase())
+    );
+    if (!q) return available.slice(0, 10);
+
+    // Prioritize startsWith over contains
+    const startsWith = [];
+    const contains = [];
+    available.forEach((s) => {
+      const lower = s.toLowerCase();
+      if (lower.startsWith(q)) {
+        startsWith.push(s);
+      } else if (lower.includes(q)) {
+        contains.push(s);
+      }
+    });
+    return [...startsWith, ...contains].slice(0, 10);
+  }, [allSuggestions, items, draft]);
+
+  // Check if draft matches an existing item exactly
+  const hasExactMatch = useMemo(() => {
+    const q = draft.trim().toLowerCase();
+    if (!q) return false;
+    return items.some((it) => it.toLowerCase() === q) || filteredSuggestions.some((s) => s.toLowerCase() === q);
+  }, [draft, items, filteredSuggestions]);
 
   function commit(raw) {
     const parts = String(raw).split(",").map((p) => p.trim()).filter(Boolean);
     if (!parts.length) {
       setDraft("");
+      setActiveIndex(-1);
       return;
     }
     const next = [...items];
     parts.forEach((p) => {
-      if (!next.some((x) => x.toLowerCase() === p.toLowerCase()) && (!field.max || next.length < field.max)) next.push(p);
+      if (!next.some((x) => x.toLowerCase() === p.toLowerCase()) && (!field.max || next.length < field.max)) {
+        next.push(p);
+      }
     });
     onChange(path, next);
     setDraft("");
+    setActiveIndex(-1);
   }
+
+  const selectSuggestion = useCallback(
+    (suggestion) => {
+      if (atMax) return;
+      commit(suggestion);
+      setOpen(false);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 30);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [atMax, items, field.max, onChange, path]
+  );
+
   const itemErrors = Object.keys(errors).filter((k) => k.startsWith(`${path}.`));
+  const showDropdown = open && !readOnly && !atMax && (filteredSuggestions.length > 0 || (draft.trim() && !hasExactMatch));
+
   return (
     <Field label={field.label} hint={hintOf(field)} error={errors[path] || (itemErrors.length ? errors[itemErrors[0]] : "")} required={field.required}>
       {(a11y) => (
@@ -82,23 +239,218 @@ const Chips = memo(function Chips({ field, value, path }) {
             </ul>
           ) : null}
           {readOnly ? null : (
-            <Input
-              ref={inputRef}
-              className={CONTROL}
-              value={draft}
-              disabled={atMax}
-              placeholder={atMax ? `Maximum of ${field.max} reached` : "Type and press Enter to add"}
-              autoComplete="off"
-              onChange={(e) => (e.target.value.includes(",") ? commit(e.target.value) : setDraft(e.target.value))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  commit(draft);
-                } else if (e.key === "Backspace" && !draft && items.length) onChange(path, items.slice(0, -1));
-              }}
-              onBlur={() => commit(draft)}
-              {...a11y}
-            />
+            <div style={{ position: "relative" }}>
+              <Input
+                ref={inputRef}
+                className={CONTROL}
+                value={draft}
+                disabled={atMax}
+                placeholder={atMax ? `Maximum of ${field.max} reached` : "Type to see suggestions or press Enter"}
+                autoComplete="off"
+                onFocus={() => setOpen(true)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val.includes(",")) {
+                    commit(val);
+                  } else {
+                    setDraft(val);
+                    setOpen(true);
+                    setActiveIndex(-1);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setOpen(true);
+                    setActiveIndex((prev) => {
+                      const max = filteredSuggestions.length + (!hasExactMatch && draft.trim() ? 1 : 0);
+                      if (max === 0) return -1;
+                      return prev + 1 >= max ? 0 : prev + 1;
+                    });
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setOpen(true);
+                    setActiveIndex((prev) => {
+                      const max = filteredSuggestions.length + (!hasExactMatch && draft.trim() ? 1 : 0);
+                      if (max === 0) return -1;
+                      return prev - 1 < 0 ? max - 1 : prev - 1;
+                    });
+                  } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (activeIndex >= 0 && activeIndex < filteredSuggestions.length) {
+                      selectSuggestion(filteredSuggestions[activeIndex]);
+                    } else if (activeIndex === filteredSuggestions.length && !hasExactMatch && draft.trim()) {
+                      commit(draft);
+                      setOpen(false);
+                    } else if (draft.trim()) {
+                      commit(draft);
+                      setOpen(false);
+                    }
+                  } else if (e.key === "Escape") {
+                    setOpen(false);
+                    setActiveIndex(-1);
+                  } else if (e.key === "Backspace" && !draft && items.length) {
+                    onChange(path, items.slice(0, -1));
+                  }
+                }}
+                onBlur={() => {
+                  setTimeout(() => {
+                    setOpen(false);
+                    setActiveIndex(-1);
+                    if (draft.trim()) commit(draft);
+                  }, 180);
+                }}
+                {...a11y}
+              />
+
+              {/* Suggestions Dropdown Popover */}
+              {showDropdown ? (
+                <div
+                  className="adm-cat-suggestions"
+                  role="listbox"
+                  aria-label={`${field.label} suggestions`}
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 5px)",
+                    left: 0,
+                    right: 0,
+                    zIndex: 999,
+                    background: "var(--adm-surface, #ffffff)",
+                    border: "1px solid var(--adm-line, rgba(0,0,0,0.12))",
+                    borderRadius: 12,
+                    boxShadow: "0 12px 32px -4px rgba(0,0,0,0.22), 0 6px 14px -3px rgba(0,0,0,0.14)",
+                    padding: "6px",
+                    maxHeight: 250,
+                    overflowY: "auto",
+                    backdropFilter: "blur(12px)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "4px 8px 6px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "var(--adm-faint, #64748b)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      borderBottom: "1px solid var(--adm-line, rgba(0,0,0,0.06))",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <Sparkles size={12} color="var(--adm-teal, #0d9488)" />
+                      {draft.trim() ? "Matching suggestions" : `Suggested ${field.label.toLowerCase()}`}
+                    </span>
+                    <span style={{ fontSize: 10.5, fontWeight: 500 }}>
+                      {filteredSuggestions.length} available
+                    </span>
+                  </div>
+
+                  {filteredSuggestions.map((suggestion, idx) => {
+                    const isActive = activeIndex === idx;
+                    return (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        role="option"
+                        aria-selected={isActive}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          selectSuggestion(suggestion);
+                        }}
+                        onMouseEnter={() => setActiveIndex(idx)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "100%",
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          fontSize: 13.5,
+                          fontWeight: 500,
+                          textAlign: "left",
+                          border: 0,
+                          cursor: "pointer",
+                          transition: "all 0.12s ease",
+                          background: isActive
+                            ? "var(--adm-teal-soft, rgba(13,148,136,0.14))"
+                            : "transparent",
+                          color: isActive
+                            ? "var(--adm-teal-ink, #0f766e)"
+                            : "var(--adm-ink, #0f172a)",
+                        }}
+                      >
+                        <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                          <Tag size={13} style={{ opacity: 0.65, flexShrink: 0 }} />
+                          <span>{suggestion}</span>
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            background: isActive
+                              ? "var(--adm-teal, #0d9488)"
+                              : "var(--adm-line, rgba(0,0,0,0.08))",
+                            color: isActive ? "#ffffff" : "var(--adm-faint)",
+                            transition: "all 0.12s ease",
+                          }}
+                        >
+                          + Add
+                        </span>
+                      </button>
+                    );
+                  })}
+
+                  {/* Add custom typed chip if not an exact match */}
+                  {draft.trim() && !hasExactMatch ? (
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={activeIndex === filteredSuggestions.length}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        commit(draft);
+                        setOpen(false);
+                      }}
+                      onMouseEnter={() => setActiveIndex(filteredSuggestions.length)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        padding: "8px 10px",
+                        marginTop: 4,
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        textAlign: "left",
+                        borderTop: "1px dashed var(--adm-line, rgba(0,0,0,0.1))",
+                        cursor: "pointer",
+                        background:
+                          activeIndex === filteredSuggestions.length
+                            ? "var(--adm-brand-soft, rgba(59,130,246,0.14))"
+                            : "transparent",
+                        color:
+                          activeIndex === filteredSuggestions.length
+                            ? "var(--adm-brand-ink, #1d4ed8)"
+                            : "var(--adm-ink, #0f172a)",
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <Plus size={13} style={{ flexShrink: 0 }} />
+                        <span>Add &quot;{draft.trim()}&quot; (custom)</span>
+                      </span>
+                      <span style={{ fontSize: 10.5, opacity: 0.7 }}>Press Enter ↵</span>
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           )}
           {field.max ? <p className="adm-cms-count">{items.length} / {field.max}</p> : null}
         </div>

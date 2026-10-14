@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import EventHero from "./EventHero";
 import {
@@ -27,19 +27,37 @@ const COMMITMENTS = [
   [IconCalendar, "Help before the day", "Questions about doors, age guidance or the venue? Reach our team before you decide and before the event."],
 ];
 
-const CategoryCard = memo(function CategoryCard({ category }) {
+const CATEGORY_COPY = {
+  Concerts: "Live shows, DJs and more",
+  Sports: "Races, matches and tournaments",
+  Festivals: "Culture, food and seasonal fun",
+  Comedy: "Stand-up and live entertainment",
+  Family: "Fun for every age",
+  Theatre: "Plays, musicals and performances",
+  Exhibitions: "Trade shows and expos",
+};
+
+const CategoryCard = memo(function CategoryCard({ category, active, muted, onActivate, onDeactivate }) {
   return (
-    <Link data-reveal="right" className="hol-country" href={categoryHref(category.slug)}>
-      <span className="hol-country-img">
+    <Link
+      data-reveal="right"
+      className={`ev-category${active ? " is-active" : ""}${muted ? " is-muted" : ""}`}
+      href={categoryHref(category.slug)}
+      onMouseEnter={onActivate}
+      onMouseLeave={onDeactivate}
+      onFocus={onActivate}
+      onBlur={onDeactivate}
+    >
+      <span className="ev-category-img">
         <img src={category.image} alt="" width="260" height="360" loading="lazy" decoding="async" onError={showFallback} />
+        {active && category.video && <video className="ev-category-video" src={category.video} poster={category.image} muted loop autoPlay playsInline preload="metadata" />}
       </span>
-      <span className="hol-country-shade" aria-hidden="true" />
-      <span className="hol-country-text">
+      <span className="ev-category-shade" aria-hidden="true" />
+      <span className="ev-category-text">
         <strong>{category.name}</strong>
-        <span>{plural(category.count, "event")}</span>
-        {category.startingFrom && <span>From {money(category.startingFrom)}</span>}
+        <span>{category.description || CATEGORY_COPY[category.name] || plural(category.count, "event")}</span>
       </span>
-      <span className="hol-city-go" aria-hidden="true"><IconChevron width="15" height="15" /></span>
+      <span className="ev-category-go" aria-hidden="true"><IconChevron width="15" height="15" /></span>
     </Link>
   );
 });
@@ -60,12 +78,42 @@ const CityCard = memo(function CityCard({ city }) {
   );
 });
 
-export default function EventsHome({ home }) {
+export default function EventsHome({ home, contentSections = [] }) {
   const rootRef = useRef(null);
-  const banners = home?.banners || [];
-  const categories = home?.categories || [];
+  const [activeCategory, setActiveCategory] = useState(null);
+  const cms = Object.fromEntries((contentSections || []).filter((section) => section.enabled !== false).map((section) => [section.type, section.data || {}]));
+  const configuredBanners = (cms.eventsHero?.banners || []).filter((banner) => banner.visible !== false && banner.image?.url).map((banner) => ({
+    id: banner.id, eyebrow: banner.eyebrow, title: banner.title, subtitle: banner.subtitle,
+    description: banner.description, image: banner.image.url, video: banner.video?.url || "", ctaLabel: banner.cta?.label, ctaHref: banner.cta?.href,
+  }));
+  const banners = configuredBanners.length ? configuredBanners : (home?.banners || []);
+  const liveCategories = home?.categories || [];
+  const configuredCategories = (cms.eventsCategories?.categories || []).filter((item) => item.visible !== false);
+  const categories = configuredCategories.length ? configuredCategories.map((item) => {
+    const live = liveCategories.find((category) => category.name.toLowerCase() === String(item.category).toLowerCase());
+    if (!live) return null;
+    return { ...live, name: item.label || live.name, description: item.description, image: item.image?.url || live.image, video: item.video?.url || "" };
+  }).filter(Boolean) : liveCategories;
   const cities = home?.cities || [];
-  const sections = (home?.sections || []).filter((s) => s.items?.length);
+  const liveSections = (home?.sections || []).filter((s) => s.items?.length);
+  const soonConfig = cms.eventsHappeningSoon || {};
+  const seenTrendingCities = new Set();
+  const trendingConfig = (cms.eventsTrendingCities?.cities || []).filter((item) => {
+    if (item.visible === false) return false;
+    const city = String(item.city || "").trim().toLowerCase();
+    if (!city || seenTrendingCities.has(city)) return false;
+    seenTrendingCities.add(city);
+    return true;
+  });
+  const soon = liveSections.find((section) => section.slug === "happening-soon");
+  const liveTrending = liveSections.filter((section) => section.city);
+  const trending = trendingConfig.length ? trendingConfig.map((item) => {
+    const live = liveTrending.find((section) => section.city.toLowerCase() === String(item.city).toLowerCase());
+    if (!live) return null;
+    return { ...live, title: item.heading || live.title, subtitle: item.description || live.subtitle, items: live.items.slice(0, item.limit || 12), showViewAll: item.showViewAll !== false };
+  }).filter(Boolean) : liveTrending;
+  const sectionCandidates = [soon ? { ...soon, title: soonConfig.heading || "Upcoming Events", subtitle: soonConfig.description || soon.subtitle, items: soon.items.slice(0, soonConfig.limit || 12), showViewAll: soonConfig.showViewAll !== false } : null, ...trending].filter(Boolean);
+  const sections = Array.from(new Map(sectionCandidates.map((section) => [section.slug, section])).values());
   const empty = !banners.length && !categories.length && !cities.length && !sections.length;
 
   useReveal(rootRef, "ready");
@@ -95,15 +143,16 @@ export default function EventsHome({ home }) {
       )}
 
       {categories.length > 0 && (
-        <RailSection id="ev-categories" title="Explore by Category" subtitle="Concerts, sport, comedy and more. Pick what you are in the mood for." label="categories">
-          {categories.map((category) => <CategoryCard key={category.slug} category={category} />)}
-        </RailSection>
-      )}
-
-      {cities.length > 0 && (
-        <RailSection id="ev-cities" title="Explore Events by City" subtitle="See what is coming up where you are, or where you are headed." label="cities">
-          {cities.map((city) => (
-            <div className="hol-rail-item ev-city-item" key={city.name}><CityCard city={city} /></div>
+        <RailSection id="ev-categories" className={activeCategory ? "has-category-active" : ""} title={cms.eventsCategories?.heading || "Events by Category"} subtitle={cms.eventsCategories?.description || "Explore events that match your interests."} label="categories">
+          {categories.map((category) => (
+            <CategoryCard
+              key={category.slug}
+              category={category}
+              active={activeCategory === category.slug}
+              muted={Boolean(activeCategory && activeCategory !== category.slug)}
+              onActivate={() => setActiveCategory(category.slug)}
+              onDeactivate={() => setActiveCategory(null)}
+            />
           ))}
         </RailSection>
       )}
@@ -115,7 +164,7 @@ export default function EventsHome({ home }) {
           title={section.title}
           subtitle={section.subtitle}
           label={section.title}
-          href={section.city ? cityHref(section.city) : undefined}
+          href={section.showViewAll === false ? undefined : (section.city ? cityHref(section.city) : "/events")}
           hrefLabel={section.city ? `View all in ${section.city}` : "View all"}
         >
           {section.items.map((item) => (
@@ -142,13 +191,17 @@ export default function EventsHome({ home }) {
           </section>
 
           <section className="mk-container ev-cta-wrap" aria-labelledby="ev-cta-title">
-            <div className="ev-cta" data-reveal>
-              <span className="ev-cta-ico" aria-hidden="true"><IconTicket width="26" height="26" /></span>
+            <div className="ev-cta ev-newsletter" data-reveal>
+              <span className="ev-cta-ico" aria-hidden="true">✈</span>
               <div>
-                <h2 id="ev-cta-title">Looking for something specific?</h2>
-                <p>Tell us the event, date and how many tickets you need and our team will help you from there.</p>
+                <h2 id="ev-cta-title">Stay updated with <em>upcoming events</em></h2>
+                <p>Get the latest event updates, early access and exclusive offers.</p>
               </div>
-              <Link className="mk-btn ev-cta-btn" href="/contact">Talk to our team</Link>
+              <form className="ev-subscribe" action="/contact">
+                <label className="sr-only" htmlFor="event-email">Email address</label>
+                <input suppressHydrationWarning id="event-email" name="email" type="email" placeholder="Enter your email address" required />
+                <button suppressHydrationWarning type="submit">Subscribe</button>
+              </form>
             </div>
           </section>
         </>

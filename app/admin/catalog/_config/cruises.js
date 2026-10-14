@@ -6,6 +6,11 @@ const cruises = {
   plural: "Cruises",
   description: "Cruise itineraries shown under Cruises on the website.",
   publicPath: "/cruises",
+  listFilters: [
+    { key: "city", label: "Departure city", facet: "cities", allLabel: "All cities" },
+    { key: "line", label: "Cruise line", facet: "lines", allLabel: "All cruise lines" },
+    { key: "region", label: "Region", facet: "regions", allLabel: "All regions" },
+  ],
   sections: [
     {
       id: "basics",
@@ -90,7 +95,7 @@ const cruises = {
       description: "Cover photo and gallery.",
       fields: [coverImageField(), galleryField({ max: 12, label: "Extra gallery images" })],
     },
-    publishingSection(),
+    publishingSection({ cart: true }),
   ],
   columns: [
     { key: "cruiseLine", label: "Cruise line / ship", value: (r) => [r.cruiseLine, r.shipName].filter(Boolean).join(" - ") },

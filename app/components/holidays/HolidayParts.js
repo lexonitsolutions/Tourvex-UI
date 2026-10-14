@@ -9,6 +9,7 @@ import { currentPath, loginUrlFor, rememberPendingWish } from "../../lib/wishlis
 import { useApp } from "../AppProvider";
 import ShowcaseCard from "../ShowcaseCard";
 import { StockChip } from "../StockBadge";
+import PackageCartButton from "../PackageCartButton";
 import "../../holidays.css";
 
 export const FALLBACK_IMG = "/images/destination-a.jpg";
@@ -410,6 +411,8 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
           <strong className="hol-pkg-price">{displayPrice}</strong>
         </div>
 
+        <PackageCartButton item={item} type="holiday" />
+
         <div className="hol-pkg-actions" onClick={stopProp}>
           <a
             href={telUrl}
@@ -480,10 +483,10 @@ export function useRailControls() {
 export function RailArrows({ edge, scrollBy, label }) {
   return (
     <div className="hol-arrows">
-      <button type="button" aria-label={`Previous ${label}`} disabled={edge.start} onClick={() => scrollBy(-1)}>
+      <button suppressHydrationWarning type="button" aria-label={`Previous ${label}`} disabled={edge.start} onClick={() => scrollBy(-1)}>
         <IconChevron dir="left" />
       </button>
-      <button type="button" aria-label={`Next ${label}`} disabled={edge.end} onClick={() => scrollBy(1)}>
+      <button suppressHydrationWarning type="button" aria-label={`Next ${label}`} disabled={edge.end} onClick={() => scrollBy(1)}>
         <IconChevron />
       </button>
     </div>
@@ -495,7 +498,7 @@ export function RailSection({ id, title, subtitle, label, href, hrefLabel = "Vie
   const { ref, edge, scrollBy } = useRailControls();
   const headingId = `${id}-title`;
   return (
-    <section className={`mk-container hol-section ${className}`} aria-labelledby={headingId}>
+    <section id={id} className={`mk-container hol-section ${className}`} aria-labelledby={headingId}>
       <div className="hol-head" data-reveal>
         <div>
           <h2 id={headingId}>{title}</h2>

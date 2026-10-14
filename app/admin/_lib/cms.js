@@ -138,7 +138,7 @@ export function cloneWithNewIds(field, value) {
 /** Make sure every repeater item carries an id (older payloads may not) and every field has a value of the right shape. Pure; returns a new tree. */
 export function withIds(fields = [], data) {
   const src = data && typeof data === "object" ? data : {};
-  const out = { ...src };
+  const out = {};
   fields.forEach((f) => {
     const v = src[f.name];
     if (f.type === "list") {
@@ -147,6 +147,8 @@ export function withIds(fields = [], data) {
       out[f.name] = withIds(f.fields, v);
     } else if (v === undefined) {
       out[f.name] = defaultValue(f);
+    } else {
+      out[f.name] = v;
     }
   });
   return out;

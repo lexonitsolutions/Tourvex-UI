@@ -7,22 +7,19 @@ import { ApiError, formatPrice } from "../../lib/api";
 import { useApp } from "../AppProvider";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
+import ActivityReviews from "../activities/ActivityReviews";
 import { EnquiryStockNote, StockHead } from "../StockBadge";
 import { useMotion } from "../MotionShell";
+import PackageCartButton from "../PackageCartButton";
 import {
   FALLBACK_IMG,
   HolidayCard,
   HolidayWhatsAppButton,
   IconCheck,
   IconChevron,
-  IconHotel,
-  IconMeal,
   IconMoon,
   IconPin,
-  IconSightseeing,
   IconStar,
-  IconTicket,
-  IconTransfer,
   IconWhatsApp,
   IconX,
   PremiumDatePicker,
@@ -1058,17 +1055,7 @@ function BookingCardContent({
 
       {/* Action Buttons: Cart + Proceed to Book + WhatsApp */}
       <div className="hol-booking-actions-row">
-        <div className="hol-cart-btn-wrap">
-          <button
-            type="button"
-            className="hol-btn-cart-icon"
-            onClick={handleAddToCart}
-            aria-label="Add package to cart"
-          >
-            <IconCart width="20" height="20" />
-          </button>
-          {cartToast && <span className="hol-cart-toast">Added to cart!</span>}
-        </div>
+        <PackageCartButton item={pkg} type="holiday" date={travelDateIso || undefined} adults={adults} children={children} />
 
         <button
           type="button"
@@ -1124,6 +1111,10 @@ export default function HolidayDetail({ pkg, related }) {
     }
     return result;
   }, [pkg]);
+  const additionalPackageImages = useMemo(() => (pkg.images || [])
+    .map((img) => (typeof img === "string" ? { url: img, alt: pkg.title } : img))
+    .filter((img) => img?.url)
+    .slice(1, 20), [pkg.images, pkg.title]);
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -1136,6 +1127,7 @@ export default function HolidayDetail({ pkg, related }) {
 
   // Share button state
   const [copied, setCopied] = useState(false);
+  const [mapInteractive, setMapInteractive] = useState(false);
   const handleShare = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -1353,6 +1345,12 @@ function resolveDayBulletPoints(day) {
     if (reviewFilter === "3star") return SAMPLE_REVIEWS.filter((r) => r.rating === 3);
     return SAMPLE_REVIEWS;
   }, [reviewFilter]);
+  const activityStyleReviews = useMemo(() => {
+    const items = SAMPLE_REVIEWS.map((review) => ({ id: review.id, displayName: review.name, rating: review.rating, title: review.packageTag, body: review.comment, createdAt: review.date, images: review.images || [], verified: true }));
+    const count = items.length;
+    const average = count ? items.reduce((sum, review) => sum + review.rating, 0) / count : 0;
+    return { summary: { average, count, breakdown: { excellent: items.filter((review) => review.rating === 5).length, veryGood: items.filter((review) => review.rating === 4).length, average: items.filter((review) => review.rating === 3).length, poor: items.filter((review) => review.rating === 2).length, terrible: items.filter((review) => review.rating === 1).length } }, items, pagination: { pages: 1, page: 1, total: count, limit: count } };
+  }, []);
 
   // Rails for Hotel Options and Customer Photos
   const hotelsRailRef = useRef(null);
@@ -1388,9 +1386,11 @@ function resolveDayBulletPoints(day) {
 
   const destinationName = pkg.destinations?.[0] || "Dubai";
   const durationText = `${pkg.durationNights || 1}N / ${pkg.durationDays || (pkg.durationNights ? pkg.durationNights + 1 : 2)}D`;
+  const locationLabel = [destinationName, pkg.country].filter(Boolean).join(", ");
+  const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(locationLabel)}&output=embed&iwloc=0`;
 
   return (
-    <div className="hol-page hol-detail-screen" ref={rootRef}>
+    <div className="hol-page hol-detail-screen is-activity-layout" ref={rootRef}>
       <div className="mk-container">
         {/* 1. Breadcrumbs */}
         <nav className="hol-crumbs hol-crumbs-premium" aria-label="Breadcrumb">
@@ -1495,37 +1495,64 @@ function resolveDayBulletPoints(day) {
           </div>
         </section>
 
+        {additionalPackageImages.length > 0 && (
+          <div className="hol-extra-gallery" aria-label="More package photos" data-reveal>
+            {additionalPackageImages.map((img, index) => (
+              <button key={`${img.url}-${index}`} type="button" onClick={() => openLightboxAt(index + 1)} aria-label={`Open package photo ${index + 2}`}>
+                <img src={img.url} alt={img.alt || ""} loading="lazy" decoding="async" onError={showFallback} />
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Main Content Grid: Left Sections vs Right Sticky Sidebar */}
         <div className="hol-detail-layout-grid">
           {/* LEFT COLUMN: Features, Itinerary, Hotels, Accordions, Reviews */}
           <div className="hol-detail-left-col">
-            {/* 4. Quick Inclusion Feature Row (Colorful Icon Badges) */}
-            <div className="hol-feature-squircles-row" data-reveal>
-              <div className="hol-squircle-item hol-sq-hotels">
-                <div className="hol-sq-icon"><IconHotel width="22" height="22" /></div>
-                <span className="hol-sq-label">Hotels</span>
+            <section className="hol-section-block hol-activity-overview" aria-labelledby="holiday-about-heading" data-reveal>
+              <div className="hol-section-kicker">Overview</div>
+              <h2 id="holiday-about-heading">About this experience</h2>
+              <p>{pkg.summary || pkg.description || `Discover ${destinationName} with a carefully planned holiday package that brings together accommodation, transfers and memorable experiences.`}</p>
+              {pkg.description && pkg.summary ? <p>{pkg.description}</p> : null}
+              <ul className="hol-amenity-bullets" aria-label="Package essentials">
+                <li><span aria-hidden="true">🏨</span>Hotel stay</li>
+                <li><span aria-hidden="true">🎟️</span>Entry tickets</li>
+                <li><span aria-hidden="true">🍽️</span>Meals</li>
+                <li><span aria-hidden="true">🧭</span>Activities</li>
+                <li><span aria-hidden="true">🚐</span>Transfers</li>
+              </ul>
+              <div className="hol-experience-details">
+                <span><strong>Duration</strong>{durationText}</span>
+                <span><strong>Destination</strong>{destinationName}</span>
+                <span><strong>Stay</strong>Selected hotel accommodation</span>
+                <span><strong>Support</strong>Tourvex travel assistance</span>
               </div>
+            </section>
 
-              <div className="hol-squircle-item hol-sq-tickets">
-                <div className="hol-sq-icon"><IconTicket width="22" height="22" /></div>
-                <span className="hol-sq-label">Entry Tickets</span>
-              </div>
-
-              <div className="hol-squircle-item hol-sq-meals">
-                <div className="hol-sq-icon"><IconMeal width="22" height="22" /></div>
-                <span className="hol-sq-label">Meals</span>
-              </div>
-
-              <div className="hol-squircle-item hol-sq-activities">
-                <div className="hol-sq-icon"><IconSightseeing width="22" height="22" /></div>
-                <span className="hol-sq-label">Activities</span>
-              </div>
-
-              <div className="hol-squircle-item hol-sq-transfers">
-                <div className="hol-sq-icon"><IconTransfer width="22" height="22" /></div>
-                <span className="hol-sq-label">Transfers</span>
-              </div>
+            <div className="hol-activity-pair" data-reveal>
+              <section className="hol-section-block is-compact" aria-labelledby="holiday-highlights-heading">
+                <div className="hol-section-kicker">Best moments</div>
+                <h2 id="holiday-highlights-heading">Experience highlights</h2>
+                <ul className="hol-activity-checklist">
+                  {(pkg.highlights?.length ? pkg.highlights : itineraryDays.slice(0, 5).map((day) => day.title)).map((item, index) => <li key={index}><IconCheck width="13" height="13" />{typeof item === "string" ? item : item.title}</li>)}
+                </ul>
+              </section>
+              <section className="hol-section-block is-compact" aria-labelledby="holiday-included-heading">
+                <div className="hol-section-kicker">Your booking</div>
+                <h2 id="holiday-included-heading">What&apos;s included</h2>
+                <ul className="hol-activity-checklist">
+                  {(pkg.inclusions?.length ? pkg.inclusions : ["Hotel accommodation", "Selected transfers", "Planned sightseeing", "Travel support"]).slice(0, 6).map((item, index) => <li key={index}><IconCheck width="13" height="13" />{item}</li>)}
+                </ul>
+              </section>
             </div>
+
+            <section className="hol-section-block hol-activity-excluded" aria-labelledby="holiday-excluded-heading" data-reveal>
+              <div className="hol-section-kicker">Please note</div>
+              <h2 id="holiday-excluded-heading">What&apos;s not included</h2>
+              <ul className="hol-activity-checklist is-negative">
+                {(pkg.exclusions?.length ? pkg.exclusions : ["International flights unless specified", "Personal expenses", "Optional upgrades", "Travel insurance"]).slice(0, 7).map((item, index) => <li key={index}><IconX width="13" height="13" />{item}</li>)}
+              </ul>
+            </section>
 
             {/* 5. Daywise Itinerary Simple Cards */}
             <section className="hol-section-block" aria-labelledby="daywise-heading" data-reveal>
@@ -1614,9 +1641,20 @@ function resolveDayBulletPoints(day) {
 
             {/* 7. Comprehensive Accordions (9 Sections) */}
             <section className="hol-section-block" aria-label="Detailed package information" data-reveal>
-              <div className="hol-accordions-group">
+              <div
+                className="hol-accordions-group"
+                onPointerOver={(event) => {
+                  if (event.pointerType && event.pointerType !== "mouse") return;
+                  const key = event.target.closest?.("[data-accordion]")?.dataset.accordion;
+                  if (key) setOpenAccordions((current) => Object.fromEntries(Object.keys(current).map((name) => [name, name === key])));
+                }}
+                onFocusCapture={(event) => {
+                  const key = event.target.closest?.("[data-accordion]")?.dataset.accordion;
+                  if (key) setOpenAccordions((current) => Object.fromEntries(Object.keys(current).map((name) => [name, name === key])));
+                }}
+              >
                 {/* 1. Overview */}
-                <div className={`hol-acc-item${openAccordions.overview ? " is-open" : ""}`}>
+                <div data-accordion="overview" className={`hol-acc-item${openAccordions.overview ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1647,7 +1685,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 2. Inclusion */}
-                <div className={`hol-acc-item${openAccordions.inclusion ? " is-open" : ""}`}>
+                <div data-accordion="inclusion" className={`hol-acc-item${openAccordions.inclusion ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1679,7 +1717,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 3. Exclusion */}
-                <div className={`hol-acc-item${openAccordions.exclusion ? " is-open" : ""}`}>
+                <div data-accordion="exclusion" className={`hol-acc-item${openAccordions.exclusion ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1711,7 +1749,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 4. Departure & Pricing */}
-                <div className={`hol-acc-item${openAccordions.departure ? " is-open" : ""}`}>
+                <div data-accordion="departure" className={`hol-acc-item${openAccordions.departure ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1736,7 +1774,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 5. Flights Details */}
-                <div className={`hol-acc-item${openAccordions.flights ? " is-open" : ""}`}>
+                <div data-accordion="flights" className={`hol-acc-item${openAccordions.flights ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1762,7 +1800,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 6. Visa Details */}
-                <div className={`hol-acc-item${openAccordions.visa ? " is-open" : ""}`}>
+                <div data-accordion="visa" className={`hol-acc-item${openAccordions.visa ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1787,7 +1825,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 7. Important Information */}
-                <div className={`hol-acc-item${openAccordions.important ? " is-open" : ""}`}>
+                <div data-accordion="important" className={`hol-acc-item${openAccordions.important ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1813,7 +1851,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 8. Booking Policy */}
-                <div className={`hol-acc-item${openAccordions.booking ? " is-open" : ""}`}>
+                <div data-accordion="booking" className={`hol-acc-item${openAccordions.booking ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1838,7 +1876,7 @@ function resolveDayBulletPoints(day) {
                 </div>
 
                 {/* 9. Payment Terms */}
-                <div className={`hol-acc-item${openAccordions.payment ? " is-open" : ""}`}>
+                <div data-accordion="payment" className={`hol-acc-item${openAccordions.payment ? " is-open" : ""}`}>
                   <h3>
                     <button
                       type="button"
@@ -1864,8 +1902,9 @@ function resolveDayBulletPoints(day) {
               </div>
             </section>
 
-            {/* 8. Customer Reviews Section */}
-            <section id="customer-reviews" className="hol-section-block" aria-labelledby="reviews-heading" data-reveal>
+            {/* 8. Location map — reviews follow it, matching the activity detail flow. */}
+            {/* 9. Customer Reviews Section */}
+            <section className="hol-section-block hol-legacy-reviews" aria-labelledby="reviews-heading" data-reveal>
               <div className="hol-section-header-row">
                 <h2 id="reviews-heading">Customer Reviews</h2>
               </div>
@@ -2150,6 +2189,26 @@ function resolveDayBulletPoints(day) {
             </div>
           </aside>
         </div>
+
+        {/* Full-width location and reviews follow the two-column content, matching the activity page. */}
+        <section className="hol-location-wide hol-location-in-flow" aria-labelledby="holiday-location-title" data-reveal>
+          <div className="hol-location-heading">
+            <span>Location</span>
+            <h2 id="holiday-location-title">Explore {destinationName}</h2>
+            <p><IconPin width="17" height="17" /> {locationLabel}</p>
+          </div>
+          <div className={`hol-map-stage${mapInteractive ? " is-interactive" : ""}`}>
+            <iframe className="hol-destination-map" src={mapEmbedUrl} title={`Map showing ${locationLabel}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" tabIndex={mapInteractive ? 0 : -1} />
+            <div className="hol-map-overlay">
+              {!mapInteractive ? <button type="button" className="hol-map-activate" onClick={() => setMapInteractive(true)}><IconPin width="19" height="19" /><span>Explore map</span></button> : <button type="button" className="hol-map-release" onClick={() => setMapInteractive(false)}>Stop exploring map</button>}
+            </div>
+          </div>
+        </section>
+
+        <div id="customer-reviews" className="act-reviews-wide hol-activity-reviews" data-reveal>
+          <ActivityReviews slug={pkg.slug} initial={activityStyleReviews} />
+        </div>
+
       </div>
 
       {/* 9. Similar Holidays Rail */}
@@ -2160,6 +2219,21 @@ function resolveDayBulletPoints(day) {
           ))}
         </RailSection>
       )}
+
+      <section className="hol-bottom-trust" aria-labelledby="hol-bottom-trust-title" data-reveal>
+        <div className="mk-container">
+          <div className="hol-bottom-trust-head">
+            <span>Book with confidence</span>
+            <h2 id="hol-bottom-trust-title">Why choose Karnish Tourism?</h2>
+          </div>
+          <ul className="hol-bottom-trust-grid">
+            <li><div className="hol-trust-icon-box is-gold"><IconCoin width="22" height="22" /></div><div><strong>Best Price Guarantee</strong><p>Always the best deal—book with total confidence.</p></div></li>
+            <li><div className="hol-trust-icon-box is-teal"><IconShield width="22" height="22" /></div><div><strong>Secure Online Transaction</strong><p>Your transactions are protected with advanced encryption.</p></div></li>
+            <li><div className="hol-trust-icon-box is-indigo"><IconChat width="22" height="22" /></div><div><strong>24X7 Live Chat Support</strong><p>Real humans, ready to help anytime.</p></div></li>
+            <li><div className="hol-trust-icon-box is-coral"><IconThumbsUp width="22" height="22" /></div><div><strong>Happy Travelers Worldwide</strong><p>Trusted by millions of happy travelers.</p></div></li>
+          </ul>
+        </div>
+      </section>
 
       {/* Mobile Booking Drawer Scrim & Bottom Sheet */}
       <div

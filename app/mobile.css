@@ -395,6 +395,8 @@
   .mk .mk-footer-about { max-width: 100%; font-size: 13.5px; }
   .mk .mk-footer-bottom { flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; font-size: 12px; }
   .mk .mk-footer-legal { gap: 2px; }
+  .mk .mk-footer-bottom-right { justify-content: flex-start; }
+  .mk .mk-footer-payment { width: 42px; height: 25px; }
   .mk .mk-footer-legal-link { padding: 4px 8px; font-size: 12px; }
   .mk .mk-footer { padding-bottom: var(--mk-tabbar-h); }
 
@@ -431,3 +433,61 @@
 .mk .mk-bk-card h3 .mk-bk-link:hover { color: var(--mk-primary); }
 .mk .mk-bk-more { margin: 10px 0 0; font-size: 14.5px; font-weight: 600; }
 .mk .mk-bk-more .mk-bk-link { color: var(--mk-primary); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Homepage Statistics Section Mobile Polish */
+@media (max-width: 760px) {
+  .mk .mk-stats-section {
+    padding-top: 36px;
+    padding-bottom: 44px;
+  }
+  .mk .mk-stats-head {
+    margin-bottom: 24px;
+    padding: 0 8px;
+  }
+  .mk .mk-stats-eyebrow {
+    font-size: 12px;
+    padding: 3px 10px;
+    margin-bottom: 8px;
+  }
+  .mk .mk-stats-title {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+  .mk .mk-stats-sub {
+    font-size: 14px;
+  }
+  .mk .mk-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .mk .mk-stats-card {
+    padding: 20px 18px;
+    border-radius: 16px;
+  }
+  .mk .mk-stats-mobile-waypoint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .mk .mk-stats-mobile-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--mk-line);
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  .mk .mk-stats-mobile-dot.is-active {
+    background: var(--mk-primary);
+    transform: scale(1.25);
+    box-shadow: 0 0 8px rgba(32, 149, 174, 0.5);
+  }
+  .mk .mk-stats-mobile-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mk-primary);
+    font-family: "Barlow Condensed", sans-serif;
+    letter-spacing: 0.05em;
+  }
+}
+

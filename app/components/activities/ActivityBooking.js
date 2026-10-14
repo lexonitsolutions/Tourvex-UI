@@ -46,7 +46,7 @@ function QuoteDetails({ quote }) {
   );
 }
 
-function OptionResult({ row, date, modifying, busy, added, onProceed, onAdd, onSave }) {
+function OptionResult({ row, date, modifying, busy, added, onProceed, onAdd, onSave, allowAddToCart }) {
   const { option, quote, error } = row;
   const [open, setOpen] = useState(false);
   const about = quote ? aboutText({ currency: quote.currency, display: quote.display }) : "";
@@ -83,9 +83,9 @@ function OptionResult({ row, date, modifying, busy, added, onProceed, onAdd, onS
                 <button type="button" className="mk-btn act-grow" disabled={!!busy} onClick={() => onProceed(option.id)}>
                   {busy === `${option.id}:pay` ? "One moment..." : "Proceed to Pay"}
                 </button>
-                <button type="button" className="act-iconbtn" aria-label={`Add ${option.name} to cart`} title="Add to cart" disabled={!!busy} onClick={() => onAdd(option.id)}>
+                {allowAddToCart && <button type="button" className="act-iconbtn" aria-label={`Add ${option.name} to cart`} title="Add to cart" disabled={!!busy} onClick={() => onAdd(option.id)}>
                   <IconCart width="20" height="20" />
-                </button>
+                </button>}
               </>
             )}
           </div>
@@ -297,7 +297,7 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
     }
   };
 
-  const onProceed = (id) => act(id, "pay", async () => { await api.addItem(body(id)); router.push("/checkout"); });
+  const onProceed = (id) => act(id, "pay", async () => { await api.addItem({ ...body(id), bookingOnly: true }); router.push("/checkout"); });
   const onAdd = (id) => act(id, "add", async () => { await api.addItem(body(id)); setAdded(id); });
   const onSave = (id) => act(id, "save", async () => { await api.updateItem(initial.modify, body(id)); router.push("/checkout"); });
 
@@ -323,7 +323,7 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
     <>
       {narrow && sheetOpen && <button type="button" className="act-scrim" aria-label="Close booking panel" tabIndex={-1} onClick={onSheetClose} />}
       <aside
-        className={`act-aside${sheetOpen ? " is-open" : ""}`}
+        className={`act-aside${sheetOpen ? " is-open" : ""}${pop ? " has-open-pop" : ""}`}
         aria-label="Book this activity"
         inert={hidden || undefined}
         role={narrow ? "dialog" : undefined}
@@ -445,7 +445,7 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
               <p className="act-results-sub">{formatDay(results.date)} · {paxLabel(results.adults, results.children)}</p>
               <ul className="act-opts">
                 {results.rows.map((row) => (
-                  <OptionResult key={row.option.id} row={row} date={results.date} modifying={modifying} busy={busy} added={added} onProceed={onProceed} onAdd={onAdd} onSave={onSave} />
+                  <OptionResult key={row.option.id} row={row} date={results.date} modifying={modifying} busy={busy} added={added} onProceed={onProceed} onAdd={onAdd} onSave={onSave} allowAddToCart={!!activity.allowAddToCart} />
                 ))}
               </ul>
               <p className="act-fx">Charged in AED. Taxes and fees are included in the total.</p>

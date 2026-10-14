@@ -13,12 +13,14 @@ import {
   useTableUrlState, usePageSize, useToast, useUrlParams,
 } from "../../_kit";
 import { DataTable } from "../../_ui/data-table";
+import { Switch as UiSwitch } from "../../_ui/components/switch";
 import { duplicateRecord, recordId } from "../_lib/catalog";
 
 const EMPTY = [];
 const LIMIT = 20;
 const STATUS = [{ value: "published", label: "Published" }, { value: "unpublished", label: "Unpublished" }];
 const SAMPLE = [{ value: "only", label: "Samples only" }, { value: "hide", label: "Hide samples" }];
+const CART_CATALOGUES = new Set(["activities", "holidays", "cruises", "events"]);
 
 const publicUrl = (config, item) => (item.slug ? `${config.publicPath}/${encodeURIComponent(item.slug)}` : null);
 
@@ -97,6 +99,11 @@ export default function CatalogList({ config }) {
   const page = Math.max(1, Number(params.page) || 1);
   const status = STATUS.some((s) => s.value === params.status) ? params.status : "";
   const sample = SAMPLE.some((s) => s.value === params.sample) ? params.sample : "";
+  const listFilters = config.listFilters || EMPTY;
+  const activeCatalogFilters = useMemo(
+    () => Object.fromEntries(listFilters.map((filter) => [filter.key, params[filter.key] || ""])),
+    [listFilters, params]
+  );
   const query = useMemo(
     () => ({
       q: params.q,
@@ -105,8 +112,9 @@ export default function CatalogList({ config }) {
       sort: params.sort || undefined,
       published: status ? String(status === "published") : undefined,
       sample: sample ? String(sample === "only") : undefined,
+      ...Object.fromEntries(Object.entries(activeCatalogFilters).map(([key, value]) => [key, value || undefined])),
     }),
-    [params.q, params.sort, page, limit, status, sample]
+    [params.q, params.sort, page, limit, status, sample, activeCatalogFilters]
   );
   const list = useAdminQuery(`${apiPath}/admin/all`, query);
   const [confirm, setConfirm] = useState(null); // { item, error }
@@ -134,6 +142,19 @@ export default function CatalogList({ config }) {
       fromKitColumns([
         { key: "title", label: "Title", primary: true, render: (r) => <TitleCell config={config} item={r} href={`/admin/catalog/${type}/${r.id}`} /> },
         ...config.columns.map((c) => ({ key: c.key, label: c.label, sortable: !!c.sort, nowrap: true, render: (r) => <Cell kind={c.kind} value={c.value(r)} /> })),
+        ...(CART_CATALOGUES.has(type) ? [{
+          key: "allowAddToCart",
+          label: "Cart availability",
+          nowrap: true,
+          render: (r) => (
+            <UiSwitch
+              checked={!!r.allowAddToCart}
+              disabled={!canWrite || busy === r.id}
+              aria-label={`${r.allowAddToCart ? "Disable" : "Enable"} Add to Cart for ${r.title}`}
+              onCheckedChange={() => setCartAvailability(r, !r.allowAddToCart)}
+            />
+          ),
+        }] : []),
         {
           key: "published",
           label: "Status",
@@ -146,7 +167,7 @@ export default function CatalogList({ config }) {
         },
         { key: "updatedAt", label: "Updated", nowrap: true, render: (r) => (r.updatedAt ? formatDate(r.updatedAt) : "-") },
       ]),
-    [config, type]
+    [config, type, canWrite, busy]
   );
 
   /* ---- row actions */
@@ -155,6 +176,20 @@ export default function CatalogList({ config }) {
     try {
       await api.patch(`${apiPath}/${item.id}`, { published });
       toast.success(published ? `Published "${item.title}"` : `Unpublished "${item.title}"`);
+      list.reload();
+    } catch (e) {
+      toast.error(e.status === 404 ? "This item no longer exists." : e.message);
+      if (e.status === 404) list.reload();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function setCartAvailability(item, allowAddToCart) {
+    setBusy(item.id);
+    try {
+      await api.patch(`${apiPath}/${item.id}`, { allowAddToCart });
+      toast.success(`Add to Cart ${allowAddToCart ? "enabled" : "disabled"} for "${item.title}"`);
       list.reload();
     } catch (e) {
       toast.error(e.status === 404 ? "This item no longer exists." : e.message);
@@ -226,11 +261,22 @@ export default function CatalogList({ config }) {
       { keys: ["q"], label: "Search" },
       { keys: ["status"], label: "Status", text: () => STATUS.find((s) => s.value === status)?.label || params.status },
       { keys: ["sample"], label: "Samples", text: () => SAMPLE.find((s) => s.value === sample)?.label || params.sample },
+      ...listFilters.map((filter) => ({
+        keys: [filter.key],
+        label: filter.label,
+        text: () => filter.labels?.[activeCatalogFilters[filter.key]] || activeCatalogFilters[filter.key],
+      })),
     ],
     setParams
   );
-  const filtered = !!(params.q || status || sample);
+  const filtered = !!(params.q || status || sample || Object.values(activeCatalogFilters).some(Boolean));
   const total = list.data?.pagination?.total;
+  const clearFilters = () => setParams({
+    q: "",
+    status: "",
+    sample: "",
+    ...Object.fromEntries(listFilters.map((filter) => [filter.key, ""])),
+  });
 
   return (
     <>
@@ -264,9 +310,18 @@ export default function CatalogList({ config }) {
         onRetry={list.reload}
         search={<SearchInput value={params.q} onChange={(q) => setParams({ q })} placeholder={`Search ${config.plural.toLowerCase()}`} label={`Search ${config.plural.toLowerCase()}`} />}
         toolbar={
-          <FilterToolbar chips={chips} onClearAll={() => setParams({ q: "", status: "", sample: "" })}>
+          <FilterToolbar chips={chips} onClearAll={clearFilters}>
             <SelectFilter label="Status" allLabel="All" value={status} onChange={(v) => setParams({ status: v })} options={STATUS} />
             <SelectFilter label="Samples" allLabel="Include" value={sample} onChange={(v) => setParams({ sample: v })} options={SAMPLE} />
+            {listFilters.map((filter) => {
+              const options = (list.data?.facets?.[filter.facet] || [])
+                .map((item) => typeof item === "string" ? { value: item, label: filter.labels?.[item] || item } : {
+                  value: item.name,
+                  label: `${filter.labels?.[item.name] || item.name}${typeof item.count === "number" ? ` (${item.count})` : ""}`,
+                })
+                .filter((option) => option.value);
+              return <SelectFilter key={filter.key} label={filter.label} allLabel={filter.allLabel || "All"} value={activeCatalogFilters[filter.key]} onChange={(value) => setParams({ [filter.key]: value })} options={options} />;
+            })}
           </FilterToolbar>
         }
         emptyState={
@@ -275,7 +330,7 @@ export default function CatalogList({ config }) {
             <p className="adm-empty__title">{filtered ? `No ${config.plural.toLowerCase()} match your filters` : `No ${config.plural.toLowerCase()} yet`}</p>
             <p className="adm-empty__desc">{filtered ? "Try a different search or clear the filters." : canWrite && config.allowCreate !== false ? `Add the first ${config.singular} to see it here.` : "Nothing has been added yet."}</p>
             <div className="adm-empty__action">
-              {filtered ? <Button onClick={() => setParams({ q: "", status: "", sample: "" })}>Clear filters</Button> : canWrite && config.allowCreate !== false ? <Link href={newHref} className="adm-btn adm-btn--primary"><span className="adm-btn__label">Add {config.singular}</span></Link> : null}
+              {filtered ? <Button onClick={clearFilters}>Clear filters</Button> : canWrite && config.allowCreate !== false ? <Link href={newHref} className="adm-btn adm-btn--primary"><span className="adm-btn__label">Add {config.singular}</span></Link> : null}
             </div>
           </div>
         }

@@ -86,6 +86,12 @@
 .ev-ticket-price { display: flex; flex-direction: column; align-items: flex-end; }
 .ev-ticket-price small { font-size: 13px; }
 .ev-ticket-price strong { font-family: "Barlow Condensed", sans-serif; font-size: 32px; line-height: 1.05; color: var(--mk-navy); }
+.ev-ticket-price del { color: #8a93a5; font-size: 14px; }
+.ev-package-badge { display: inline-flex; margin-left: 8px; padding: 4px 8px; border-radius: 999px; background: #fff0d6; color: #9a5a00; font-family: inherit; font-size: 11px; line-height: 1; vertical-align: middle; }
+.ev-package-benefits { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+.ev-package-benefits li { position: relative; padding-left: 14px; color: var(--mk-navy); font-size: 14px; }
+.ev-package-benefits li::before { content: "✓"; position: absolute; left: 0; color: var(--mk-primary); font-weight: 800; }
+.ev-ticket .ev-package-rules { margin-top: 10px; color: #6f7893; font-size: 13px; }
 
 .ev-inex-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
 .ev-inex-grid h3 { margin-bottom: 14px; font-size: 22px; }
@@ -528,4 +534,89 @@
 .mk a.ev-card-cta { display: inline-flex; }
 .ev-rail-item > .ev-card { width: 100%; }
 .hol-rail-item > .ev-card { width: 100%; }
+
+/* Marketplace-style events landing page ---------------------------------- */
+.ev-page { background: #f8fafc; }
+.ev-page .hol-slide video { width: 100%; height: 100%; object-fit: cover; }
+.ev-page .hol-section { padding-top: 44px; }
+.ev-page .hol-section-head h2 { color: #101f42; }
+.ev-page .hol-rail { gap: 18px; }
+.ev-category { position: relative; flex: 0 0 min(210px, 68vw); height: 270px; overflow: hidden; border-radius: 18px; color: #fff; isolation: isolate; }
+.ev-category-img, .ev-category-img img, .ev-category-shade { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ev-category-img img { object-fit: cover; transition: transform .5s var(--ev-ease); }
+.ev-category-video { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; object-fit: cover; animation: ev-category-video-in .3s ease both; }
+@keyframes ev-category-video-in { from { opacity: 0; } to { opacity: 1; } }
+.ev-category-shade { z-index: 1; background: linear-gradient(to top, rgba(5,16,39,.97), rgba(5,16,39,.05) 70%); }
+.ev-category-text { position: absolute; z-index: 2; left: 18px; right: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 5px; }
+.ev-category-text strong { color: #fff; font-size: 21px; line-height: 1.05; }
+.ev-category-text span { color: rgba(255,255,255,.74); font-size: 13px; line-height: 1.35; }
+.ev-category-go { position: absolute; z-index: 3; right: 15px; bottom: 16px; color: #f5ad38; transform: translateX(-5px); opacity: 0; transition: .25s ease; }
+.ev-category:hover .ev-category-img img { transform: scale(1.07); }
+.ev-category:hover .ev-category-go { opacity: 1; transform: none; }
+
+/* Medium viewports keep the swipe rail, but the active card visibly widens and
+   pushes its neighbours along the track. Touch-only devices retain fixed cards. */
+@media (max-width: 899px) and (hover: hover) {
+  .ev-page #ev-categories .ev-category {
+    transition: flex-basis .48s var(--ev-ease), width .48s var(--ev-ease), opacity .35s ease, filter .35s ease, box-shadow .35s ease;
+  }
+  .ev-page #ev-categories.has-category-active .ev-category.is-active {
+    flex-basis: clamp(320px, 52vw, 430px);
+    width: clamp(320px, 52vw, 430px);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, .24);
+  }
+  .ev-page #ev-categories.has-category-active .ev-category.is-muted {
+    flex-basis: 165px;
+    width: 165px;
+    opacity: .76;
+    filter: saturate(.72);
+  }
+}
+
+@media (min-width: 900px) and (hover: hover) {
+  .ev-page #ev-categories .hol-rail { overflow-x: hidden; }
+  .ev-page #ev-categories .ev-category {
+    flex: 1 1 0;
+    min-width: 135px;
+    max-width: 420px;
+    transition: flex-grow .48s var(--ev-ease), flex-basis .48s var(--ev-ease), min-width .48s var(--ev-ease), opacity .35s ease, filter .35s ease, box-shadow .35s ease;
+  }
+  .ev-page #ev-categories.has-category-active .ev-category.is-active {
+    flex: 0 0 clamp(320px, 34%, 460px);
+    max-width: none;
+    box-shadow: 0 20px 44px rgba(0, 0, 0, .28);
+  }
+  .ev-page #ev-categories.has-category-active .ev-category.is-muted {
+    flex: 1 1 0;
+    min-width: 105px;
+    opacity: .78;
+    filter: saturate(.72);
+  }
+  .ev-page #ev-categories .ev-category-text span {
+    max-width: 260px;
+  }
+}
+.ev-page .ev-rail-item { flex-basis: min(280px, 80vw); }
+.ev-page .ev-card { border-radius: 15px; border-color: #e6e9ef; box-shadow: 0 5px 18px rgba(13,31,65,.08); }
+.ev-page .ev-card-media { aspect-ratio: 16 / 9; }
+.ev-page .ev-card-body { padding: 14px 14px 16px; }
+.ev-page .ev-card-title { font-size: 18px; }
+.ev-page .ev-card-cta { border-radius: 8px; background: #0a1e42; }
+.ev-page .ev-promise { background: #fff; }
+.ev-newsletter { background: linear-gradient(110deg, #eaf1ff, #fff8ed); color: #102146; }
+.ev-newsletter h2 { color: #102146; }
+.ev-newsletter h2 em { color: #e79a27; font-style: normal; }
+.ev-newsletter p { color: #657089; }
+.ev-newsletter .ev-cta-ico { background: #e3edff; color: #2777dc; font-size: 28px; }
+.ev-subscribe { flex: 0 1 520px; display: flex; gap: 8px; padding: 6px; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(15,36,84,.08); }
+.ev-subscribe input { min-width: 0; flex: 1; border: 0; padding: 0 14px; font: inherit; outline: 0; color: #102146; }
+.ev-subscribe button { border: 0; border-radius: 11px; padding: 13px 24px; background: #f5ad38; color: #102146; font-weight: 700; cursor: pointer; }
+
+@media (max-width: 620px) {
+  .ev-category { height: 235px; }
+  .ev-newsletter { align-items: stretch; }
+  .ev-subscribe { flex: none; width: 100%; flex-direction: column; }
+  .ev-subscribe input { min-height: 46px; }
+}
+
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatPrice } from "../../lib/api";
 import { StateMessage, CardSkeletons, plural, showFallback, IconChevron, IconPin } from "../holidays/HolidayParts";
 import { StockChip } from "../StockBadge";
+import PackageCartButton from "../PackageCartButton";
 import "../../holidays.css";
 import "../../events.css";
 
@@ -200,6 +201,7 @@ export const EventCard = memo(function EventCard({ item, reveal = true, classNam
               {item?.price ? money(item.price) : (item?.priceFallback || "Price on request")}
             </strong>
           </div>
+          <PackageCartButton item={item} type="event" />
           <Link href={detailHref} className="ev-card-cta" aria-label={`View event ${item?.title || ""}`}>
             <span>Get Tickets</span>
             <IconChevron width="14" height="14" />

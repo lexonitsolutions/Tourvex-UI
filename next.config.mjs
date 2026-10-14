@@ -31,6 +31,10 @@ const nextConfig = {
           source: "/videos/:filename",
           destination: `${apiBaseUrl}/media/videos/:filename`,
         },
+        {
+          source: "/api/v1/media/:path*",
+          destination: `${apiBaseUrl}/media/:path*`,
+        },
       ],
       afterFiles: [],
       fallback: [],

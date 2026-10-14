@@ -5,118 +5,238 @@ const globalFooter = {
       "url": "/images/karnish-logo.png",
       "alt": "Karnish Tourism"
     },
-    "about": "Experiences, holidays and travel services across the UAE and beyond.",
+    "about": "Your trusted gateway to unforgettable experiences, luxury holidays, cruises, and visa services across the UAE and worldwide.",
     "groups": [
       {
-        "id": "group-1",
-        "title": "Explore",
+        "id": "footer-experiences",
+        "title": "Experiences",
         "links": [
           {
-            "id": "link-1",
+            "id": "footer-activities",
             "link": {
-              "label": "Activities",
+              "label": "Activities & Attractions",
               "href": "/activities"
             }
           },
           {
-            "id": "link-2",
+            "id": "footer-holidays",
             "link": {
-              "label": "Holidays",
+              "label": "Holiday Packages",
               "href": "/holidays"
             }
           },
           {
-            "id": "link-3",
+            "id": "footer-destinations",
             "link": {
               "label": "Destinations",
               "href": "/destination"
             }
           },
           {
-            "id": "link-4",
+            "id": "footer-cruises",
             "link": {
-              "label": "Services",
-              "href": "/services"
+              "label": "Cruises & Sailings",
+              "href": "/cruises"
+            }
+          },
+          {
+            "id": "footer-visas",
+            "link": {
+              "label": "Visa Services",
+              "href": "/visas"
             }
           }
         ]
       },
       {
-        "id": "group-2",
+        "id": "footer-company",
         "title": "Company",
         "links": [
           {
-            "id": "link-1",
+            "id": "footer-about",
             "link": {
-              "label": "About us",
+              "label": "About Karnish",
               "href": "/about"
             }
           },
           {
-            "id": "link-2",
+            "id": "footer-services",
             "link": {
-              "label": "Our team",
+              "label": "Our Services",
+              "href": "/services"
+            }
+          },
+          {
+            "id": "footer-team",
+            "link": {
+              "label": "Our Team",
               "href": "/team"
             }
           },
           {
-            "id": "link-3",
+            "id": "footer-partners",
             "link": {
-              "label": "Blog",
-              "href": "/blog"
-            }
-          },
-          {
-            "id": "link-4",
-            "link": {
-              "label": "Contact",
-              "href": "/contact"
-            }
-          },
-          {
-            "id": "link-5",
-            "link": {
-              "label": "Help and Support",
-              "href": "/support"
+              "label": "Partner with Us",
+              "href": "/partners"
             }
           }
         ]
       },
       {
-        "id": "group-3",
-        "title": "Account",
+        "id": "footer-account",
+        "title": "Account & Help",
         "links": [
           {
-            "id": "link-1",
+            "id": "footer-support",
             "link": {
-              "label": "Log in",
-              "href": "/sign-in"
+              "label": "Help & Support",
+              "href": "/support"
             }
           },
           {
-            "id": "link-2",
+            "id": "footer-bookings",
             "link": {
-              "label": "Create account",
-              "href": "/sign-up"
+              "label": "My Bookings",
+              "href": "/bookings"
             }
           },
           {
-            "id": "link-3",
+            "id": "footer-wishlist",
             "link": {
-              "label": "Partner sign up",
-              "href": "/partners"
+              "label": "Saved Wishlist",
+              "href": "/wishlist"
+            }
+          }
+        ]
+      },
+      {
+        "id": "footer-destination-links",
+        "title": "Destinations",
+        "links": [
+          {
+            "id": "footer-dubai",
+            "link": {
+              "label": "Dubai Experiences",
+              "href": "/activities?destination=Dubai"
+            }
+          },
+          {
+            "id": "footer-abu-dhabi",
+            "link": {
+              "label": "Abu Dhabi Packages",
+              "href": "/activities?destination=Abu%20Dhabi"
+            }
+          },
+          {
+            "id": "footer-rak",
+            "link": {
+              "label": "Ras Al Khaimah Tours",
+              "href": "/activities?destination=Ras%20Al%20Khaimah"
+            }
+          },
+          {
+            "id": "footer-featured-holidays",
+            "link": {
+              "label": "Featured Holidays",
+              "href": "/holidays"
+            }
+          },
+          {
+            "id": "footer-events",
+            "link": {
+              "label": "Concerts & Shows",
+              "href": "/events"
             }
           }
         ]
       }
     ],
     "contact": {
-      "phone": "",
-      "email": "",
-      "address": "",
+      "phone": "+971 4 222 3456",
+      "email": "info@karnishtourism.com",
+      "address": "Dubai, United Arab Emirates",
       "hours": ""
     },
-    "socials": [],
+    "socials": [
+      {
+        "id": "social-instagram",
+        "platform": "instagram",
+        "link": {
+          "label": "Instagram",
+          "href": "https://instagram.com"
+        }
+      },
+      {
+        "id": "social-x",
+        "platform": "x",
+        "link": {
+          "label": "X (Twitter)",
+          "href": "https://x.com"
+        }
+      },
+      {
+        "id": "social-facebook",
+        "platform": "facebook",
+        "link": {
+          "label": "Facebook",
+          "href": "https://facebook.com"
+        }
+      },
+      {
+        "id": "social-youtube",
+        "platform": "youtube",
+        "link": {
+          "label": "YouTube",
+          "href": "https://youtube.com"
+        }
+      },
+      {
+        "id": "social-linkedin",
+        "platform": "linkedin",
+        "link": {
+          "label": "LinkedIn",
+          "href": "https://linkedin.com"
+        }
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pay-visa",
+        "type": "visa",
+        "label": "Visa",
+        "visible": true
+      },
+      {
+        "id": "pay-mastercard",
+        "type": "mastercard",
+        "label": "Mastercard",
+        "visible": true
+      },
+      {
+        "id": "pay-amex",
+        "type": "amex",
+        "label": "American Express",
+        "visible": true
+      },
+      {
+        "id": "pay-paypal",
+        "type": "paypal",
+        "label": "PayPal",
+        "visible": true
+      },
+      {
+        "id": "pay-applepay",
+        "type": "applepay",
+        "label": "Apple Pay",
+        "visible": true
+      },
+      {
+        "id": "pay-gpay",
+        "type": "gpay",
+        "label": "Google Pay",
+        "visible": true
+      }
+    ],
     "copyright": "© {year} Karnish Tourism LLC. All rights reserved."
   }
 };

@@ -578,6 +578,7 @@ export function CruiseCardPicker({ field, value, path }) {
 
           {/* Cruises Grid */}
           <div
+            className="adm-catalog-picker-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
@@ -602,29 +603,42 @@ export function CruiseCardPicker({ field, value, path }) {
 
               return (
                 <div
+                  className="adm-catalog-choice-card"
                   key={cruise.id || cruise.slug}
                   onClick={() => toggleSelect(cruise)}
+                  tabIndex={readOnly ? -1 : 0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      toggleSelect(cruise);
+                    }
+                  }}
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    borderRadius: 12,
+                    borderRadius: 14,
                     border: isSelected
-                      ? "2px solid var(--adm-teal, #0d9488)"
-                      : "1px solid var(--adm-line)",
+                      ? "2px solid #0d9488"
+                      : "1px solid #e2e8f0",
                     background: isSelected
-                      ? "var(--adm-teal-soft, rgba(13, 148, 136, 0.08))"
-                      : "var(--adm-surface)",
+                      ? "rgba(13, 148, 136, 0.05)"
+                      : "#ffffff",
                     cursor: readOnly ? "default" : "pointer",
                     overflow: "hidden",
-                    transition: "all 0.16s ease",
-                    boxShadow: isSelected ? "0 0 0 1px var(--adm-teal, #0d9488)" : "none",
+                    transition: "all 0.18s ease",
+                    boxShadow: isSelected
+                      ? "0 0 0 1px #0d9488, 0 4px 12px rgba(13, 148, 136, 0.12)"
+                      : "0 2px 6px rgba(15, 23, 42, 0.06)",
+                    position: "relative",
+                    minHeight: 310,
                   }}
                 >
-                  <div style={{ position: "relative", height: 110, width: "100%", background: "#111" }}>
+                  {/* Photo Container */}
+                  <div style={{ position: "relative", height: 310, minHeight: 310, width: "100%", background: "#0f172a", overflow: "hidden" }}>
                     <img
                       src={resolveMediaUrl(img)}
-                      alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      alt={cruise.title || "Cruise"}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       onError={(e) => {
                         if (!e.currentTarget.src.endsWith(FALLBACK_IMG)) e.currentTarget.src = FALLBACK_IMG;
                       }}
@@ -632,117 +646,145 @@ export function CruiseCardPicker({ field, value, path }) {
                     <span
                       style={{
                         position: "absolute",
-                        bottom: 6,
-                        left: 6,
-                        background: "rgba(0,0,0,0.7)",
-                        color: "#fff",
-                        fontSize: 10.5,
+                        bottom: 8,
+                        left: 8,
+                        background: "rgba(15, 23, 42, 0.8)",
+                        color: "#ffffff",
+                        fontSize: 11,
                         fontWeight: 650,
-                        padding: "2px 6px",
-                        borderRadius: 4,
-                        backdropFilter: "blur(4px)",
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        backdropFilter: "blur(6px)",
+                        letterSpacing: "0.01em",
                       }}
                     >
-                      {durationText}
+                      🚢 {durationText}
                     </span>
 
-                    {isSelected && (
+                    {isSelected ? (
                       <span
                         style={{
                           position: "absolute",
-                          top: 6,
-                          right: 6,
-                          background: "var(--adm-teal, #0d9488)",
-                          color: "#fff",
+                          top: 8,
+                          right: 8,
+                          background: "#0d9488",
+                          color: "#ffffff",
                           fontSize: 11,
                           fontWeight: 700,
-                          padding: "3px 8px",
+                          padding: "3px 10px",
                           borderRadius: 999,
                           display: "flex",
                           alignItems: "center",
                           gap: 4,
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                         }}
                       >
-                        <Check size={12} strokeWidth={3} />
+                        <Check size={13} strokeWidth={3} />
                         Featured #{selectedIdx + 1}
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          background: "rgba(255, 255, 255, 0.85)",
+                          color: "#0f2454",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 999,
+                          backdropFilter: "blur(4px)",
+                        }}
+                      >
+                        + Select
                       </span>
                     )}
                   </div>
 
-                  <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div
+                  {/* Card Body with Full Details */}
+                  <div
+                    style={{
+                      padding: "12px 14px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6,
+                      flex: 1,
+                      background: "#ffffff",
+                    }}
+                  >
+                    {/* Line & Region Badges */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 750,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: "#0d9488",
+                          background: "rgba(13, 148, 136, 0.1)",
+                          padding: "2px 7px",
+                          borderRadius: 4,
+                        }}
+                      >
+                        {cruise.cruiseLine || "Cruise Voyage"}
+                      </span>
+                      {cruise.departureCity && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 550,
+                            color: "#475569",
+                            background: "#f1f5f9",
+                            padding: "2px 7px",
+                            borderRadius: 4,
+                          }}
+                        >
+                          Location: {cruise.departureCity}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Title */}
+                    <h5
                       style={{
-                        fontSize: 13,
-                        fontWeight: 650,
-                        color: "var(--adm-ink)",
-                        lineHeight: 1.3,
+                        margin: 0,
+                        fontSize: 13.5,
+                        fontWeight: 700,
+                        color: "#0f2454",
+                        lineHeight: 1.35,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
                         overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
                       }}
                       title={cruise.title}
                     >
                       {cruise.title}
+                    </h5>
+
+                    {/* Ship / Ports summary */}
+                    <div style={{ fontSize: 11.5, color: "#64748b" }}>
+                      {cruise.shipName ? `Ship: ${cruise.shipName}` : cruise.region || "Ocean & Coastal Voyage"}
                     </div>
 
+                    {/* Price Footer */}
                     <div
                       style={{
-                        fontSize: 11,
-                        color: "var(--adm-muted)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {cruise.departureCity ? `From ${cruise.departureCity}` : cruise.region || "Cruise"}
-                    </div>
-
-                    <div
-                      style={{
+                        marginTop: "auto",
+                        paddingTop: 8,
                         display: "flex",
-                        justifyContent: "space-between",
                         alignItems: "center",
-                        marginTop: 6,
-                        paddingTop: 6,
-                        borderTop: "1px solid var(--adm-line-soft)",
+                        justifyContent: "space-between",
+                        borderTop: "1px solid #f1f5f9",
                       }}
                     >
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--adm-ink)" }}>
+                      <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>
+                        Price from
+                      </span>
+                      <span style={{ fontSize: 13.5, fontWeight: 750, color: "#0d9488" }}>
                         {priceText}
                       </span>
-
-                      <button
-                        type="button"
-                        disabled={readOnly}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          padding: "3px 8px",
-                          borderRadius: 6,
-                          border: isSelected
-                            ? "1px solid var(--adm-danger)"
-                            : "1px solid var(--adm-teal, #0d9488)",
-                          background: isSelected ? "transparent" : "var(--adm-teal, #0d9488)",
-                          color: isSelected ? "var(--adm-danger)" : "#fff",
-                          cursor: readOnly ? "default" : "pointer",
-                        }}
-                      >
-                        {isSelected ? (
-                          <>
-                            <Trash2 size={11} />
-                            <span>Remove</span>
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={11} />
-                            <span>Select</span>
-                          </>
-                        )}
-                      </button>
                     </div>
                   </div>
                 </div>

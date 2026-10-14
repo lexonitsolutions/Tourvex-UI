@@ -53,8 +53,7 @@ export default function ActivityGallery({ images, title, video }) {
   const videoRef = useRef(null);
   const close = useCallback(() => setIndex(null), []);
   const list = images.length ? images : [{ url: FALLBACK_IMG, alt: title }];
-  const shown = list.slice(0, 5);
-  const extra = list.length - shown.length;
+  const extras = list.slice(1);
 
   const playVideo = useCallback(() => {
     const player = videoRef.current;
@@ -71,61 +70,32 @@ export default function ActivityGallery({ images, title, video }) {
 
   if (video?.url) {
     return (
-      <div
-        className={`act-gallery act-gallery-video has-1${videoPlaying ? " is-playing" : ""}`}
-        role="button"
-        tabIndex={0}
-        aria-label={`${videoPlaying ? "Pause" : "Play"} ${title} preview video`}
-        aria-pressed={videoPlaying}
-        onPointerEnter={playVideo}
-        onPointerLeave={stopVideo}
-        onFocus={playVideo}
-        onBlur={stopVideo}
-        onClick={() => (videoPlaying ? stopVideo() : playVideo())}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            videoPlaying ? stopVideo() : playVideo();
-          }
-        }}
-      >
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-        <video
-          ref={videoRef}
-          className="act-hero-video"
-          src={video.url}
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-label={`${title} video`}
-          onEnded={() => setVideoPlaying(false)}
-          onError={() => setVideoPlaying(false)}
-        />
-        <img className="act-video-cover" src={list[0]?.url} alt={list[0]?.alt || title} />
+      <div className="act-gallery-stack">
+        <div className={`act-gallery act-gallery-video has-1${videoPlaying ? " is-playing" : ""}`} role="button" tabIndex={0} aria-label={`${videoPlaying ? "Pause" : "Play"} ${title} preview video`} aria-pressed={videoPlaying} onPointerEnter={playVideo} onPointerLeave={stopVideo} onFocus={playVideo} onBlur={stopVideo} onClick={() => (videoPlaying ? stopVideo() : playVideo())} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); videoPlaying ? stopVideo() : playVideo(); } }}>
+          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+          <video ref={videoRef} className="act-hero-video" src={video.url} muted loop playsInline preload="metadata" aria-label={`${title} video`} onEnded={() => setVideoPlaying(false)} onError={() => setVideoPlaying(false)} />
+          <img className="act-video-cover" src={list[0]?.url} alt={list[0]?.alt || title} />
+        </div>
+        {extras.length > 0 && <ThumbnailRail images={extras} offset={1} total={list.length} onOpen={setIndex} />}
+        <Lightbox images={list} index={index} onIndex={setIndex} onClose={close} title={title} />
       </div>
     );
   }
 
   return (
-    <div className={`act-gallery has-${shown.length}`}>
-      {shown.map((img, i) => (
-        <button
-          key={img.url + i}
-          type="button"
-          className={`act-shot${i === 0 ? " is-main" : ""}`}
-          aria-label={`Open photo ${i + 1} of ${list.length}${img.alt ? `: ${img.alt}` : ""}`}
-          onClick={() => setIndex(i)}
-        >
-          <img src={img.url} alt="" width={i === 0 ? 900 : 450} height={i === 0 ? 600 : 300} loading={i === 0 ? "eager" : "lazy"} decoding="async" onError={showFallback} />
+    <div className="act-gallery-stack">
+      <div className="act-gallery has-1">
+        <button type="button" className="act-shot is-main" aria-label={`Open main photo of ${title}`} onClick={() => setIndex(0)}>
+          <img src={list[0].url} alt="" width="1100" height="620" loading="eager" decoding="async" onError={showFallback} />
         </button>
-      ))}
-      {list.length > 1 && (
-        <button type="button" className="act-seemore" onClick={() => setIndex(0)}>
-          {extra > 0 ? `See more (+${extra})` : `See all ${list.length} photos`}
-        </button>
-      )}
+        {list.length > 1 && <button type="button" className="act-seemore" onClick={() => setIndex(0)}>See all {list.length} photos</button>}
+      </div>
+      {extras.length > 0 && <ThumbnailRail images={extras} offset={1} total={list.length} onOpen={setIndex} />}
       <Lightbox images={list} index={index} onIndex={setIndex} onClose={close} title={title} />
     </div>
   );
+}
+
+function ThumbnailRail({ images, offset, total, onOpen }) {
+  return <div className="act-extra-gallery" aria-label="More package photos">{images.map((img, index) => <button key={`${img.url}-${index}`} type="button" onClick={() => onOpen(index + offset)} aria-label={`Open photo ${index + offset + 1} of ${total}`}><img src={img.url} alt={img.alt || ""} loading="lazy" decoding="async" onError={showFallback} /></button>)}</div>;
 }

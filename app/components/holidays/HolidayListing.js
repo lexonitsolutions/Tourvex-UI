@@ -264,7 +264,10 @@ export default function HolidayListing({ name }) {
 
             {/* Right: Search for Holidays Capsule */}
             <div className="hol-search-capsule" role="search">
-              <span className="hol-search-sparkle" aria-hidden="true">✦</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hol-search-sparkle" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
               <input
                 type="text"
                 className="hol-search-input"

@@ -305,7 +305,9 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
   const price = priceInfo(a);
   const city = a.destinations?.[0];
   const category = a.categories?.[0];
-  const images = a.gallery?.length ? a.gallery.slice(0, 12) : a.imageUrl ? [{ url: a.imageUrl, alt: a.title }] : [];
+  const images = [...(a.imageUrl ? [{ url: a.imageUrl, alt: a.title }] : []), ...(a.gallery || [])]
+    .filter((image, index, all) => image?.url && all.findIndex((candidate) => candidate?.url === image.url) === index)
+    .slice(0, 13);
   const where = a.location?.name || a.destinations?.join(", ");
   const rating = a.rating && a.rating.count > 0 ? a.rating : { average: 4.8, count: 5 };
   const guidanceSections = [

@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getActivities } from "../lib/api";
+import { listCruises } from "../lib/cruises";
+import { listEvents } from "../lib/events";
+import { listHolidays } from "../lib/holidays";
 import { buildCities, priceInfo, searchCatalog, trendingActivities } from "../lib/search";
+import { listVisas } from "../lib/visas";
 import { useApp } from "./AppProvider";
 import ShowcaseCard, { ShowcaseSkeleton } from "./ShowcaseCard";
+import { VisaCard } from "./visas/VisaParts";
 import "../search.css";
 
 const CRUISE_CATEGORY = "Dhow Cruise & Yacht";
@@ -46,11 +51,60 @@ const PIN = (
   </svg>
 );
 
-function ActivityCard({ item, index }) {
+const CATALOG_LOADERS = {
+  activities: (currency, signal) => getActivities(currency, { signal }),
+  holidays: (currency, signal) => listHolidays({ limit: 100, sort: "popular" }, { currency, signal }).then((data) => data.items || []),
+  // The Visas API caps a page at 60 records; larger values are rejected with 400.
+  visas: (currency, signal) => listVisas({ limit: 60 }, { currency, signal }).then((data) => data.items || []),
+  cruises: (currency, signal) => listCruises({ limit: 100, sort: "popular" }, { currency, signal }).then((data) => data.items || []),
+  events: (currency, signal) => listEvents({ limit: 100, sort: "soonest" }, { currency, signal }).then((data) => data.items || []),
+};
+
+function normaliseItem(item, type) {
+  if (type === "activities" || type === "yachts") {
+    return { ...item, href: `/activities/${item.slug}` };
+  }
+  if (type === "holidays") {
+    return {
+      ...item,
+      href: `/holidays/${item.slug}`,
+      imageUrl: item.coverImage,
+      categories: [...(item.themes || []), item.country].filter(Boolean),
+      tripTypes: item.collections || [],
+    };
+  }
+  if (type === "visas") {
+    return {
+      ...item,
+      href: `/visas/${item.slug}`,
+      destinations: [item.country].filter(Boolean),
+      categories: [item.kind, item.processing, item.validity].filter(Boolean),
+      price: item.startingPrice,
+    };
+  }
+  if (type === "cruises") {
+    return {
+      ...item,
+      href: `/cruises/${item.slug}`,
+      imageUrl: item.coverImage,
+      destinations: [item.departureCity].filter(Boolean),
+      categories: [item.region, item.cruiseLine, ...(item.tags || [])].filter(Boolean),
+    };
+  }
+  return {
+    ...item,
+    href: `/events/${item.slug}`,
+    imageUrl: item.coverImage,
+    destinations: [item.city].filter(Boolean),
+    categories: [item.category, item.venue, ...(item.tags || [])].filter(Boolean),
+  };
+}
+
+function CatalogCard({ item, index }) {
   return (
     <ShowcaseCard
       style={{ "--i": index }}
-      href={`/activities/${item.slug}`}
+      href={item.href}
       title={item.title}
       image={item.imageUrl}
       fallbackImage={FALLBACK_IMG}
@@ -63,12 +117,25 @@ function ActivityCard({ item, index }) {
   );
 }
 
-function CityRow({ city, index }) {
+function SearchResultCard({ item, index, tab }) {
+  if (tab === "visas") return <VisaCard item={item} reveal={false} />;
+  return <CatalogCard item={item} index={index} />;
+}
+
+function destinationHref(tab, name) {
+  if (tab === "holidays") return `/holidays?destination=${encodeURIComponent(name)}`;
+  if (tab === "visas") return `/visas?country=${encodeURIComponent(name)}`;
+  if (tab === "cruises") return `/cruises/from/${encodeURIComponent(name)}`;
+  if (tab === "events") return `/events/in/${encodeURIComponent(name)}`;
+  return `/activities?destination=${encodeURIComponent(name)}`;
+}
+
+function CityRow({ city, index, tab }) {
   return (
     <Link
       className="mk-s-city"
       style={{ "--i": index }}
-      href={`/activities?destination=${encodeURIComponent(city.name)}`}
+      href={destinationHref(tab, city.name)}
     >
       <span className="mk-s-pin">{PIN}</span>
       <span>
@@ -88,23 +155,25 @@ export default function SearchPage() {
   const initialTab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "activities";
   const [tab, setTab] = useState(initialTab);
   const [query, setQuery] = useState(params.get("q") || "");
-  const [items, setItems] = useState(null);
-  const [error, setError] = useState(false);
+  const [catalogs, setCatalogs] = useState({});
+  const [errors, setErrors] = useState({});
   const [showAllCities, setShowAllCities] = useState(false);
 
   useEffect(() => {
-    let live = true;
-    getActivities(currency)
+    const catalog = tab === "yachts" ? "activities" : tab;
+    const cacheKey = `${currency}:${catalog}`;
+    if (catalogs[cacheKey]) return undefined;
+    const controller = new AbortController();
+    CATALOG_LOADERS[catalog](currency, controller.signal)
       .then((data) => {
-        if (!live) return;
-        setError(false);
-        setItems(data);
+        setErrors((current) => ({ ...current, [cacheKey]: false }));
+        setCatalogs((current) => ({ ...current, [cacheKey]: data }));
       })
-      .catch(() => live && setError(true));
-    return () => {
-      live = false;
-    };
-  }, [currency]);
+      .catch((reason) => {
+        if (reason?.name !== "AbortError") setErrors((current) => ({ ...current, [cacheKey]: true }));
+      });
+    return () => controller.abort();
+  }, [tab, currency, catalogs]);
 
   useEffect(() => {
     inputRef.current?.focus({ preventScroll: true });
@@ -122,13 +191,17 @@ export default function SearchPage() {
     return () => clearTimeout(id);
   }, [query, tab, router]);
 
-  // Cruises and Yachts reuse the catalog's cruise category; the other tabs have no inventory yet.
   const scoped = useMemo(() => {
+    const catalog = tab === "yachts" ? "activities" : tab;
+    const items = catalogs[`${currency}:${catalog}`];
     if (!items) return null;
-    if (tab === "activities") return items;
-    if (tab === "cruises" || tab === "yachts") return items.filter((it) => it.categories?.includes(CRUISE_CATEGORY));
-    return [];
-  }, [items, tab]);
+    const selected = tab === "yachts"
+      ? items.filter((item) => item.categories?.includes(CRUISE_CATEGORY))
+      : items;
+    return selected.map((item) => normaliseItem(item, tab));
+  }, [catalogs, currency, tab]);
+
+  const error = errors[`${currency}:${tab === "yachts" ? "activities" : tab}`];
 
   const cities = useMemo(() => (scoped ? buildCities(scoped) : []), [scoped]);
   const trending = useMemo(() => (scoped ? trendingActivities(scoped, 9) : []), [scoped]);
@@ -209,7 +282,7 @@ export default function SearchPage() {
 
         {error && (
           <p className="mk-s-note mk-s-error" role="alert">
-            We could not load experiences right now. Please try again shortly.
+            We could not load {activeTab.label.toLowerCase()} right now. Please try again shortly.
           </p>
         )}
 
@@ -237,22 +310,22 @@ export default function SearchPage() {
                   <section>
                     <h2 className="mk-s-h">Destinations</h2>
                     <div className="mk-s-cities">
-                      {results.cities.map((city, i) => <CityRow key={city.name} city={city} index={i} />)}
+                      {results.cities.map((city, i) => <CityRow key={city.name} city={city} index={i} tab={tab} />)}
                     </div>
                   </section>
                 )}
                 {results.activities.length > 0 && (
                   <section>
                     <h2 className="mk-s-h">
-                      Activities <span className="mk-s-count">{results.activities.length}</span>
+                      {activeTab.label} <span className="mk-s-count">{results.activities.length}</span>
                     </h2>
                     <div className="sc-grid">
-                      {results.activities.slice(0, 24).map((item, i) => <ActivityCard key={item._id || item.slug} item={item} index={i % 12} />)}
+                      {results.activities.slice(0, 24).map((item, i) => <SearchResultCard key={item._id || item.id || item.slug} item={item} index={i % 12} tab={tab} />)}
                     </div>
                     {results.activities.length > 24 && (
                       <p className="mk-s-more">
                         Showing 24 of {results.activities.length}.{" "}
-                        <Link className="mk-s-link" href={`/activities?q=${encodeURIComponent(query.trim())}`}>See all results</Link>
+                        <Link className="mk-s-link" href={`/${tab === "yachts" ? "activities" : tab}?q=${encodeURIComponent(query.trim())}`}>See all results</Link>
                       </p>
                     )}
                   </section>
@@ -268,7 +341,7 @@ export default function SearchPage() {
               <h2 className="mk-s-h">Things to do in</h2>
               {scoped ? (
                 <div className="mk-s-cities">
-                  {visibleCities.map((city, i) => <CityRow key={city.name} city={city} index={i} />)}
+                  {visibleCities.map((city, i) => <CityRow key={city.name} city={city} index={i} tab={tab} />)}
                 </div>
               ) : (
                 <div className="mk-s-cities" aria-hidden="true">
@@ -289,7 +362,7 @@ export default function SearchPage() {
               <h2 className="mk-s-h">Trending {activeTab.label}</h2>
               <div className="sc-grid">
                 {scoped
-                  ? trending.map((item, i) => <ActivityCard key={item._id || item.slug} item={item} index={i} />)
+                  ? trending.map((item, i) => <SearchResultCard key={item._id || item.id || item.slug} item={item} index={i} tab={tab} />)
                   : <ShowcaseSkeleton count={8} />}
               </div>
             </section>

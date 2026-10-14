@@ -25,6 +25,7 @@ const ExperienceCards = dynamic(() => import("./ExperienceCards"));
 const PartnersStrip = dynamic(() => import("./PartnersStrip"));
 const CruiseCard = dynamic(() => import("./cruises/CruiseParts").then((m) => m.CruiseCard));
 const EventCard = dynamic(() => import("./events/EventParts").then((m) => m.EventCard));
+const HomeStats = dynamic(() => import("./HomeStats"));
 
 const SLIDE_MS = 6500;
 
@@ -454,6 +455,8 @@ export default function HomeSections({ sections = [], partners = null }) {
       </section>
     ),
 
+    statistics: (c) => <HomeStats content={c} />,
+
     bestCities: (c) => (
       <section className="mk-container mk-section" ref={citiesRef}>
         <div className="mk-section-head" data-reveal>
@@ -610,12 +613,21 @@ export default function HomeSections({ sections = [], partners = null }) {
     ),
   };
 
+  const hasStats = sections.some((s) => s.type === "statistics");
+
   return (
     <>
       {sections.map((section) => {
         const render = renderers[section.type];
-        return render ? <Fragment key={section.id}>{render(section.data)}</Fragment> : null;
+        if (!render) return null;
+        return (
+          <Fragment key={section.id}>
+            {render(section.data)}
+            {!hasStats && section.type === "why" && <HomeStats key="stats-fallback" />}
+          </Fragment>
+        );
       })}
+      {!hasStats && !sections.some((s) => s.type === "why") && <HomeStats key="stats-fallback" />}
     </>
   );
 }

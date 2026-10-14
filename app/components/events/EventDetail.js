@@ -4,6 +4,7 @@ import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
+import PackageCartButton from "../PackageCartButton";
 import { StockHead } from "../StockBadge";
 import EventEnquiry from "./EventEnquiry";
 import {
@@ -141,6 +142,7 @@ function PriceCard({ event, session, onStart }) {
       ) : (
         <div className="ev-pc-price"><strong className="is-text">Price on request</strong></div>
       )}
+      <PackageCartButton item={event} type="event" date={session?.startsAt?.slice(0, 10)} />
       <ul className="ev-pc-facts">
         {event.venue && <li><IconPin width="18" height="18" />{[event.venue, event.city].filter(Boolean).join(", ")}</li>}
         {session ? (
@@ -238,16 +240,22 @@ export default function EventDetail({ event, related }) {
 
             {ticketTypes.length > 0 && (
               <section className="hol-block" aria-labelledby="ev-tickets" data-reveal>
-                <h2 id="ev-tickets">Ticket types</h2>
+                <h2 id="ev-tickets">Event packages</h2>
                 <ul className="ev-tickets">
                   {ticketTypes.map((t) => (
                     <li key={t.type} className="ev-ticket">
                       <div>
-                        <h3>{t.type}</h3>
+                        <h3>{t.type} {t.badge && <span className="ev-package-badge">{t.badge}</span>}</h3>
                         {t.description && <p>{t.description}</p>}
+                        {t.benefits?.length > 0 && <ul className="ev-package-benefits">{t.benefits.map((benefit) => <li key={benefit}>{benefit}</li>)}</ul>}
+                        <p className="ev-package-rules">
+                          {t.availableQuantity !== null && t.availableQuantity !== undefined ? `${t.availableQuantity} available` : "Availability on request"}
+                          {t.maxPerBooking ? ` · Max ${t.maxPerBooking} per booking` : ""}
+                          {t.refundable ? " · Refundable" : ""}
+                        </p>
                       </div>
                       <div className="ev-ticket-side">
-                        {t.price ? <p className="ev-ticket-price"><small>From</small><strong>{money(t.price)}</strong><small>per ticket</small></p> : <p className="ev-ticket-price"><small>Price on request</small></p>}
+                        {t.price ? <p className="ev-ticket-price"><small>From</small>{t.originalPrice && <del>{money(t.originalPrice)}</del>}<strong>{money(t.price)}</strong><small>per ticket</small></p> : <p className="ev-ticket-price"><small>Price on request</small></p>}
                         <button type="button" className="hol-link ev-link-btn" onClick={() => requestTicket(t.type)}>Request this ticket</button>
                       </div>
                     </li>

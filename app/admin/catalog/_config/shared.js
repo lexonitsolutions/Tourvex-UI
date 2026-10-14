@@ -32,12 +32,13 @@ export const descriptionField = () => textarea("description", "Description", { m
 export const galleryField = (o = {}) => ({ name: "images", type: "gallery", label: "Gallery", ...o });
 export const coverImageField = () => ({ name: "coverImage", type: "imageUrl", label: "Cover image", required: true, maxLength: 500, help: "Shown on cards and at the top of the page." });
 
-export const publishingSection = () => ({
+export const publishingSection = ({ cart = false } = {}) => ({
   id: "publishing",
   label: "Publishing",
   description: "Control whether this item is live on the public website.",
   fields: [
     toggle("published", "Published", { help: "Unpublished items are hidden from the website but stay here, so you can finish them first." }),
+    ...(cart ? [toggle("allowAddToCart", "Allow Add to Cart", { help: "When enabled, customers can add this package to the shared cart. New and existing packages remain off until you enable them." })] : []),
     toggle("isSample", "Sample / demo content", { help: "Marks placeholder data. Sample items are hidden on the live site in production." }),
     number("popularity", "Popularity", { step: "any", optional: true, help: "Used when the site sorts by popular: higher numbers come first. Leave empty for 0." }),
   ],

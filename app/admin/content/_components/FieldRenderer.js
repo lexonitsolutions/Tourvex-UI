@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { memo, useId } from "react";
 import { Field, Switch, SelectField } from "../../_kit";
 import { Input } from "../../_ui/components/input";
@@ -15,9 +16,39 @@ import RichTextField from "./RichTextField";
 import HolidayPackagePicker from "./HolidayPackagePicker";
 import CruiseCardPicker from "./CruiseCardPicker";
 import EventCardPicker from "./EventCardPicker";
+import YachtCardPicker from "./YachtCardPicker";
 
 const WIDE = new Set(["text", "textarea", "richtext", "image", "video", "link", "list", "group"]);
 const HEX = /^#[0-9a-f]{6}$/i;
+const PAYMENT_LOGOS = {
+  visa: "visa.svg", mastercard: "mastercard.svg", amex: "americanexpress.svg", discover: "discover.svg",
+  jcb: "jcb.svg", unionpay: "unionpay.svg", dinersclub: "dinersclub.svg", maestro: "maestro.svg",
+  gpay: "googlepay.svg", applepay: "applepay.svg", samsungpay: "samsungpay.svg", paypal: "paypal.svg",
+  alipay: "alipay.svg", wechatpay: "wechatpay.svg", rupay: "rupay.svg", upi: "upi.svg", mada: "mada.svg",
+  klarna: "klarna.svg", afterpay: "afterpay.svg", banktransfer: "banktransfer.svg",
+};
+
+function PaymentProviderControl({ field, value, path }) {
+  const { errors, readOnly, onChange } = useFormContext();
+  const option = (field.options || []).find((item) => item.value === value);
+  const select = (next) => {
+    onChange(path, next);
+    const labelPath = path.replace(/\.type$/, ".label");
+    const nextOption = (field.options || []).find((item) => item.value === next);
+    if (labelPath !== path && nextOption) onChange(labelPath, nextOption.label);
+  };
+  return (
+    <div className="adm-payment-provider">
+      <SelectField label={field.label} hint={field.help} error={errors[path]} value={value} options={field.options || []} disabled={readOnly} onChange={select} />
+      {value && (
+        <div className="adm-payment-preview" aria-label={`${option?.label || value} logo preview`}>
+          {PAYMENT_LOGOS[value] ? <Image src={`/payment-icons/${PAYMENT_LOGOS[value]}`} alt="" width={76} height={38} /> : <span className={`adm-payment-fallback is-${value}`}><i className={value === "cash" ? "fa-solid fa-money-bill-wave" : "fa-solid fa-building-columns"} aria-hidden="true" />{option?.label || value}</span>}
+          <span>Logo added automatically</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function TextControl({ field, value, path, multiline }) {
   const { errors, readOnly, onChange } = useFormContext();
@@ -127,7 +158,9 @@ function FieldRenderer({ field, value, path }) {
       body = <NumberControl field={field} value={value} path={path} />;
       break;
     case "select":
-      body = <SelectField label={field.label} hint={field.help} error={errors[path]} value={value} options={field.options || []} disabled={readOnly} onChange={(v) => onChange(path, v)} />;
+      body = field.name === "type" && path.includes("paymentMethods")
+        ? <PaymentProviderControl field={field} value={value} path={path} />
+        : <SelectField label={field.label} hint={field.help} error={errors[path]} value={value} options={field.options || []} disabled={readOnly} onChange={(v) => onChange(path, v)} />;
       break;
     case "color":
       body = <ColorControl field={field} value={value} path={path} />;
@@ -139,6 +172,8 @@ function FieldRenderer({ field, value, path }) {
         body = <CruiseCardPicker field={field} value={value} path={path} />;
       } else if (field.name === "events") {
         body = <EventCardPicker field={field} value={value} path={path} />;
+      } else if (field.name === "yachts") {
+        body = <YachtCardPicker field={field} value={value} path={path} />;
       } else {
         body = <ListField field={field} value={value} path={path} />;
       }

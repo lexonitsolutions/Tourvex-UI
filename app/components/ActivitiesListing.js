@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Building2, FerrisWheel, Grid3X3, Mountain, TentTree, Waves } from "lucide-react";
 import { formatPrice, getActivities } from "../lib/api";
 import { buildCities, priceInfo, searchCatalog } from "../lib/search";
 import { useApp } from "./AppProvider";
@@ -14,6 +15,20 @@ import "../activities.css";
 const FALLBACK_IMG = "/images/destination-a.jpg";
 const PAGE_SIZE = 12;
 const DEST_LIMIT = 8;
+
+const CATEGORY_ICONS = { all: Grid3X3, theme: FerrisWheel, city: Building2, adventure: Mountain, water: Waves, desert: TentTree };
+
+function ActivityCategoryIcon({ category }) {
+  const key = String(category.id || category.category || "all").toLowerCase();
+  const Icon = CATEGORY_ICONS[key]
+    || (key.includes("theme") ? FerrisWheel
+      : key.includes("city") ? Building2
+      : key.includes("adventure") ? Mountain
+      : key.includes("water") ? Waves
+      : key.includes("desert") ? TentTree
+      : Grid3X3);
+  return <Icon width="20" height="20" strokeWidth="1.9" aria-hidden="true" />;
+}
 
 export const ACTIVITY_SORTS = [
   { value: "popular", label: "Most popular" },
@@ -523,7 +538,7 @@ export default function ActivitiesListing({ initial, sections = [] }) {
           </form>
         </header>
         {categories.length > 0 && <div className="ac-hero-cats" role="group" aria-label="Activity categories">
-          {categories.map((category) => { const selected = category.category ? params.cat.includes(category.category) : !params.cat.length; return <button key={category.id || category.label} type="button" className={selected ? "is-active" : ""} aria-pressed={selected} onClick={() => update({ activity: category.category || "" })} suppressHydrationWarning><span aria-hidden="true">{category.icon || "◇"}</span><strong>{category.label}</strong>{category.category && <small>{counts.cat.get(category.category) || 0} experiences</small>}</button>; })}
+          {categories.map((category) => { const selected = category.category ? params.cat.includes(category.category) : !params.cat.length; return <button key={category.id || category.label} type="button" className={selected ? "is-active" : ""} aria-pressed={selected} onClick={() => update({ activity: category.category || "" })} suppressHydrationWarning><span className="ac-hero-cat-icon"><ActivityCategoryIcon category={category} /></span><strong>{category.label}</strong>{category.category && <small>{counts.cat.get(category.category) || 0} experiences</small>}</button>; })}
         </div>}
       </div>
 

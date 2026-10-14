@@ -15,6 +15,7 @@ import LocaleModal from "./LocaleModal";
 import { flagSrc } from "../lib/currencies";
 import { buildTabs, isTabCurrent } from "./navTabs";
 import MegaMenu from "./MegaMenu";
+import { Search } from "lucide-react";
 import "../mega-menu.css";
 
 function LocaleButton({ onOpen }) {
@@ -242,14 +243,14 @@ export default function SiteHeader() {
         {/* Categories dock */}
         <Dock openMega={openMega} closeMega={closeMega} />
 
-        {/* Search for Holidays input pill matching Screenshot */}
+        {/* Search for Holidays input pill */}
         <Link
           href="/search"
           className="mk-header-search-pill mk-hide-md"
-          aria-label={header.search.ariaLabel}
+          aria-label={header.search?.ariaLabel || "Search for holidays"}
         >
-          <span className="sparkle">{header.search.sparkle}</span>
-          <span><InlineRichText text={header.search.markup} /></span>
+          <Search size={14} className="mk-header-search-icon" aria-hidden="true" />
+          <span className="mk-header-search-text">Search for Holidays</span>
         </Link>
 
         {/* Right header actions */}

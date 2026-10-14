@@ -3,12 +3,18 @@ import globalFooter from "./global.footer.js";
 import globalHeader from "./global.header.js";
 import globalSeo from "./global.seo.js";
 import pageActivities from "./page.activities.js";
+import pageEvents from "./page.events.js";
+import pageHolidays from "./page.holidays.js";
 import pageHome from "./page.home.js";
+import pageVoyager from "./page.voyager.js";
 
 export const DEFAULTS = {
   "global.footer": globalFooter,
   "global.header": globalHeader,
   "global.seo": globalSeo,
   "page.activities": pageActivities,
+  "page.events": pageEvents,
+  "page.holidays": pageHolidays,
   "page.home": pageHome,
+  "page.voyager": pageVoyager,
 };

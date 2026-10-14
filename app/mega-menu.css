@@ -508,28 +508,44 @@ a.mm-deal-pill-card:hover .mm-deal-pill-title {
 .mk-header-search-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px 0 12px;
   border: 1px solid #e2e8f0;
   border-radius: 999px;
-  background: #ffffff;
+  background: #f8fafc;
   color: #64748b;
   font-size: 13.5px;
+  font-weight: 500;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   white-space: nowrap;
+  margin-left: 2px;
+  margin-right: 2px;
+  flex: none;
 }
 
 .mk-header-search-pill:hover {
-  border-color: #047857;
-  color: #047857;
-  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.1);
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
-.mk-header-search-pill .sparkle {
-  color: #d97706;
-  font-size: 14px;
+.mk-header-search-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: color 0.18s ease;
+}
+
+.mk-header-search-pill:hover .mk-header-search-icon {
+  color: #475569;
+}
+
+.mk-header-search-text {
+  color: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
 }
 
 @media (max-width: 1100px) {

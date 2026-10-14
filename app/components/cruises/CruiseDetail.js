@@ -4,6 +4,7 @@ import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
+import PackageCartButton from "../PackageCartButton";
 import { StockHead } from "../StockBadge";
 import CruiseEnquiry from "./CruiseEnquiry";
 import {
@@ -142,6 +143,7 @@ function PriceCard({ cruise, departure, onStart }) {
       ) : (
         <div className="cr-pc-price"><strong className="is-text">Fare on request</strong></div>
       )}
+      <PackageCartButton item={cruise} type="cruise" date={departure || undefined} />
       <ul className="cr-pc-facts">
         <li><IconMoon width="18" height="18" />{nightsLabel(cruise.durationNights)}{cruise.durationDays ? ` / ${cruise.durationDays} days` : ""}</li>
         {cruise.shipName && <li><IconShip width="18" height="18" />{cruise.shipName}</li>}

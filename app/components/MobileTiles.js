@@ -76,7 +76,14 @@ const MoreSheet = memo(function MoreSheet({ open, onClose, copy }) {
           </button>
         </div>
         <ul className="mk-sheet-list">
-          {copy.moreLinks.map((item) => (
+          {copy.moreLinks
+            .filter(
+              (item) =>
+                item?.icon !== "yachts" &&
+                !item?.link?.href?.toLowerCase().includes("yacht") &&
+                item?.link?.label?.toLowerCase() !== "yachts"
+            )
+            .map((item) => (
             <li key={item.id}>
               <CmsLink className="mk-sheet-row" href={item.link.href} onClick={onClose}>
                 <span className="mk-sheet-ico">{NAV_ICONS[item.icon]}</span>

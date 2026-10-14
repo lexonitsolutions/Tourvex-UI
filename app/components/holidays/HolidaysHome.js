@@ -18,20 +18,25 @@ import {
   showFallback,
 } from "./HolidayParts";
 
-const WHY = [
-  ["Clear starting prices", "Every package shows its per-person starting price, taken straight from our system. Payments are charged in AED."],
-  ["Itineraries you can read", "Day-by-day plans, highlights, inclusions and exclusions are listed before you enquire."],
-  ["Real people to talk to", "Send an enquiry and our team replies with answers about dates, hotels and changes."],
-  ["Ask before you book", "Not sure a package fits? Tell us what you would like different and we will advise."],
-];
-
 const CityCard = memo(function CityCard({ city }) {
   return (
     <Link data-reveal="right" className="hol-city" href={destinationHref(city.name, city.country)}>
       <span className="hol-city-panel" aria-hidden="true" />
       <div className="hol-city-body">
         <div className="hol-city-img">
-          <img src={city.image} alt="" width="200" height="168" loading="lazy" decoding="async" onError={showFallback} />
+          {city.video ? (
+            <video
+              src={city.video}
+              poster={city.image}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <img src={city.image} alt="" width="200" height="168" loading="lazy" decoding="async" onError={showFallback} />
+          )}
         </div>
         <h3>Holidays Packages in {city.name}</h3>
         <p>{[city.country, plural(city.count, "package")].filter(Boolean).join(" · ")}</p>
@@ -50,7 +55,19 @@ const CountryCard = memo(function CountryCard({ country }) {
   return (
     <Link data-reveal="right" className="hol-country" href={href}>
       <span className="hol-country-img">
-        <img src={country.image} alt="" width="260" height="360" loading="lazy" decoding="async" onError={showFallback} />
+        {country.video ? (
+          <video
+            src={country.video}
+            poster={country.image}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
+        ) : (
+          <img src={country.image} alt="" width="260" height="360" loading="lazy" decoding="async" onError={showFallback} />
+        )}
       </span>
       <span className="hol-country-shade" aria-hidden="true" />
       <span className="hol-country-text">
@@ -78,13 +95,42 @@ function useRecentlyViewed(currency) {
   return items;
 }
 
-export default function HolidaysHome() {
+const sectionMap = (sections) => Object.fromEntries((sections || []).map((s) => [s.type, s]));
+const isOn = (section) => section && section.enabled !== false && section.data?.show !== false;
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4100/api/v1").replace(/\/api\/v\d+$/, "");
+const cmsMedia = (val) => {
+  const raw = typeof val === "string" ? val : val?.url || "";
+  if (!raw) return "";
+  const u = String(raw).trim();
+  if (u.startsWith("/api/")) return `${API_ORIGIN}${u}`;
+  return u;
+};
+const cmsBanners = (items) => (items || []).filter((b) => b.visible !== false).map((b) => ({
+  ...b, image: cmsMedia(b.image), video: cmsMedia(b.video), ctaLabel: b.cta?.label, ctaHref: b.cta?.href,
+})).filter((b) => b.image || b.video);
+const configuredCards = (live, config) => {
+  const edits = config?.data?.items || [];
+  if (!edits.length) return live || [];
+  return edits.filter((edit) => edit.visible !== false).map((edit) => {
+    const item = (live || []).find((candidate) => candidate.name?.toLowerCase() === edit.name?.toLowerCase());
+    return item ? { ...item, name: edit.label || item.name, image: cmsMedia(edit.image) || item.image, video: cmsMedia(edit.video) || item.video || "" } : null;
+  }).filter(Boolean);
+};
+
+export default function HolidaysHome({ content }) {
   const { currency } = useApp();
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const rootRef = useRef(null);
   const recent = useRecentlyViewed(currency);
+  const cms = sectionMap(content?.sections);
+  const heroSection = cms.holidaysHero;
+  const recentSection = cms.holidaysRecent;
+  const citiesSection = cms.holidaysCities;
+  const countriesSection = cms.holidaysCountries;
+  const packagesSection = cms.holidaysPackages;
+  const whySection = cms.holidaysWhy;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -117,11 +163,24 @@ export default function HolidaysHome() {
     !data.cities?.length &&
     !data.countries?.length &&
     !data.collections?.length;
+  const editedBanners = cmsBanners(heroSection?.data?.banners);
+  const banners = editedBanners.length ? editedBanners : (data?.banners || []).map((b) => ({
+    ...b,
+    image: cmsMedia(b.image),
+    video: cmsMedia(b.video),
+  }));
+  const chosenPackages = packagesSection?.data?.packages || [];
+  const livePackages = data ? [...(data.featured || []), ...(data.recent || []), ...(data.collections || []).flatMap((c) => c.items || [])] : [];
+  const packageCards = chosenPackages.map((picked) => livePackages.find((item) => item.slug === picked.slug) || ({
+    ...picked, coverImage: cmsMedia(picked.image), priceFallback: picked.price,
+  }));
+  const cityCards = configuredCards(data?.cities, citiesSection);
+  const countryCards = configuredCards(data?.countries, countriesSection);
 
   return (
     <div ref={rootRef} className="hol-page">
-      {data?.banners?.length > 0 ? (
-        <HolidayHero banners={data.banners} />
+      {heroSection?.enabled !== false && banners.length > 0 ? (
+        <HolidayHero banners={banners} />
       ) : !data && !error ? (
         <HeroSkeleton />
       ) : null}
@@ -163,27 +222,33 @@ export default function HolidaysHome() {
         </>
       )}
 
-      {recent?.length > 0 && (
-        <RailSection id="hol-recent" title="Recently Viewed" subtitle="Pick up where you left off." label="recently viewed">
+      {isOn(recentSection) && recent?.length > 0 && (
+        <RailSection id="hol-recent" title={recentSection.data.heading} subtitle={recentSection.data.description} label="recently viewed">
           {recent.map((item) => (
             <div className="hol-rail-item" key={item.slug}><HolidayCard item={item} /></div>
           ))}
         </RailSection>
       )}
 
-      {data?.cities?.length > 0 && (
-        <RailSection id="hol-cities" title="Best Cities to Visit" subtitle="Handpicked destinations with ready-made holiday packages." label="cities">
-          {data.cities.map((city) => <CityCard key={`${city.name}-${city.country}`} city={city} />)}
+      {isOn(citiesSection) && cityCards.length > 0 && (
+        <RailSection id="hol-cities" title={citiesSection.data.heading} subtitle={citiesSection.data.description} label="cities">
+          {cityCards.map((city) => <CityCard key={`${city.name}-${city.country}`} city={city} />)}
         </RailSection>
       )}
 
-      {data?.countries?.length > 0 && (
-        <RailSection id="hol-countries" title="Best Countries to Visit" subtitle="Pick a country and see what is on offer." label="countries">
-          {data.countries.map((country) => <CountryCard key={country.name} country={country} />)}
+      {isOn(countriesSection) && countryCards.length > 0 && (
+        <RailSection id="hol-countries" title={countriesSection.data.heading} subtitle={countriesSection.data.description} label="countries">
+          {countryCards.map((country) => <CountryCard key={country.name} country={country} />)}
         </RailSection>
       )}
 
-      {data?.collections?.map((collection) => {
+      {packagesSection?.enabled !== false && packageCards.length > 0 && (
+        <RailSection id="hol-featured" title={packagesSection.data.heading} subtitle={packagesSection.data.description} label="featured holidays" href={packagesSection.data.showViewAll ? "/holidays" : undefined} hrefLabel="View all">
+          {packageCards.map((item) => <div className="hol-rail-item" key={item.slug}><HolidayCard item={item} /></div>)}
+        </RailSection>
+      )}
+
+      {packagesSection?.enabled !== false && !chosenPackages.length && data?.collections?.map((collection) => {
         const destCity = collection.slug.includes("dubai")
           ? "Dubai"
           : collection.items?.[0]?.destinations?.[0] || "";
@@ -206,20 +271,20 @@ export default function HolidaysHome() {
         );
       })}
 
-      {data && !empty && (
+      {whySection?.enabled !== false && data && !empty && (
         <section className="hol-why" aria-labelledby="hol-why-title">
           <div className="mk-container">
-            <h2 id="hol-why-title" data-reveal>Why book holidays with Karnish</h2>
+            <h2 id="hol-why-title" data-reveal>{whySection.data.heading}</h2>
             <div className="hol-why-grid">
-              {WHY.map(([title, text], i) => (
-                <div key={title} data-reveal>
+              {(whySection.data.items || []).filter((item) => item.visible !== false).map((item, i) => (
+                <div key={item.id || item.title} data-reveal>
                   <span className="hol-why-num">0{i + 1}</span>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
                 </div>
               ))}
             </div>
-            <Link className="mk-btn mk-btn-light hol-why-cta" href="/contact">Talk to our team</Link>
+            {whySection.data.cta?.label && <Link className="mk-btn mk-btn-light hol-why-cta" href={whySection.data.cta.href || "/contact"}>{whySection.data.cta.label}</Link>}
           </div>
         </section>
       )}
