@@ -7,7 +7,7 @@ import { formatPrice, getActivities } from "../lib/api";
 import { buildCities, priceInfo, searchCatalog } from "../lib/search";
 import { useApp } from "./AppProvider";
 import { useMotion } from "./MotionShell";
-import { StateMessage, IconChevron } from "./holidays/HolidayParts";
+import { StateMessage, IconChevron, WishButton } from "./holidays/HolidayParts";
 import ShowcaseCard, { ShowcaseSkeleton } from "./ShowcaseCard";
 import "../holidays.css";
 import "../activities.css";
@@ -542,7 +542,7 @@ export default function ActivitiesListing({ initial, sections = [] }) {
         </div>}
       </div>
 
-      {featuredRows.length > 0 && <section className="mk-container ac-featured" aria-labelledby="ac-featured-title"><div className="ac-section-head"><div><p>Curated for you</p><h2 id="ac-featured-title">{featuredSection.heading}</h2>{featuredSection.description && <span>{featuredSection.description}</span>}</div></div><div className="sc-grid ac-featured-grid">{featuredRows.map((r) => <ShowcaseCard key={r.it._id || r.it.slug} href={`/activities/${r.it.slug}`} title={r.it.title} image={r.it.imageUrl} fallbackImage={FALLBACK_IMG} tag={featuredSection.activities.find((x) => x.slug === r.it.slug)?.label || r.it.categories?.[0]} location={r.loc} price={r.price} stock={r.it.stock} />)}</div></section>}
+      {featuredRows.length > 0 && <section className="mk-container ac-featured" aria-labelledby="ac-featured-title"><div className="ac-section-head"><div><p>Curated for you</p><h2 id="ac-featured-title">{featuredSection.heading}</h2>{featuredSection.description && <span>{featuredSection.description}</span>}</div></div><div className="sc-grid ac-featured-grid">{featuredRows.map((r) => <ShowcaseCard key={r.it._id || r.it.slug} href={`/activities/${r.it.slug}`} title={r.it.title} image={r.it.imageUrl} fallbackImage={FALLBACK_IMG} tag={featuredSection.activities.find((x) => x.slug === r.it.slug)?.label || r.it.categories?.[0]} location={r.loc} price={r.price} stock={r.it.stock} topRight={<WishButton type="activity" slug={r.it.slug} title={r.it.title} />} />)}</div></section>}
 
       <section className="mk-container hol-list ac-list" aria-label="Activities">
         {options.cat.length > 0 && (
@@ -691,6 +691,7 @@ export default function ActivitiesListing({ initial, sections = [] }) {
                       price={r.price}
                       priceFallback="Price on request"
                       description={r.it.summary}
+                      topRight={<WishButton type="activity" slug={r.it.slug} title={r.it.title} />}
                     />
                   ))}
                 </div>

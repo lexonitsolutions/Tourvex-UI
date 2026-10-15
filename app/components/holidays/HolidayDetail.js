@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { recordRecentHoliday, submitHolidayEnquiry } from "../../lib/holidays";
 import { ApiError, formatPrice } from "../../lib/api";
 import { useApp } from "../AppProvider";
+import { currentPath, loginUrlFor } from "../../lib/wishlistAuth";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
 import ActivityReviews from "../activities/ActivityReviews";
 import { EnquiryStockNote, StockHead } from "../StockBadge";
 import { useMotion } from "../MotionShell";
-import PackageCartButton from "../PackageCartButton";
 import {
   FALLBACK_IMG,
   HolidayCard,
@@ -389,7 +390,8 @@ function enquiryDate(iso, display) {
 }
 
 function QuoteModal({ pkg, travelers, travelDate, travelDateIso, price, isOpen, onClose }) {
-  const { getAccessToken } = useApp();
+  const { user, getAccessToken } = useApp();
+  const router = useRouter();
   const [consent, setConsent] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -411,6 +413,10 @@ function QuoteModal({ pkg, travelers, travelDate, travelDateIso, price, isOpen, 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (submitting) return;
+    if (!user) {
+      router.push(loginUrlFor(currentPath(), "quote"));
+      return;
+    }
 
     if (!fullName.trim()) {
       setSubmitError("Please enter your full name.");
@@ -453,12 +459,7 @@ function QuoteModal({ pkg, travelers, travelDate, travelDateIso, price, isOpen, 
         consent: true,
       };
 
-      let token = null;
-      try {
-        token = await getAccessToken();
-      } catch {
-        token = null; // anonymous enquiries are fine
-      }
+      const token = await getAccessToken();
       const result = await submitHolidayEnquiry(pkg.slug, payload, { token });
       setLeadReference(result.reference);
       setSubmitted(true);
@@ -1055,14 +1056,13 @@ function BookingCardContent({
 
       {/* Action Buttons: Cart + Proceed to Book + WhatsApp */}
       <div className="hol-booking-actions-row">
-        <PackageCartButton item={pkg} type="holiday" date={travelDateIso || undefined} adults={adults} children={children} />
 
         <button
           type="button"
           className="hol-btn-proceed-book"
           onClick={onProceed}
         >
-          Proceed to Book
+          Get Quote
         </button>
 
         <HolidayWhatsAppButton
@@ -1091,6 +1091,8 @@ function BookingCardContent({
 
 export default function HolidayDetail({ pkg, related }) {
   const rootRef = useRef(null);
+  const { user } = useApp();
+  const router = useRouter();
   const price = priceOf(pkg);
   const enquiryHref = `/contact?subject=${encodeURIComponent(pkg.title)}`;
 
@@ -1201,6 +1203,10 @@ export default function HolidayDetail({ pkg, related }) {
 
   // Quote modal state
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const openQuote = useCallback(() => {
+    if (!user) router.push(loginUrlFor(currentPath(), "quote"));
+    else setQuoteOpen(true);
+  }, [user, router]);
 
   // Mobile Booking Drawer state
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -2137,7 +2143,7 @@ function resolveDayBulletPoints(day) {
                 previewThumb={previewThumb}
                 price={price}
                 waMessage={waMessage}
-                onProceed={() => setQuoteOpen(true)}
+                onProceed={openQuote}
               />
             </div>
 
@@ -2301,7 +2307,7 @@ function resolveDayBulletPoints(day) {
               waMessage={waMessage}
               onProceed={() => {
                 setMobileDrawerOpen(false);
-                setQuoteOpen(true);
+                openQuote();
               }}
             />
           </div>
@@ -2332,7 +2338,7 @@ function resolveDayBulletPoints(day) {
             className="mk-btn hol-mobile-quote-btn"
             onClick={() => setMobileDrawerOpen(true)}
           >
-            Proceed to Book
+            Get Quote
           </button>
           <HolidayWhatsAppButton
             message={waMessage}

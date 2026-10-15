@@ -28,6 +28,7 @@ function LocaleButton({ onOpen }) {
       aria-haspopup="dialog"
       onClick={onOpen}
       aria-label={fmt(labels.localeAriaLabel, { currency })}
+      suppressHydrationWarning
     >
       <img className="mk-pill-flag" src={flagSrc(currency)} alt="" width="22" height="16" />
       {fmt(labels.localeLabel, { currency })}
@@ -57,6 +58,7 @@ function AccountMenu({ onOpenLocale }) {
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
+        suppressHydrationWarning
       >
         {initial || (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">

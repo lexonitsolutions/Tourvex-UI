@@ -6,6 +6,7 @@ import { ScrollTrigger, useReveal } from "../../lib/motion";
 import CurrencyNote from "../CurrencyNote";
 import { RailSection } from "../holidays/HolidayParts";
 import VisaEnquiry from "./VisaEnquiry";
+import VisaBooking from "./VisaBooking";
 import VisaReviews from "./VisaReviews";
 import {
   ENTRIES_LABEL,
@@ -75,7 +76,7 @@ function Faqs({ faqs }) {
 
 /* Price card ------------------------------------------------------------ */
 
-function PriceCard({ visa, onStart }) {
+function PriceCard({ visa, onStart, onApply }) {
   return (
     <div className="vis-price-card" data-reveal>
       <p className="vis-pc-label">Our service fee, from</p>
@@ -93,8 +94,8 @@ function PriceCard({ visa, onStart }) {
         <li><IconShield width="18" height="18" />{KIND_LABEL[visa.kind] || visa.kind} visa</li>
       </ul>
       <button type="button" className="mk-btn mk-btn-block vis-start" onClick={onStart}>Start enquiry</button>
-      <p className="vis-pc-note">Government or embassy fees are separate and confirmed when you enquire. Amounts are indicative.</p>
-      <p className="vis-pc-note"><CurrencyNote /></p>
+      <button type="button" className="mk-btn mk-btn-block vis-apply-secondary" onClick={onApply}>Apply now</button>
+      <p className="vis-pc-note"><CurrencyNote showAttribution={false} /></p>
     </div>
   );
 }
@@ -104,10 +105,13 @@ function PriceCard({ visa, onStart }) {
 export default function VisaDetail({ visa, related }) {
   const rootRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [bookingVisible, setBookingVisible] = useState(false);
   const [mapInteractive, setMapInteractive] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(null);
   const openSheet = useCallback(() => setOpen(true), []);
   const closeSheet = useCallback(() => setOpen(false), []);
+  const showBooking = useCallback(() => setBookingVisible(true), []);
   const paragraphs = (visa.description || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const countryMapUrl = countryMapEmbed(visa.countryCode);
 
@@ -125,6 +129,12 @@ export default function VisaDetail({ visa, related }) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mapInteractive]);
+
+  useEffect(() => {
+    const modify = () => setApplyOpen(true);
+    window.addEventListener("visa-modify", modify);
+    return () => window.removeEventListener("visa-modify", modify);
+  }, []);
 
   return (
     <div className="hol-page vis-page vis-detail" ref={rootRef}>
@@ -177,7 +187,8 @@ export default function VisaDetail({ visa, related }) {
           </section>
         )}
 
-        <div className="vis-detail-grid">
+        <VisaBooking visa={visa} open={applyOpen} onClose={(modify) => setApplyOpen(modify === false)} onConfigured={showBooking} />
+        <div className={`vis-detail-grid${bookingVisible ? " is-booking" : ""}`}>
           <div className="vis-detail-main">
             {(visa.summary || paragraphs.length > 0) && (
               <section className="hol-block vis-first" aria-labelledby="vis-overview" data-reveal>
@@ -187,13 +198,16 @@ export default function VisaDetail({ visa, related }) {
               </section>
             )}
 
-            {visa.highlights?.length > 0 && (
+            {(
               <section className="hol-block" aria-labelledby="vis-highlights" data-reveal>
                 <h2 id="vis-highlights">Highlights</h2>
                 <ul className="vis-highlights">
-                  {visa.highlights.map((h) => (
+                  {(visa.highlights || []).map((h) => (
                     <li key={h}><span aria-hidden="true"><IconCheck width="14" height="14" strokeWidth="3" /></span>{h}</li>
                   ))}
+                  <li><span aria-hidden="true"><IconCheck width="14" height="14" strokeWidth="3" /></span>Transparent pricing with no hidden service charges</li>
+                  <li><span aria-hidden="true"><IconCheck width="14" height="14" strokeWidth="3" /></span>Embassy charges confirmed before you proceed</li>
+                  <li><span aria-hidden="true"><IconCheck width="14" height="14" strokeWidth="3" /></span>Secure AED payment with a clearly confirmed final amount</li>
                 </ul>
               </section>
             )}
@@ -254,9 +268,7 @@ export default function VisaDetail({ visa, related }) {
             )}
           </div>
 
-          <aside className="vis-detail-aside" aria-label="Fee and enquiry">
-            <PriceCard visa={visa} onStart={openSheet} />
-          </aside>
+          {!bookingVisible && <aside className="vis-detail-aside" aria-label="Fee and enquiry"><PriceCard visa={visa} onStart={openSheet} onApply={() => setApplyOpen(true)} /></aside>}
         </div>
       </div>
 
@@ -298,13 +310,13 @@ export default function VisaDetail({ visa, related }) {
         </RailSection>
       )}
 
-      <div className="vis-mobile-bar">
+      {!bookingVisible && <div className="vis-mobile-bar">
         <div>
           <span>Service fee from</span>
           <strong>{visa.startingPrice ? money(visa.startingPrice) : "On request"}</strong>
         </div>
-        <button type="button" className="mk-btn" onClick={openSheet}>Start enquiry</button>
-      </div>
+        <button type="button" className="mk-btn" onClick={() => setApplyOpen(true)}>Apply now</button>
+      </div>}
 
       <VisaEnquiry visa={visa} open={open} onClose={closeSheet} />
 

@@ -5,6 +5,7 @@ import { memo } from "react";
 import { formatPrice } from "../../lib/api";
 import ShowcaseCard from "../ShowcaseCard";
 import WavingFlag from "./WavingFlag";
+import { WishButton } from "../holidays/HolidayParts";
 import "../../holidays.css";
 import "../../visas.css";
 
@@ -118,6 +119,7 @@ export const VisaCard = memo(function VisaCard({ item, reveal = true }) {
         item.validity && { icon: <IconCalendar width="14" height="14" />, text: item.validity },
       ]}
       price={item.startingPrice}
+      topRight={<WishButton type="visa" slug={item.slug} title={item.title} />}
       priceFallback="Fee on request"
       reveal={reveal}
     />

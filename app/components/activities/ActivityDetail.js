@@ -8,6 +8,7 @@ import { StockHead } from "../StockBadge";
 import ActivityBooking from "./ActivityBooking";
 import ActivityGallery from "./ActivityGallery";
 import ActivityReviews from "./ActivityReviews";
+import { WishButton } from "../holidays/HolidayParts";
 import { IconBolt, IconCar, IconCheck, IconChevron, IconClock, IconGlobe, IconInfo, IconMap, IconPhone, IconPin, IconShare, IconShield, IconX, Stars } from "./ActivityParts";
 
 const osmLink = (loc) =>
@@ -301,6 +302,7 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
     }
   }, []);
   const a = activity;
+  const productType = /yacht|cruise|dhow|sailing|boat|charter/i.test([a.title, ...(a.categories || [])].join(" ")) ? "yacht" : "activity";
   const bookable = Array.isArray(a.options) && a.options.length > 0;
   const price = priceInfo(a);
   const city = a.destinations?.[0];
@@ -390,6 +392,7 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
               initial={initial}
               sheetOpen={sheetOpen}
               onSheetClose={closeSheet}
+              productType={productType}
             />
           ) : (
             <aside className="act-aside act-aside-enquiry" aria-label="Booking">
@@ -463,6 +466,7 @@ export default function ActivityDetail({ activity, related, reviews, initial }) 
                       location={(r.destinations || []).join(", ") || undefined}
                       price={p ? { amount: p.amount, currency: p.currency, was } : null}
                       priceFallback="Price on request"
+                      topRight={<WishButton type="activity" slug={r.slug} title={r.title} />}
                     />
                   </div>
                 );

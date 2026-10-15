@@ -3,9 +3,8 @@
 import { memo } from "react";
 import Link from "next/link";
 import { formatPrice } from "../../lib/api";
-import { IconMoon, StateMessage, CardSkeletons, plural, showFallback, IconChevron } from "../holidays/HolidayParts";
+import { IconMoon, StateMessage, CardSkeletons, plural, showFallback, IconChevron, WishButton } from "../holidays/HolidayParts";
 import { StockChip } from "../StockBadge";
-import PackageCartButton from "../PackageCartButton";
 import "../../holidays.css";
 import "../../cruises.css";
 
@@ -103,6 +102,7 @@ export const CruiseCard = memo(function CruiseCard({ item, reveal = true, classN
         )}
 
         <StockChip stock={item?.stock} />
+        <WishButton type="cruise" slug={item?.slug} title={item?.title || "cruise"} className="cr-card-wish" />
 
         {(item?.shipName || item?.cruiseLine) && (
           <span className="cr-card-badge-ship" title={item.shipName || item.cruiseLine}>
@@ -151,9 +151,8 @@ export const CruiseCard = memo(function CruiseCard({ item, reveal = true, classN
               {item?.price ? money(item.price) : (item?.priceFallback || "Fare on request")}
             </strong>
           </div>
-          <PackageCartButton item={item} type="cruise" />
           <Link href={detailHref} className="cr-card-cta" aria-label={`View cruise ${item?.title || ""}`}>
-            <span>Details</span>
+            <span>Get Quote</span>
             <IconChevron width="14" height="14" />
           </Link>
         </div>

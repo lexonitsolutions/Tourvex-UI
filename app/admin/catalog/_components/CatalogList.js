@@ -20,7 +20,7 @@ const EMPTY = [];
 const LIMIT = 20;
 const STATUS = [{ value: "published", label: "Published" }, { value: "unpublished", label: "Unpublished" }];
 const SAMPLE = [{ value: "only", label: "Samples only" }, { value: "hide", label: "Hide samples" }];
-const CART_CATALOGUES = new Set(["activities", "holidays", "cruises", "events"]);
+const CART_CATALOGUES = new Set(["activities", "visas", "events"]);
 
 const publicUrl = (config, item) => (item.slug ? `${config.publicPath}/${encodeURIComponent(item.slug)}` : null);
 

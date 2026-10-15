@@ -100,7 +100,7 @@ function OptionResult({ row, date, modifying, busy, added, onProceed, onAdd, onS
   );
 }
 
-export default function ActivityBooking({ activity, initial, sheetOpen, onSheetClose, extra }) {
+export default function ActivityBooking({ activity, initial, sheetOpen, onSheetClose, extra, productType = "activity" }) {
   const router = useRouter();
   const { user, ready, getAccessToken, currency } = useApp();
   const { setScrollLocked } = useMotion();
@@ -255,7 +255,7 @@ export default function ActivityBooking({ activity, initial, sheetOpen, onSheetC
   }, [narrow, sheetOpen, onSheetClose, setScrollLocked]);
 
   const modifying = modify?.status === "ready";
-  const body = (optionId) => ({ activitySlug: slug, optionId, date: results.date, adults: results.adults, children: results.children });
+  const body = (optionId) => ({ activitySlug: slug, productType, ...(productType !== "activity" ? { productSlug: slug } : {}), optionId, date: results.date, adults: results.adults, children: results.children });
   const returnPath = (optionId) => {
     const q = new URLSearchParams({ date: results.date, adults: String(results.adults), children: String(results.children), option: optionId });
     return `/activities/${slug}?${q}`;

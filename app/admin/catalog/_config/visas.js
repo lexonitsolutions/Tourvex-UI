@@ -1,4 +1,4 @@
-import { chips, descriptionField, galleryField, list, money, publishingSection, select, slugField, strings, summaryField, text, textarea } from "./shared";
+import { chips, descriptionField, galleryField, list, money, number, publishingSection, select, slugField, strings, summaryField, text, textarea, toggle } from "./shared";
 
 const visas = {
   type: "visas",
@@ -44,6 +44,21 @@ const visas = {
         select("entries", "Entries", [{ value: "single", label: "Single entry" }, { value: "multiple", label: "Multiple entry" }, { value: "varies", label: "Varies" }], { default: "varies" }),
         text("stay", "Length of stay", { maxLength: 120, help: "For example Up to 30 days per visit." }),
         money("startingPrice", "Our service fee", { help: "Our fee, not the government fee. Leave empty for none." }),
+        money("adultPrice", "Adult visa price", { help: "Optional. Falls back to the service fee for existing packages." }),
+        money("minorPrice", "Minor visa price", { help: "Optional. Falls back to the adult price." }),
+        money("serviceCharge", "Service charge", { help: "Optional charge per booking, distributed across travelers during server pricing." }),
+        number("minorMaxAge", "Maximum minor age", { min: 0, max: 17, default: 17 }),
+        list("processingOptions", "Processing types", [
+          text("id", "ID", { required: true, maxLength: 64, help: "Lowercase ID, for example normal or express." }),
+          text("name", "Name", { required: true, maxLength: 100 }),
+          text("estimatedTime", "Estimated processing time", { required: true, maxLength: 100 }),
+          money("fee", "Additional fee"),
+          strings("benefits", "Included benefits", { max: 10, itemMax: 200 }),
+          toggle("enabled", "Available to customers"),
+        ], { itemLabel: "Processing type", max: 10 }),
+        chips("eligibleNationalities", "Eligible nationality codes", { max: 300, help: "ISO alpha-2 codes such as IN, AE. Leave empty to allow all." }),
+        chips("eligibleResidences", "Eligible residence codes", { max: 300, help: "ISO alpha-2 codes such as IN, AE. Leave empty to allow all." }),
+        text("visaExpertWhatsapp", "Visa expert WhatsApp", { maxLength: 30, help: "International number configured for this visa, digits with optional leading +." }),
       ],
     },
     {
@@ -82,7 +97,7 @@ const visas = {
       description: "Show famous places from this country on the public visa page.",
       fields: [galleryField({ name: "gallery", max: 12, label: "Famous tourist places", help: "Upload images, add descriptive captions in the alt text, and drag to reorder them." })],
     },
-    publishingSection(),
+    publishingSection({ cart: true }),
   ],
   columns: [
     { key: "country", label: "Country", value: (r) => r.country, sort: ["name", null] },

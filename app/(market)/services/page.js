@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import PartnersStrip from "../../components/PartnersStrip";
 
 const SERVICES = [
   {
@@ -220,6 +221,7 @@ export default function ServicesPage() {
           </div>
         </div>
       </section>
+      <PartnersStrip id="services-partners" />
     </div>
   );
 }

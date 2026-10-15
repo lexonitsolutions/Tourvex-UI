@@ -1,4 +1,5 @@
 import VisasHome from "../../components/visas/VisasHome";
+import PartnersStrip from "../../components/PartnersStrip";
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
 // Remove this opt-out after verifying the segment passes validation without it.
@@ -11,5 +12,5 @@ export const metadata = {
 };
 
 export default function VisasPage() {
-  return <VisasHome />;
+  return <><VisasHome /><PartnersStrip id="visas-partners" /></>;
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import PartnersStrip from "../../components/PartnersStrip";
 
 const FAQS = [
   {
@@ -384,6 +385,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      <PartnersStrip id="about-partners" />
     </div>
   );
 }

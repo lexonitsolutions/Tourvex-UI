@@ -1,5 +1,7 @@
 "use client";
 
+import PartnersStrip from "../../components/PartnersStrip";
+
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_BASE_URL } from "../../lib/api";
@@ -306,6 +308,7 @@ export default function ContactPage() {
       </div>
       <CompanyMap />
       <CustomerServiceSection />
+      <PartnersStrip id="contact-partners" />
     </div>
   );
 }

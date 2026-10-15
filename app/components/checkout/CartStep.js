@@ -42,6 +42,17 @@ export default function CartStep() {
 
   const problemOf = (item) => problems[itemKey(item)] || itemProblem(item);
   const blocked = cart.items.some((item) => problemOf(item));
+  const groups = Object.entries(cart.items.reduce((result, item) => {
+    const type = item.productType || "activity";
+    (result[type] ||= []).push(item);
+    return result;
+  }, {}));
+  const labels = { activity: "Activities", visa: "Visas", yacht: "Yachts", event: "Events" };
+  const itemHref = (item) => {
+    const type = item.productType || "activity";
+    const slug = item.productSlug || item.activity?.slug;
+    return `/${type === "activity" ? "activities" : `${type}s`}/${slug}`;
+  };
 
   return (
     <StepFrame
@@ -56,17 +67,19 @@ export default function CartStep() {
         </TripSummary>
       }
     >
-      <h2 className="co-group">Activities</h2>
       <FormError>{error}</FormError>
+      {groups.map(([type, items]) => <section key={type} className="co-cart-group">
+      <h2 className="co-group">{labels[type] || type} <small>{items.length}</small></h2>
       <ul className="co-items">
-        {cart.items.map((item) => {
+        {items.map((item) => {
           const id = itemKey(item);
           const problem = problemOf(item);
+          const href = itemHref(item);
           return (
             <li key={id} className={`co-item${problem ? " is-unavailable" : ""}`}>
               <ItemThumb item={item} />
               <div className="co-item-body">
-                <h3><Link href={`/activities/${item.activity?.slug}`}>{item.activity?.title}</Link></h3>
+                <h3><Link href={href}>{item.activity?.title}</Link></h3>
                 <p className="co-item-opt">{item.option?.name}</p>
                 <ItemBadges item={item} />
                 <ul className="co-facts">
@@ -77,7 +90,7 @@ export default function CartStep() {
               <div className="co-item-side">
                 <p className="co-item-total"><Money value={item.pricing?.total} pricing={item.pricing} /></p>
                 <div className="co-item-btns">
-                  <Link className="co-chipbtn" href={`/activities/${item.activity?.slug}?modify=${encodeURIComponent(id)}`}><IconEdit width="16" height="16" />Modify</Link>
+                  <Link className="co-chipbtn" href={`${href}?modify=${encodeURIComponent(id)}`}><IconEdit width="16" height="16" />Modify</Link>
                   <button type="button" className="co-chipbtn is-danger" disabled={busy === id} onClick={() => remove(id)} aria-label={`Remove ${item.activity?.title}`}>
                     <IconTrash width="16" height="16" />{busy === id ? "Removing..." : "Remove"}
                   </button>
@@ -87,7 +100,7 @@ export default function CartStep() {
                 <div className="stk-line" role="alert">
                   <b>No longer available.</b> {problem}
                   <div className="stk-actions">
-                    <Link className="stk-link" href={`/activities/${item.activity?.slug}?modify=${encodeURIComponent(id)}`}>Change date</Link>
+                    <Link className="stk-link" href={`${href}?modify=${encodeURIComponent(id)}`}>Change date</Link>
                     <button type="button" className="stk-link is-ghost" disabled={busy === id} onClick={() => remove(id)}>{busy === id ? "Removing..." : "Remove"}</button>
                   </div>
                 </div>
@@ -96,6 +109,7 @@ export default function CartStep() {
           );
         })}
       </ul>
+      </section>)}
       <span className="co-sr">Step 1 of {STEPS.length}</span>
     </StepFrame>
   );

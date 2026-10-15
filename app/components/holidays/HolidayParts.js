@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { formatPrice } from "../../lib/api";
 import { useRouter } from "next/navigation";
-import { getHoliday, isWishlisted, subscribeWishlist, toggleWishlist } from "../../lib/holidays";
-import { currentPath, loginUrlFor, rememberPendingWish } from "../../lib/wishlistAuth";
+import { getHoliday } from "../../lib/holidays";
+import { currentPath, loginUrlFor } from "../../lib/wishlistAuth";
 import { useApp } from "../AppProvider";
 import ShowcaseCard from "../ShowcaseCard";
 import { StockChip } from "../StockBadge";
-import PackageCartButton from "../PackageCartButton";
 import "../../holidays.css";
 
 export const FALLBACK_IMG = "/images/destination-a.jpg";
@@ -76,23 +75,26 @@ export const IconClose = IconX;
 
 /* Wishlist heart --------------------------------------------------- */
 
-export const WishButton = memo(function WishButton({ slug, title, label = false, className = "" }) {
-  const { user, ready } = useApp();
+export const WishButton = memo(function WishButton({ slug, title, type = "holiday", label = false, className = "" }) {
+  const { user, ready, isWishlisted, toggleWishlist } = useApp();
   const router = useRouter();
   const signedIn = ready && !!user;
   // Hearts only show as saved for signed-in visitors (the wishlist belongs to an account).
-  const saved = useSyncExternalStore(subscribeWishlist, () => isWishlisted(slug), () => false) && signedIn;
+  const saved = signedIn && isWishlisted(type, slug);
   const [pop, setPop] = useState(false);
-  const onClick = (e) => {
+  const onClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!signedIn) {
-      rememberPendingWish(slug);
       router.push(loginUrlFor(currentPath(), "wishlist"));
       return;
     }
-    toggleWishlist(slug);
-    setPop(true);
+    try {
+      await toggleWishlist(type, slug);
+      setPop(true);
+    } catch {
+      // The API remains authoritative; leave the heart unchanged on failure.
+    }
   };
   return (
     <button
@@ -411,9 +413,9 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
           <strong className="hol-pkg-price">{displayPrice}</strong>
         </div>
 
-        <PackageCartButton item={item} type="holiday" />
 
         <div className="hol-pkg-actions" onClick={stopProp}>
+          <Link href={detailHref} className="hol-pkg-quote" aria-label={`Get a quote for ${item?.title}`}>Get Quote</Link>
           <a
             href={telUrl}
             className="hol-pkg-btn hol-pkg-btn-call"

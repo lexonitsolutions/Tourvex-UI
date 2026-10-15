@@ -35,8 +35,8 @@ async function request(path, { signal, revalidate = 300 } = {}) {
 }
 
 /** @returns {Promise<{ title: string, subtitle: string, items: PartnerItem[] }>} */
-export function getPartners(placement = "home", { signal } = {}) {
-  return request(`/partners?placement=${encodeURIComponent(placement)}`, { signal });
+export function getPartners(placement, { signal } = {}) {
+  return request(`/partners${placement ? `?placement=${encodeURIComponent(placement)}` : ""}`, { signal });
 }
 
 /** Never throws: a failing partners call must not break the page, the section simply stays hidden. */

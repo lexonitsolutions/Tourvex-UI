@@ -15,7 +15,8 @@ export default function PackageCartButton({ item, type, compact = true, date: se
   const { user, ready, getAccessToken } = useApp();
   const api = useMemo(() => createBookingApi(getAccessToken), [getAccessToken]);
   const [state, setState] = useState("");
-  if (!item?.allowAddToCart || !item?.price || item?.stock?.soldOut) return null;
+  const price = item?.salePrice || item?.price || item?.startingPrice;
+  if (!item?.allowAddToCart || !price || item?.stock?.soldOut) return null;
 
   const add = async (event) => {
     event.preventDefault();

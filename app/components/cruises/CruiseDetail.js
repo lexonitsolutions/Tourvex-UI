@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ScrollTrigger, useReveal } from "../../lib/motion";
+import { currentPath, loginUrlFor } from "../../lib/wishlistAuth";
+import { useApp } from "../AppProvider";
 import CurrencyNote from "../CurrencyNote";
-import PackageCartButton from "../PackageCartButton";
 import { StockHead } from "../StockBadge";
 import CruiseEnquiry from "./CruiseEnquiry";
 import {
@@ -143,14 +145,13 @@ function PriceCard({ cruise, departure, onStart }) {
       ) : (
         <div className="cr-pc-price"><strong className="is-text">Fare on request</strong></div>
       )}
-      <PackageCartButton item={cruise} type="cruise" date={departure || undefined} />
       <ul className="cr-pc-facts">
         <li><IconMoon width="18" height="18" />{nightsLabel(cruise.durationNights)}{cruise.durationDays ? ` / ${cruise.durationDays} days` : ""}</li>
         {cruise.shipName && <li><IconShip width="18" height="18" />{cruise.shipName}</li>}
         {cruise.departureCity && <li><IconPin width="18" height="18" />Departs {cruise.departureCity}</li>}
         {departure && <li><IconCalendar width="18" height="18" />Selected: {formatDate(departure)}</li>}
       </ul>
-      <button type="button" className="mk-btn mk-btn-block cr-start" onClick={onStart}>{cruise.stock?.soldOut ? "Enquire about other dates" : "Start enquiry"}</button>
+      <button type="button" className="mk-btn mk-btn-block cr-start" onClick={onStart}>{cruise.stock?.soldOut ? "Enquire about other dates" : "Get Quote"}</button>
       <p className="cr-pc-note">Fares are indicative per person. Availability and the final fare are confirmed when you enquire.</p>
       <p className="cr-pc-note"><CurrencyNote /></p>
     </div>
@@ -161,10 +162,15 @@ function PriceCard({ cruise, departure, onStart }) {
 
 export default function CruiseDetail({ cruise, related }) {
   const rootRef = useRef(null);
+  const { user } = useApp();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [departure, setDeparture] = useState("");
   const [cabin, setCabin] = useState("");
-  const openSheet = useCallback(() => setOpen(true), []);
+  const openSheet = useCallback(() => {
+    if (!user) router.push(loginUrlFor(currentPath(), "quote"));
+    else setOpen(true);
+  }, [user, router]);
   const closeSheet = useCallback(() => setOpen(false), []);
   const paragraphs = (cruise.description || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const images = cruise.images?.length ? cruise.images : cruise.coverImage ? [{ url: cruise.coverImage, alt: cruise.title }] : [{ url: FALLBACK_IMG, alt: cruise.title }];
@@ -332,7 +338,7 @@ export default function CruiseDetail({ cruise, related }) {
           <span>Fare from</span>
           <strong>{cruise.price ? money(cruise.price) : "On request"}</strong>
         </div>
-        <button type="button" className="mk-btn" onClick={openSheet}>Start enquiry</button>
+        <button type="button" className="mk-btn" onClick={openSheet}>Get Quote</button>
       </div>
 
       <CruiseEnquiry cruise={cruise} open={open} onClose={closeSheet} departure={departure} cabin={cabin} />

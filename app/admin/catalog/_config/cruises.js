@@ -95,7 +95,7 @@ const cruises = {
       description: "Cover photo and gallery.",
       fields: [coverImageField(), galleryField({ max: 12, label: "Extra gallery images" })],
     },
-    publishingSection({ cart: true }),
+    publishingSection(),
   ],
   columns: [
     { key: "cruiseLine", label: "Cruise line / ship", value: (r) => [r.cruiseLine, r.shipName].filter(Boolean).join(" - ") },

@@ -78,7 +78,7 @@ const holidays = {
       description: "Main banner and additional photos displayed below it on the package page.",
       fields: [galleryField({ required: true, min: 1, max: 20, label: "Banner and additional gallery images", help: "The first image is the main banner. Every image after it appears in the gallery below the banner. Drag to reorder." })],
     },
-    publishingSection({ cart: true }),
+    publishingSection(),
   ],
   columns: [
     { key: "destinations", label: "Destinations", value: (r) => [...(r.destinations || [])].slice(0, 3).join(", ") || r.country },

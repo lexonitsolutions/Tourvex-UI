@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { CURRENCY_CODES } from "../lib/currencies";
 import { CURRENCY_STORAGE_KEY, hasCurrencyCookie, normalizeCurrency, writeCurrencyCookie } from "../lib/currencyCookie";
-import { completePendingWish } from "../lib/wishlistAuth";
+import { apiRequest } from "../lib/api";
 
 export const AppContext = createContext(null);
 
@@ -30,6 +30,7 @@ export default function AppProvider({ children, initialCurrency = "AED" }) {
   // The server reads the cookie and passes it down, so the first paint already matches (no flash of AED).
   const [currency, setCurrencyState] = useState(() => normalizeCurrency(initialCurrency));
   const [switching, startSwitch] = useTransition();
+  const [wishlist, setWishlist] = useState({ items: [], ready: false });
 
   const setCurrency = useCallback(
     (value) => {
@@ -69,12 +70,39 @@ export default function AppProvider({ children, initialCurrency = "AED" }) {
     };
   }, [isSignedIn, clerkUser]);
 
-  // A visitor who tapped a heart while signed out gets that holiday saved as soon as they sign in.
-  const wasSignedIn = useRef(false);
+  // Wishlist records live in the API and are loaded for the current account on every device.
   useEffect(() => {
-    if (isSignedIn && !wasSignedIn.current) completePendingWish();
-    wasSignedIn.current = !!isSignedIn;
-  }, [isSignedIn]);
+    let active = true;
+    if (!isLoaded) return () => { active = false; };
+    if (!isSignedIn) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset account-owned data synchronously on sign-out
+      setWishlist({ items: [], ready: true });
+      return () => { active = false; };
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- expose loading while the authenticated account changes
+    setWishlist((value) => ({ ...value, ready: false }));
+    getToken().then((token) => apiRequest("/wishlist", { token })).then((data) => {
+      if (active) setWishlist({ items: data.items || [], ready: true });
+    }).catch(() => {
+      if (active) setWishlist((value) => ({ ...value, ready: true }));
+    });
+    return () => { active = false; };
+  }, [isLoaded, isSignedIn, getToken]);
+
+  const isWishlisted = useCallback((productType, productSlug) =>
+    wishlist.items.some((item) => item.productType === productType && item.productSlug === productSlug), [wishlist.items]);
+
+  const toggleWishlist = useCallback(async (productType, productSlug) => {
+    if (!isSignedIn) return false;
+    const token = await getToken();
+    const saved = wishlist.items.some((item) => item.productType === productType && item.productSlug === productSlug);
+    const data = await apiRequest(
+      saved ? `/wishlist/items/${encodeURIComponent(productType)}/${encodeURIComponent(productSlug)}` : "/wishlist/items",
+      { method: saved ? "DELETE" : "POST", body: saved ? undefined : { productType, productSlug }, token },
+    );
+    setWishlist({ items: data.items || [], ready: true });
+    return !saved;
+  }, [isSignedIn, getToken, wishlist.items]);
 
   const logout = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
 
@@ -85,8 +113,8 @@ export default function AppProvider({ children, initialCurrency = "AED" }) {
   const adoptServerCurrency = useCallback((value) => setCurrencyState(normalizeCurrency(value)), []);
 
   const value = useMemo(
-    () => ({ user, ready: isLoaded, currency, setCurrency, adoptServerCurrency, switching, logout, getAccessToken }),
-    [user, isLoaded, currency, setCurrency, adoptServerCurrency, switching, logout, getAccessToken]
+    () => ({ user, ready: isLoaded, currency, setCurrency, adoptServerCurrency, switching, logout, getAccessToken, wishlist, isWishlisted, toggleWishlist }),
+    [user, isLoaded, currency, setCurrency, adoptServerCurrency, switching, logout, getAccessToken, wishlist, isWishlisted, toggleWishlist]
   );
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

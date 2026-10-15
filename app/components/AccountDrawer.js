@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SignInButton, SignUpButton, useClerk } from "@clerk/nextjs";
 import { apiRequest } from "../lib/api";
-import { subscribeWishlist, wishlistCount } from "../lib/holidays";
 import { holdAmbient } from "../lib/motion";
 import { useApp } from "./AppProvider";
 import { useCartCount } from "./CartWatcher";
@@ -75,10 +74,10 @@ function Row({ icon, label, value, href, onClick, expanded, disabled, onNavigate
 }
 
 export default function AccountDrawer({ open, onClose, onOpenLocale }) {
-  const { user, ready, currency, logout, getAccessToken } = useApp();
+  const { user, ready, currency, logout, getAccessToken, wishlist } = useApp();
   const { openUserProfile } = useClerk();
   const { setScrollLocked } = useMotion();
-  const savedCount = useSyncExternalStore(subscribeWishlist, wishlistCount, () => 0);
+  const savedCount = wishlist.items.length;
   const [bookingCount, setBookingCount] = useState(null);
   const cartCount = useCartCount();
   // Close this panel first, then open the language/currency dialog so only one overlay is ever up.

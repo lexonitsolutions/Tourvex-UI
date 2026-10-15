@@ -1,4 +1,5 @@
 import PartnerApplication from "../../components/PartnerApplication";
+import PartnersStrip from "../../components/PartnersStrip";
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
 // Remove this opt-out after verifying the segment passes validation without it.
@@ -11,5 +12,5 @@ export const metadata = {
 };
 
 export default function PartnersPage() {
-  return <PartnerApplication />;
+  return <><PartnerApplication /><PartnersStrip id="partner-with-us-showcase" /></>;
 }

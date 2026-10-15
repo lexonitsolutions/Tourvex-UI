@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { ApiError } from "../../lib/api";
 import { submitCruiseEnquiry } from "../../lib/cruises";
 import { holdAmbient } from "../../lib/motion";
+import { currentPath, loginUrlFor } from "../../lib/wishlistAuth";
 import { useApp } from "../AppProvider";
 import CurrencyNote from "../CurrencyNote";
 import { EnquiryStockNote } from "../StockBadge";
@@ -51,6 +53,7 @@ function Field({ id, label, error, optional, children }) {
  */
 export default function CruiseEnquiry({ cruise, open, onClose, departure, cabin }) {
   const { user, getAccessToken } = useApp();
+  const router = useRouter();
   const { setScrollLocked } = useMotion();
   const [host, setHost] = useState(null);
   const [values, setValues] = useState(EMPTY);
@@ -136,6 +139,10 @@ export default function CruiseEnquiry({ cruise, open, onClose, departure, cabin 
   const submit = async (e) => {
     e.preventDefault();
     if (pending) return;
+    if (!user) {
+      router.push(loginUrlFor(currentPath(), "quote"));
+      return;
+    }
     setFormError("");
     const found = validate(values, departures);
     setErrors(found);
@@ -160,12 +167,7 @@ export default function CruiseEnquiry({ cruise, open, onClose, departure, cabin 
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      let token = null;
-      try {
-        token = await getAccessToken();
-      } catch {
-        token = null; // anonymous enquiries are fine
-      }
+      const token = await getAccessToken();
       const res = await submitCruiseEnquiry(cruise.slug, body, { token, signal: controller.signal });
       setReference(res.reference);
     } catch (err) {

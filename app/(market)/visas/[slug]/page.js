@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import VisaDetail from "../../../components/visas/VisaDetail";
+import PartnersStrip from "../../../components/PartnersStrip";
 import VisaLoadError from "../../../components/visas/VisaLoadError";
 import { getVisa, isNotFound } from "../../../lib/visas";
 import { getServerCurrency } from "../../../lib/currencyServer";
@@ -46,5 +47,5 @@ export default async function VisaPage({ params }) {
   const result = await load(slug, await getServerCurrency());
   if (result.notFound) notFound();
   if (result.failed) return <VisaLoadError />;
-  return <VisaDetail visa={result.data.visa} related={result.data.related || []} />;
+  return <><VisaDetail visa={result.data.visa} related={result.data.related || []} /><PartnersStrip id="visa-package-partners" /></>;
 }
