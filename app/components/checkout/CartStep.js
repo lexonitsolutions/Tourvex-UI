@@ -51,7 +51,10 @@ export default function CartStep() {
   const itemHref = (item) => {
     const type = item.productType || "activity";
     const slug = item.productSlug || item.activity?.slug;
-    return `/${type === "activity" ? "activities" : `${type}s`}/${slug}`;
+    // Yachts currently live in the activity catalogue and share its detail route.
+    // Do not manufacture `/yachts/:slug`: that route has no independent catalogue.
+    const route = type === "activity" || type === "yacht" ? "activities" : `${type}s`;
+    return `/${route}/${slug}`;
   };
 
   return (

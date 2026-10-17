@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError, apiRequest } from "../lib/api";
 import { useApp } from "./AppProvider";
 
-const RETURN = encodeURIComponent("/partners");
+const RETURN = encodeURIComponent("/partner-form");
 
 function Card({ title, children }) {
   return (
@@ -29,7 +29,10 @@ function ApplicationForm({ getAccessToken, onSubmitted, previouslyRejected }) {
     e.preventDefault();
     setError("");
     const form = new FormData(e.currentTarget);
-    const body = { companyName: String(form.get("companyName") || "").trim() };
+    const body = {};
+    for (const key of ["companyName", "businessType", "partnershipCategory", "country", "city", "businessDescription"]) {
+      body[key] = String(form.get(key) || "").trim();
+    }
     for (const key of ["phone", "website", "message"]) {
       const value = String(form.get(key) || "").trim();
       if (value) body[key] = value;
@@ -58,6 +61,26 @@ function ApplicationForm({ getAccessToken, onSubmitted, previouslyRejected }) {
         <input name="companyName" required minLength={2} maxLength={120} autoComplete="organization" />
       </label>
       <div className="mk-field-row">
+        <label className="mk-field">Business type
+          <input name="businessType" required minLength={2} maxLength={80} placeholder="Travel agency, hotel, operator…" />
+        </label>
+        <label className="mk-field">Partnership category
+          <select name="partnershipCategory" required defaultValue="">
+            <option value="" disabled>Select a category</option>
+            <option>Travel Agencies</option><option>Tour Operators</option><option>Hotels &amp; Resorts</option>
+            <option>Transport Providers</option><option>Activity Providers</option><option>Yacht &amp; Cruise Operators</option><option>Corporate Partners</option>
+          </select>
+        </label>
+      </div>
+      <div className="mk-field-row">
+        <label className="mk-field">Country
+          <input name="country" required minLength={2} maxLength={80} autoComplete="country-name" />
+        </label>
+        <label className="mk-field">City
+          <input name="city" required minLength={2} maxLength={80} autoComplete="address-level2" />
+        </label>
+      </div>
+      <div className="mk-field-row">
         <label className="mk-field">Phone <small>(optional)</small>
           <input name="phone" type="tel" minLength={6} maxLength={20} pattern="[0-9+\s\-]{6,20}" autoComplete="tel" />
         </label>
@@ -65,6 +88,9 @@ function ApplicationForm({ getAccessToken, onSubmitted, previouslyRejected }) {
           <input name="website" type="url" placeholder="https://" autoComplete="url" />
         </label>
       </div>
+      <label className="mk-field">Business description
+        <textarea name="businessDescription" required minLength={20} maxLength={1200} rows={5} placeholder="Tell us about your services, markets and customers." />
+      </label>
       <label className="mk-field">Message <small>(optional)</small>
         <textarea name="message" maxLength={1000} rows={4} />
       </label>
@@ -142,6 +168,7 @@ export default function PartnerApplication() {
             Thanks{app.companyName ? `, ${app.companyName}` : ""}. Our team is reviewing your application and will email you at{" "}
             <b>{state.profile.email}</b> once it is approved.
           </p>
+          {app.reference && <p><b>Application reference:</b> {app.reference}</p>}
         </Card>
       );
     } else {
@@ -157,7 +184,7 @@ export default function PartnerApplication() {
 
   return (
     <section className="mk-container mk-pg">
-      <h1 className="mk-pg-title">Partners</h1>
+      <h1 className="mk-pg-title">Partner application</h1>
       {body}
     </section>
   );

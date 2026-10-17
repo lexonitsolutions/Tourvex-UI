@@ -417,7 +417,7 @@ export default function HomeSections({ sections = [], partners = null }) {
   const renderers = {
     hero: (c) => (isMobile ? <MobileHero slides={c.slides} content={c} /> : <Hero content={c} />),
 
-    categoryTiles: (c) => (
+    legacyCategoryTiles: (c) => (
       <section className="mk-container mk-section mk-cat-banner">
         <div className="mk-section-head" data-reveal>
           <div>
@@ -452,6 +452,30 @@ export default function HomeSections({ sections = [], partners = null }) {
             </CmsLink>
           ))}
         </div>
+      </section>
+    ),
+
+    categoryTiles: () => (
+      <section className="mk-container mk-section mk-trip-path" aria-labelledby="mk-trip-path-title">
+        <div className="mk-trip-path-intro" data-reveal>
+          <span className="mk-trip-path-kicker">Designed around you</span>
+          <h2 id="mk-trip-path-title">Your next journey, made simple.</h2>
+          <p>From a quick city escape to a complete holiday, plan with local specialists and book with confidence.</p>
+          <div className="mk-trip-path-actions">
+            <CmsLink className="mk-btn" href="/activities">Explore experiences</CmsLink>
+            <CmsLink className="mk-trip-path-link" href="/contact">Speak to a travel expert <span aria-hidden="true">→</span></CmsLink>
+          </div>
+          <ul className="mk-trip-path-trust" aria-label="Booking benefits">
+            <li><span aria-hidden="true">✓</span>Curated options</li>
+            <li><span aria-hidden="true">✓</span>Transparent pricing</li>
+            <li><span aria-hidden="true">✓</span>Support when you need it</li>
+          </ul>
+        </div>
+        <ol className="mk-trip-path-steps" aria-label="Plan your trip in three steps">
+          <li data-reveal><span className="mk-trip-step-num">01</span><span className="mk-trip-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M11 8v6M8 11h6"/></svg></span><h3>Discover</h3><p>Browse handpicked activities, holidays and voyages for every kind of traveller.</p><CmsLink href="/search">Search all trips <span aria-hidden="true">→</span></CmsLink></li>
+          <li data-reveal><span className="mk-trip-step-num">02</span><span className="mk-trip-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 7h16M7 3v4M17 3v4M5 11h14v9H5z"/><path d="m9 15 2 2 4-4"/></svg></span><h3>Personalize</h3><p>Choose your dates and travellers, or request a tailored itinerary from our team.</p><CmsLink href="/holidays">Plan a holiday <span aria-hidden="true">→</span></CmsLink></li>
+          <li data-reveal><span className="mk-trip-step-num">03</span><span className="mk-trip-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7z"/><path d="m9 12 2 2 4-4"/></svg></span><h3>Travel assured</h3><p>Receive clear confirmation and stay supported before, during and after your trip.</p><CmsLink href="/bookings">Manage bookings <span aria-hidden="true">→</span></CmsLink></li>
+        </ol>
       </section>
     ),
 
@@ -613,21 +637,23 @@ export default function HomeSections({ sections = [], partners = null }) {
     ),
   };
 
-  const hasStats = sections.some((s) => s.type === "statistics");
+  const statisticsSection = sections.find((section) => section.type === "statistics");
+  const whySection = sections.find((section) => section.type === "why");
 
   return (
     <>
       {sections.map((section) => {
+        if (section.type === "statistics") return null;
         const render = renderers[section.type];
         if (!render) return null;
         return (
           <Fragment key={section.id}>
+            {section.type === "why" && <HomeStats content={statisticsSection?.data} />}
             {render(section.data)}
-            {!hasStats && section.type === "why" && <HomeStats key="stats-fallback" />}
           </Fragment>
         );
       })}
-      {!hasStats && !sections.some((s) => s.type === "why") && <HomeStats key="stats-fallback" />}
+      {!whySection && <HomeStats content={statisticsSection?.data} />}
     </>
   );
 }

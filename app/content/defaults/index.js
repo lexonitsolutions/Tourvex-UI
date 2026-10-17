@@ -2,19 +2,27 @@
 import globalFooter from "./global.footer.js";
 import globalHeader from "./global.header.js";
 import globalSeo from "./global.seo.js";
+import pageAbout from "./page.about.js";
 import pageActivities from "./page.activities.js";
 import pageEvents from "./page.events.js";
 import pageHolidays from "./page.holidays.js";
 import pageHome from "./page.home.js";
+import pagePartners from "./page.partners.js";
+import pageServices from "./page.services.js";
+import pageTeam from "./page.team.js";
 import pageVoyager from "./page.voyager.js";
 
 export const DEFAULTS = {
   "global.footer": globalFooter,
   "global.header": globalHeader,
   "global.seo": globalSeo,
+  "page.about": pageAbout,
   "page.activities": pageActivities,
   "page.events": pageEvents,
   "page.holidays": pageHolidays,
   "page.home": pageHome,
+  "page.partners": pagePartners,
+  "page.services": pageServices,
+  "page.team": pageTeam,
   "page.voyager": pageVoyager,
 };

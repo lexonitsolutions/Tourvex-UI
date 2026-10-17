@@ -17,7 +17,7 @@ import { DEFAULTS } from "../content/defaults";
 export const PREVIEW_COOKIE = "cms_preview";
 const REVALIDATE_SECONDS = 30;
 const TIMEOUT_MS = 4000;
-const ALL_KEYS = ["page.home", "page.activities", "page.events", "page.holidays", "page.voyager", "global.header", "global.footer", "global.seo"];
+const ALL_KEYS = ["page.home", "page.activities", "page.events", "page.holidays", "page.voyager", "page.about", "page.services", "page.team", "page.partners", "global.header", "global.footer", "global.seo"];
 
 const BASE = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4100/api/v1").replace(/\/$/, "");
 

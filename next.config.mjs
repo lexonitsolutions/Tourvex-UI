@@ -24,14 +24,6 @@ const nextConfig = {
     return {
       beforeFiles: [
         {
-          source: "/images/:filename",
-          destination: `${apiBaseUrl}/media/images/:filename`,
-        },
-        {
-          source: "/videos/:filename",
-          destination: `${apiBaseUrl}/media/videos/:filename`,
-        },
-        {
           source: "/api/v1/media/:path*",
           destination: `${apiBaseUrl}/media/:path*`,
         },

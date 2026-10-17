@@ -50,14 +50,16 @@ export default function PartnersStrip({ data: initialData = null, id = "partners
         <h2 id={`${id}-title`}>{data.title}</h2>
         {data.subtitle && <p>{data.subtitle}</p>}
       </div>
-      <div className="pt-viewport" style={{ "--pt-duration": `${Math.max(36, logos.length * 5)}s` }}>
-        <div className="pt-track">
-          <ul className="pt-copy">
-            {logos.map((item) => <li key={item.carouselKey}><Logo item={item} /></li>)}
-          </ul>
-          <ul className="pt-copy" aria-hidden="true">
-            {logos.map((item) => <li key={`duplicate-${item.carouselKey}`}><Logo item={item} hidden /></li>)}
-          </ul>
+      <div className="pt-logo-stage">
+        <div className="pt-viewport" style={{ "--pt-duration": `${Math.max(36, logos.length * 5)}s` }}>
+          <div className="pt-track">
+            <ul className="pt-copy">
+              {logos.map((item) => <li key={item.carouselKey}><Logo item={item} /></li>)}
+            </ul>
+            <ul className="pt-copy" aria-hidden="true">
+              {logos.map((item) => <li key={`duplicate-${item.carouselKey}`}><Logo item={item} hidden /></li>)}
+            </ul>
+          </div>
         </div>
       </div>
     </section>

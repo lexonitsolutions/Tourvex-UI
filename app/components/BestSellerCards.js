@@ -86,7 +86,7 @@ export function BestSellerSkeletons({ count = 6 }) {
 
 /**
  * "Best-Selling Experiences" cards. `items` = activities (from the catalog API), `null` while loading.
- * Numbering is the display order (best sellers first), not an invented statistic.
+ * Numbering follows the displayed best-seller order.
  */
 function BestSellerCards({ items, content }) {
   return (

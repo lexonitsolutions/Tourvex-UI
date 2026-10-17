@@ -531,7 +531,22 @@
 }
 
 .mk a.ev-card-img-link { display: block; width: 100%; height: 100%; }
-.mk a.ev-card-cta { display: inline-flex; }
+.mk a.ev-card-cta,
+.ev-page a.ev-card-cta {
+  display: inline-flex;
+  color: #ffffff !important;
+}
+.mk a.ev-card-cta:hover,
+.mk a.ev-card-cta:focus-visible,
+.ev-page a.ev-card-cta:hover,
+.ev-page a.ev-card-cta:focus-visible {
+  color: #ffffff !important;
+}
+.ev-card-cta span,
+.ev-card-cta svg {
+  color: inherit;
+  opacity: 1;
+}
 .ev-rail-item > .ev-card { width: 100%; }
 .hol-rail-item > .ev-card { width: 100%; }
 

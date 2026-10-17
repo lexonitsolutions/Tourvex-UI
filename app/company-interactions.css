@@ -1,0 +1,99 @@
+.mk .co-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease,
+    background-color 0.22s ease, border-color 0.22s ease;
+}
+
+.mk .co-btn::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.24) 50%,
+    transparent 75%
+  );
+  content: "";
+  pointer-events: none;
+  transform: translateX(-120%);
+  transition: transform 0.5s ease;
+}
+
+.mk .co-btn:hover {
+  transform: translateY(-3px);
+}
+
+.mk .co-btn:hover::before {
+  transform: translateX(120%);
+}
+
+.mk .co-btn:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.mk .co-btn:focus-visible {
+  outline: 3px solid rgba(131, 217, 233, 0.7);
+  outline-offset: 3px;
+}
+
+.mk .co-btn.is-primary {
+  box-shadow: 0 8px 22px rgba(32, 149, 174, 0.22);
+}
+
+.mk .co-btn.is-primary:hover {
+  background: #16869f;
+  box-shadow: 0 13px 28px rgba(32, 149, 174, 0.34);
+}
+
+.mk .co-btn.is-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 24px rgba(4, 18, 45, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk .co-btn,
+  .mk .co-btn::before {
+    transition: none;
+  }
+
+  .mk .co-btn:hover,
+  .mk .co-btn:active {
+    transform: none;
+  }
+}
+
+/* Use the lighter company-page palette only for the Partners showcase. */
+.co-page-partners .pt-strip {
+  border-block: 1px solid #dcecf1;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(32, 149, 174, 0.14), transparent 29%),
+    radial-gradient(circle at 88% 8%, rgba(74, 139, 187, 0.12), transparent 31%),
+    linear-gradient(135deg, #f7fbfc 0%, #edf7fa 55%, #e5f2f6 100%);
+}
+
+.co-page-partners .pt-strip::before {
+  opacity: 0.18;
+  background-image: radial-gradient(rgba(15, 36, 84, 0.28) 0.7px, transparent 0.7px);
+}
+
+.co-page-partners .pt-head h2 {
+  color: var(--co-ink);
+}
+
+.co-page-partners .pt-head p {
+  color: #647089;
+}
+
+.co-page-partners .mk .pt-logo,
+.co-page-partners .mk .pt-logo:hover,
+.co-page-partners .mk .pt-logo:focus-visible {
+  border-color: rgba(15, 36, 84, 0.1);
+  box-shadow: 0 12px 28px rgba(15, 36, 84, 0.1);
+}
+
+.co-page-partners .mk .pt-logo:hover {
+  border-color: rgba(32, 149, 174, 0.55);
+  box-shadow: 0 16px 32px rgba(15, 36, 84, 0.16);
+}

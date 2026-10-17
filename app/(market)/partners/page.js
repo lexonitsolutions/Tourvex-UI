@@ -1,16 +1,9 @@
-import PartnerApplication from "../../components/PartnerApplication";
-import PartnersStrip from "../../components/PartnersStrip";
+import CompanyPage from "../../components/CompanyPage";
+import { enabledSections, getPageContent } from "../../lib/content";
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+// This page combines CMS content with authenticated partner-application state.
+// Allow it to block rather than requiring the whole route to be instant-prerenderable.
 export const instant = false;
 
-export const metadata = {
-  title: "Partners — Karnish Tourism",
-  description: "Travel agents and companies can apply for a Karnish partner account with contract pricing.",
-};
-
-export default function PartnersPage() {
-  return <><PartnerApplication /><PartnersStrip id="partner-with-us-showcase" /></>;
-}
+export const metadata = { title: "Partner with Us — Karnish Tourism", description: "Apply to collaborate with Karnish Tourism as a travel or service partner." };
+export default async function PartnersPage() { const content = await getPageContent("partners"); return <CompanyPage page="partners" sections={enabledSections(content.sections)} />; }

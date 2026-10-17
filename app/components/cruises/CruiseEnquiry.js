@@ -13,7 +13,7 @@ import { EnquiryStockNote } from "../StockBadge";
 import { useMotion } from "../MotionShell";
 import { IconCheck, IconX, formatDate } from "./CruiseParts";
 
-const EMPTY = { fullName: "", email: "", phone: "", nationality: "", adults: "2", children: "0", departureDate: "", cabinType: "", message: "", consent: false };
+const EMPTY = { fullName: "", email: "", phone: "", nationality: "", adults: "2", children: "0", cabins: "1", departureDate: "", cabinType: "", message: "", consent: false };
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])';
 
 const isInt = (v, min, max) => /^\d+$/.test(String(v).trim()) && Number(v) >= min && Number(v) <= max;
@@ -30,6 +30,7 @@ export function validate(v, departures) {
   if (nat.length < 2 || nat.length > 80) e.nationality = "Enter your nationality (2 to 80 characters).";
   if (!isInt(v.adults, 1, 10)) e.adults = "Adults must be a whole number from 1 to 10.";
   if (!isInt(v.children, 0, 10)) e.children = "Children must be a whole number from 0 to 10.";
+  if (!isInt(v.cabins, 1, 10)) e.cabins = "Cabins must be a whole number from 1 to 10.";
   if (v.departureDate && !departures.includes(v.departureDate)) e.departureDate = "Please choose one of the listed departure dates.";
   if (v.cabinType.length > 60) e.cabinType = "Cabin type is too long.";
   if (v.message.length > 1000) e.message = "Please keep your message under 1000 characters.";
@@ -158,6 +159,7 @@ export default function CruiseEnquiry({ cruise, open, onClose, departure, cabin 
       nationality: values.nationality.trim(),
       adults: Number(values.adults),
       children: Number(values.children),
+      cabins: Number(values.cabins),
       consent: true,
       ...(values.departureDate ? { departureDate: values.departureDate } : {}),
       ...(values.cabinType ? { cabinType: values.cabinType } : {}),
@@ -242,6 +244,9 @@ export default function CruiseEnquiry({ cruise, open, onClose, departure, cabin 
               </Field>
               <Field id="cq-children" label="Children" error={errors.children}>
                 <input id="cq-children" name="children" type="number" inputMode="numeric" min="0" max="10" step="1" value={values.children} onChange={set("children")} {...a11y("children")} />
+              </Field>
+              <Field id="cq-cabins" label="Cabins" error={errors.cabins}>
+                <input id="cq-cabins" name="cabins" type="number" inputMode="numeric" min="1" max="10" step="1" value={values.cabins} onChange={set("cabins")} {...a11y("cabins")} />
               </Field>
               {departures.length > 0 && (
                 <Field id="cq-departureDate" label="Departure date" optional error={errors.departureDate}>

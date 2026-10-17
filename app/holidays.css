@@ -877,18 +877,20 @@
 
 /* ── Card Footer ── */
 .hol-pkg-footer {
-  padding: 14px 20px 18px;
+  padding: 14px 12px 18px;
   background: #fff;
   border-top: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
 }
 
 .hol-pkg-price-col {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .hol-pkg-from {
@@ -910,8 +912,40 @@
 .hol-pkg-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   flex-shrink: 0;
+}
+
+.hol-pkg-quote,
+a.hol-pkg-quote,
+.mk a.hol-pkg-quote,
+.hol-page a.hol-pkg-quote {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 108px;
+  min-height: 42px;
+  padding: 0 16px !important;
+  border: 1px solid var(--mk-primary) !important;
+  border-radius: 999px;
+  background: var(--mk-primary) !important;
+  color: #ffffff !important;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.hol-pkg-quote:hover,
+.hol-pkg-quote:focus-visible,
+.mk a.hol-pkg-quote:hover,
+.mk a.hol-pkg-quote:focus-visible,
+.hol-page a.hol-pkg-quote:hover,
+.hol-page a.hol-pkg-quote:focus-visible {
+  background: var(--mk-primary-dark) !important;
+  border-color: var(--mk-primary-dark) !important;
+  color: #ffffff !important;
 }
 
 .hol-pkg-btn,
@@ -921,8 +955,8 @@ a.hol-pkg-btn,
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 38px !important;
-  height: 38px !important;
+  width: 42px !important;
+  height: 42px !important;
   border-radius: 10px !important;
   border: 1px solid #e2e8f0 !important;
   background: #f8fafc !important;
@@ -2099,10 +2133,10 @@ a.hol-pkg-btn-wa:focus,
 
 .hol-booking-card {
   padding: 24px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(32, 149, 174, 0.24);
   border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(15, 36, 84, 0.06);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdfe 100%);
+  box-shadow: 0 14px 34px rgba(15, 36, 84, 0.09);
 }
 
 .hol-booking-card-head {
@@ -2135,9 +2169,9 @@ a.hol-pkg-btn-wa:focus,
   justify-content: space-between;
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d4e8ed;
   border-radius: 12px;
-  background: #f8fafc;
+  background: #f4fafb;
   color: #0f2454;
   font-size: 14px;
   font-weight: 600;
@@ -2146,12 +2180,18 @@ a.hol-pkg-btn-wa:focus,
 }
 
 .hol-picker-input-box:hover {
-  border-color: #cbd5e1;
+  border-color: var(--mk-primary);
   background: #ffffff;
 }
 
+.hol-picker-input-box:focus-visible {
+  outline: 2px solid rgba(32, 149, 174, 0.28);
+  outline-offset: 2px;
+  border-color: var(--mk-primary);
+}
+
 .hol-input-icon {
-  color: #64748b;
+  color: var(--mk-primary);
   flex-shrink: 0;
 }
 
@@ -2268,8 +2308,8 @@ a.hol-pkg-btn-wa:focus,
   gap: 12px;
   padding: 12px;
   border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #eef8fa;
+  border: 1px solid #cce7ed;
   margin: 16px 0 14px;
 }
 
@@ -2365,9 +2405,9 @@ a.hol-pkg-btn-wa:focus,
   gap: 8px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #f8fafc;
+  background: #f4fafb;
   margin-bottom: 12px;
-  border: 1px solid #edf2f7;
+  border: 1px solid #dceef2;
   font-size: 12.5px;
 }
 
@@ -2390,20 +2430,20 @@ a.hol-pkg-btn-wa:focus,
 .hol-breakdown-free-badge {
   padding: 2px 6px;
   border-radius: 4px;
-  background: #dcfce7;
-  color: #16a34a;
+  background: #dff3f6;
+  color: #147f95;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.5px;
 }
 
 .hol-breakdown-row.is-savings {
-  color: #16a34a;
+  color: #147f95;
   font-weight: 600;
 }
 
 .hol-breakdown-save-num {
-  color: #16a34a;
+  color: #147f95;
   font-weight: 800;
 }
 
@@ -2488,8 +2528,8 @@ a.hol-pkg-btn-wa:focus,
 .hol-save-pill {
   padding: 2px 8px;
   border-radius: 6px;
-  background: #fee2e2;
-  color: #dc2626;
+  background: #dff3f6;
+  color: #147f95;
   font-size: 11px;
   font-weight: 700;
 }
@@ -2551,20 +2591,66 @@ a.hol-pkg-btn-wa:focus,
   height: 48px;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  background: linear-gradient(135deg, var(--mk-primary) 0%, #167f98 100%);
   color: #ffffff;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.2px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.32);
+  box-shadow: 0 5px 16px rgba(32, 149, 174, 0.3);
   transition: background 0.18s ease, box-shadow 0.18s ease;
 }
 
 .hol-btn-proceed-book:hover,
 .hol-btn-get-quote:hover {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.42);
+  background: linear-gradient(135deg, #167f98 0%, var(--mk-navy) 100%);
+  box-shadow: 0 7px 20px rgba(15, 36, 84, 0.28);
+}
+
+.hol-btn-proceed-book:focus-visible,
+.hol-btn-get-quote:focus-visible {
+  outline: 3px solid rgba(32, 149, 174, 0.3);
+  outline-offset: 3px;
+}
+
+.hol-booking-contact-btn,
+.mk a.hol-booking-contact-btn,
+.hol-page a.hol-booking-contact-btn {
+  display: grid !important;
+  place-items: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  padding: 0 !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--mk-navy) !important;
+  text-decoration: none !important;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.hol-booking-contact-btn:hover,
+.hol-booking-contact-btn:focus-visible,
+.mk a.hol-booking-contact-btn:hover,
+.mk a.hol-booking-contact-btn:focus-visible,
+.hol-page a.hol-booking-contact-btn:hover,
+.hol-page a.hol-booking-contact-btn:focus-visible {
+  display: grid !important;
+  background: #eef8fa;
+  border-color: var(--mk-primary);
+  color: var(--mk-primary-dark) !important;
+}
+
+.hol-booking-contact-btn:focus-visible {
+  outline: 3px solid rgba(32, 149, 174, 0.25);
+  outline-offset: 2px;
+}
+
+.hol-booking-contact-btn svg {
+  display: block;
+  width: 19px;
+  height: 19px;
 }
 
 /* ── Free Cancellation Trust Box ── */
@@ -2575,8 +2661,8 @@ a.hol-pkg-btn-wa:focus,
   margin-top: 14px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  background: #eef8fa;
+  border: 1px solid #c2e4eb;
 }
 
 .hol-free-canc-icon {
@@ -2585,8 +2671,8 @@ a.hol-pkg-btn-wa:focus,
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  background: #d1fae5;
-  color: #059669;
+  background: #d8f0f5;
+  color: var(--mk-primary);
   flex-shrink: 0;
 }
 
@@ -2599,13 +2685,13 @@ a.hol-pkg-btn-wa:focus,
 .hol-free-canc-text strong {
   font-size: 13px;
   font-weight: 800;
-  color: #065f46;
+  color: var(--mk-navy);
   line-height: 1.2;
 }
 
 .hol-free-canc-text p {
   font-size: 11.5px;
-  color: #047857;
+  color: #38677a;
   margin: 0;
   line-height: 1.3;
 }

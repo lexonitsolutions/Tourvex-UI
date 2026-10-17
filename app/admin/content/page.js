@@ -74,7 +74,9 @@ function ContentList() {
     const needle = q.trim().toLowerCase();
     return needle ? docs.filter((d) => `${d.label || ""} ${d.key}`.toLowerCase().includes(needle)) : docs;
   }, [docs, q]);
-  const pages = filtered.filter((d) => d.kind !== "global");
+  const companyKeys = new Set(["page.about", "page.services", "page.team", "page.partners"]);
+  const companyPages = filtered.filter((d) => companyKeys.has(d.key));
+  const pages = filtered.filter((d) => d.kind !== "global" && !companyKeys.has(d.key));
   const globals = filtered.filter((d) => d.kind === "global");
 
   async function preview(doc) {
@@ -116,7 +118,8 @@ function ContentList() {
       ) : (
         <div className="adm-cms-lists">
           <Group title="Pages" docs={pages} start={0} {...common} />
-          <Group title="Global" docs={globals} start={pages.length} {...common} />
+          <Group title="Company Pages" docs={companyPages} start={pages.length} {...common} />
+          <Group title="Global" docs={globals} start={pages.length + companyPages.length} {...common} />
         </div>
       )}
     </>

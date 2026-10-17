@@ -18,7 +18,9 @@ import {
   HolidayWhatsAppButton,
   IconCheck,
   IconChevron,
+  IconMail,
   IconMoon,
+  IconPhone,
   IconPin,
   IconStar,
   IconWhatsApp,
@@ -1064,6 +1066,24 @@ function BookingCardContent({
         >
           Get Quote
         </button>
+
+        <a
+          href="tel:+97142000000"
+          className="hol-booking-contact-btn"
+          aria-label={`Call us about ${pkg?.title || "this holiday package"}`}
+          title="Call us"
+        >
+          <IconPhone />
+        </a>
+
+        <Link
+          href={`/contact?subject=${encodeURIComponent(`Enquiry: ${pkg?.title || "Holiday"}`)}`}
+          className="hol-booking-contact-btn"
+          aria-label={`Email us about ${pkg?.title || "this holiday package"}`}
+          title="Email us"
+        >
+          <IconMail />
+        </Link>
 
         <HolidayWhatsAppButton
           message={waMessage}

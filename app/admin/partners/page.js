@@ -134,7 +134,11 @@ function PartnerDrawer({ id, canWrite, onClose, onAct }) {
             {p.b2bRole ? <span className="adm-chip">{humanize(p.b2bRole)}</span> : null}
           </div>
           <KeyValue items={[
+            { label: "Reference", value: p.applicationReference || "-" },
             { label: "Contact", value: p.name },
+            { label: "Business type", value: p.businessType || "-" },
+            { label: "Category", value: p.partnershipCategory || "-" },
+            { label: "Location", value: [p.city, p.country].filter(Boolean).join(", ") || "-" },
             { label: "Phone", value: p.phone },
             { label: "Website", value: p.website ? <a className="adm-link" href={p.website} target="_blank" rel="noopener noreferrer">{p.website}</a> : "-" },
             { label: "Submitted", value: p.submittedAt ? formatDateTime(p.submittedAt) : "-" },
@@ -144,6 +148,7 @@ function PartnerDrawer({ id, canWrite, onClose, onAct }) {
             { label: "Credit terms", value: p.profile ? `${p.profile.creditTermsDays} days${p.profile.creditLimitAed != null ? `, limit ${formatMoney(p.profile.creditLimitAed)}` : ""}` : "-" },
             { label: "Customer profile", value: <Link className="adm-link" href={`/admin/customers/${p.id}`}>Open</Link> },
           ]} />
+          {p.businessDescription ? <div className="adm-message"><b>Business description</b><br />{p.businessDescription}</div> : null}
           {p.message ? <div className="adm-message">{p.message}</div> : null}
           <Card title={`Bookings (${p.stats.bookings})`} flush>
             <div style={{ padding: "var(--adm-s3) var(--adm-s4)" }}>

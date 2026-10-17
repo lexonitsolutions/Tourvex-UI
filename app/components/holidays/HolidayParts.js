@@ -285,8 +285,6 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
     `Hello Karnish Tourism! I am interested in booking the "${item?.title || "holiday"}" package (${durationText}). Please share details.`
   );
   const waUrl = `https://wa.me/971500000000?text=${waText}`;
-  const telUrl = `tel:+97142000000`;
-  const mailUrl = `/contact?subject=${encodeURIComponent(`Enquiry: ${item?.title || "Holiday"}`)}`;
 
   const stopProp = (e) => e.stopPropagation();
   const moveImage = useCallback((direction) => {
@@ -416,22 +414,6 @@ export const HolidayPackageCard = memo(function HolidayPackageCard({ item, revea
 
         <div className="hol-pkg-actions" onClick={stopProp}>
           <Link href={detailHref} className="hol-pkg-quote" aria-label={`Get a quote for ${item?.title}`}>Get Quote</Link>
-          <a
-            href={telUrl}
-            className="hol-pkg-btn hol-pkg-btn-call"
-            aria-label={`Call us about ${item?.title}`}
-          >
-            <IconPhone />
-          </a>
-
-          <Link
-            href={mailUrl}
-            className="hol-pkg-btn hol-pkg-btn-mail"
-            aria-label={`Send enquiry for ${item?.title}`}
-          >
-            <IconMail />
-          </Link>
-
           <HolidayWhatsAppButton item={item} size="card" />
         </div>
       </div>
